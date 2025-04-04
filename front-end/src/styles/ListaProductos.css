@@ -1,0 +1,10 @@
+.lista-container{
+    height: 94vh;
+   
+}
+.productos-container{
+    background: rgb(206, 206, 206);
+    margin: 15px;
+    padding: 10px;
+    border-radius: 10px;
+}

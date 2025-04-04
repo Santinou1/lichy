@@ -1,0 +1,11 @@
+.no-items-container{
+    background: rgb(161, 161, 161);
+    
+    border-radius: 10px;
+    margin: 10px 0px 10px 0px;
+    padding: 10px;
+}
+.no-items-titulo{
+    color: rgb(86, 86, 86);
+    font-style: italic;
+}

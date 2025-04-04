@@ -1,0 +1,39 @@
+.contenedor-detalle-container{
+    background: rgb(206, 206, 206);
+    margin: 10px 25px 10px 25px;
+    border-radius: 10px;
+    height: auto;
+    padding: 10px;
+}
+table, th, td {
+    border: 1px solid black;
+  }
+.encabezados-container{
+    display: flex;
+    justify-content: space-between;
+}
+.encabezados-titulo{
+    display: flex;
+    justify-content: space-between;
+}
+.historial-form-container{
+    display: flex;
+    justify-content: space-between;
+    margin: 10px;
+}
+.productos-lista{
+    background-color: white;
+    border-radius: 10px;
+    border: 1px solid black;
+    padding: 5px;
+}
+.detalles-container{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    
+    justify-content: space-around;
+}
+.no-mostrar{
+    display: none;
+}

@@ -1,0 +1,12 @@
+.producto-container{
+    display: flex;
+    margin: 10px;
+}
+.linea-producto{
+    margin: 0px;
+}
+.datos-actuales-producto{
+    width: 95%;
+    display: flex;
+    justify-content: space-around;
+}

@@ -1,0 +1,25 @@
+.contenedor-login{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 95vh;
+    width: 100%;
+    
+}
+.login-form{
+    display: flex;
+    max-width: 500px;
+    flex-direction: column;
+}
+.titulo-login{
+    font-family: "Playfair Display", serif;
+    text-align: center;
+}
+.input-login{
+    width: 98%;
+    margin-bottom: 10px;
+}
+.boton-login{
+    margin-top: 10px;
+    width: 100%;
+}

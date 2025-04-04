@@ -1,0 +1,13 @@
+.contenedores-container{
+    padding: 10px;
+    background: rgb(206, 206, 206);
+    margin: 10px;
+    border-radius: 10px;
+}
+.titulo{
+    margin: 0px;
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+.input-buscar{
+    height: 30px;
+}

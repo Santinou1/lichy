@@ -1,0 +1,20 @@
+.nuevo-contenedor-container{
+    background: rgb(206, 206, 206);
+    margin: 10px;
+    border-radius: 10px;
+    padding: 10px;
+    width: 40%;
+    justify-self: center;
+    align-self: center;
+    
+}
+.input-container{
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+.input-nuevoContenedor{
+    padding: 2px;
+    height: 28px;
+    font-size: 17px;
+}
