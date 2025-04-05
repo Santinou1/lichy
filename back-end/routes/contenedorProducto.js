@@ -12,7 +12,7 @@ async function obtenerProductoContenedor(req,res){
     try{
         const id = req.params.id;
         const query = `
-        SELECT  idContenedorProductos,p.nombre,p.idProducto, cp.cantidad, cp.unidad,cp.precioPorUnidad, c.nombre AS color,cp.contenedor, c.idColor, cp.item_proveedor FROM ContenedorProductos  cp JOIN Producto p ON cp.producto = p.idProducto 
+        SELECT  idContenedorProductos,p.nombre,p.idProducto, cp.cantidad, cp.unidad,cp.precioPorUnidad, c.nombre AS color,cp.contenedor, c.idColor, cp.item_proveedor, cp.cantidadAlternativa, cp.unidadAlternativa FROM ContenedorProductos  cp JOIN Producto p ON cp.producto = p.idProducto 
         LEFT JOIN color c ON cp.color = c.idColor
         WHERE idContenedorProductos = ?; 
         `
@@ -27,7 +27,7 @@ async function obtenerProductosDeContenedor(req,res){
     try {
         const id = req.params.id;
         const query = `
-        SELECT  idContenedorProductos,p.nombre,p.idProducto, cp.cantidad, cp.unidad,cp.precioPorUnidad, c.nombre AS color,cp.contenedor, c.idColor FROM ContenedorProductos  cp JOIN Producto p ON cp.producto = p.idProducto 
+        SELECT  idContenedorProductos,p.nombre,p.idProducto, cp.cantidad, cp.unidad,cp.precioPorUnidad, c.nombre AS color,cp.contenedor, c.idColor, cp.cantidadAlternativa, cp.unidadAlternativa FROM ContenedorProductos  cp JOIN Producto p ON cp.producto = p.idProducto 
         LEFT JOIN color c ON cp.color = c.idColor
         WHERE cp.contenedor = ?; `;
         const [results] = await pool.promise().query(query, [id]);
@@ -40,15 +40,24 @@ async function obtenerProductosDeContenedor(req,res){
 
 async function agregarProductoDeContenedor(req,res){
     try {
-        const {contenedor, producto,cantidad,unidad,color,precioPorUnidad} = req.body;
+        const {contenedor, producto,cantidad,unidad,color,precioPorUnidad,cantidadAlternativa,unidadAlternativa} = req.body;
+        
+        // Validar que la unidad alternativa sea correcta según la unidad principal
+        let unidadAltValidada = unidadAlternativa;
+        if (unidad === 'm' || unidad === 'kg') {
+            unidadAltValidada = 'rollos';
+        } else if (unidad === 'uni') {
+            unidadAltValidada = 'cajas';
+        }
+        
         const connection = pool;
-        connection.query('INSERT INTO ContenedorProductos(contenedor,producto,cantidad,unidad,color,precioPorUnidad) VALUES(?,?,?,?,?,?);',[contenedor,producto,cantidad,unidad,color,precioPorUnidad],(err,results)=>{
+        connection.query('INSERT INTO ContenedorProductos(contenedor,producto,cantidad,unidad,color,precioPorUnidad,cantidadAlternativa,unidadAlternativa) VALUES(?,?,?,?,?,?,?,?);',[contenedor,producto,cantidad,unidad,color,precioPorUnidad,cantidadAlternativa,unidadAltValidada],(err,results)=>{
             if(err){
                 console.error('Error ejecutando la consulta:', err);
                 return res.status(500).send('Error en el servidor.');
             }
             const query = `
-                SELECT  idContenedorProductos,p.nombre,p.idProducto, cp.cantidad, cp.unidad,cp.precioPorUnidad, c.nombre AS color, c.idColor FROM ContenedorProductos  cp JOIN Producto p ON cp.producto = p.idProducto 
+                SELECT  idContenedorProductos,p.nombre,p.idProducto, cp.cantidad, cp.unidad,cp.precioPorUnidad, c.nombre AS color, c.idColor, cp.cantidadAlternativa, cp.unidadAlternativa FROM ContenedorProductos  cp JOIN Producto p ON cp.producto = p.idProducto 
                 LEFT JOIN color c ON cp.color = c.idColor
                 WHERE cp.contenedor = ?; `;
             connection.query(query,[contenedor],(err,results)=>{
@@ -70,16 +79,27 @@ async function editarProductoDeContenedor(req,res){
     try{
      
         const id =req.params.id;
-        const {producto,cantidad,unidad,color,contenedor,precioPorUnidad,coloresAsignados,item_proveedor,motivo, dataAnterior,usuarioCambio} = req.body;
+        const {producto,cantidad,unidad,color,contenedor,precioPorUnidad,coloresAsignados,item_proveedor,motivo,dataAnterior,usuarioCambio,cantidadAlternativa,unidadAlternativa} = req.body;
+        
+        // Validar que la unidad alternativa sea correcta según la unidad principal
+        let unidadAltValidada = unidadAlternativa;
+        if (unidad === 'm' || unidad === 'kg') {
+            unidadAltValidada = 'rollos';
+        } else if (unidad === 'uni') {
+            unidadAltValidada = 'cajas';
+        }
         console.log(req.body);
         console.log(coloresAsignados);
         if (coloresAsignados && coloresAsignados.length > 0) {
             let cambiosTexto = `Cambios: desglose de colores al producto: (${dataAnterior.nombre})\n`;
             for (const colorAsignado of coloresAsignados) {
                 const insertQuery = ` 
-                    INSERT INTO ContenedorProductos (contenedor, producto, cantidad, unidad, color, precioPorUnidad)
-                    VALUES (?, ?, ?, ?, ?, ?);
+                    INSERT INTO ContenedorProductos (contenedor, producto, cantidad, unidad, color, precioPorUnidad, cantidadAlternativa, unidadAlternativa)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
                 `;
+                // Validar que la unidad alternativa sea correcta según la unidad principal para cada color
+                let unidadAltColorValidada = unidadAltValidada;
+                
                 await connection.promise().query(insertQuery, [
                     contenedor, // contenedor (usamos el mismo contenedor)
                     producto, // producto (el mismo producto)
@@ -87,6 +107,8 @@ async function editarProductoDeContenedor(req,res){
                     unidad, // unidad (la misma unidad)
                     parseInt(colorAsignado.color), // color asignado
                     precioPorUnidad, // precio por unidad (el mismo)
+                    cantidadAlternativa || null, // cantidad alternativa
+                    unidadAltColorValidada // unidad alternativa validada
                 ]);
                 cambiosTexto += `(${colorAsignado.color}) -> cantidad: ${colorAsignado.cantidad}\n`;
             }
@@ -115,10 +137,12 @@ async function editarProductoDeContenedor(req,res){
             unidad = ?,
             color=?,
             precioPorUnidad=?,
-            item_proveedor = ?
+            item_proveedor = ?,
+            cantidadAlternativa = ?,
+            unidadAlternativa = ?
             WHERE idContenedorProductos = ?;
         `
-            await connection.promise().query(query,[producto,cantidad,unidad,color,precioPorUnidad,item_proveedor,id],(err,results)=>{
+            await connection.promise().query(query,[producto,cantidad,unidad,color,precioPorUnidad,item_proveedor,cantidadAlternativa,unidadAltValidada,id],(err,results)=>{
                 if(err){
                     console.error('Error ejecutando la consulta:', err);
                     return res.status(500).send('Error en el servidor.');
@@ -131,7 +155,9 @@ async function editarProductoDeContenedor(req,res){
                 precioPorUnidad:precioPorUnidad,
                 idColor:color,
                 item_proveedor:item_proveedor,
-                contenedor:contenedor}
+                contenedor:contenedor,
+                cantidadAlternativa:cantidadAlternativa,
+                unidadAlternativa:unidadAltValidada}
             let cambios = generarTextoCambios(dataAnterior, actualizado);
             const sqlInsert = `INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?);`; 
             await connection.promise().query(sqlInsert, [id, contenedor, 'UPDATE', cambios, usuarioCambio, motivo]);
