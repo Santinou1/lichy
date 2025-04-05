@@ -81,6 +81,8 @@ CREATE TABLE ContenedorProductos(
     item_proveedor VARCHAR(200),
     color INT,
     cantidadBulto INT,
+    cantidadAlternativa INT,
+    unidadAlternativa ENUM ('rollos', 'cajas'),
     PRIMARY KEY(idContenedorProductos),
     tipoBulto ENUM ('rollos','cajas'),
     FOREIGN KEY(contenedor) REFERENCES Contenedor(idContenedor) ON DELETE CASCADE,

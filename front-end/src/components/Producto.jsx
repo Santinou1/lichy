@@ -38,6 +38,8 @@ function Producto({user,producto, onActualizar, contenedor}){
             unidad: productoActualizado.unidad,
             color: productoActualizado.idColor,
             precioPorUnidad: productoActualizado.precioPorUnidad,
+            cantidadAlternativa: productoActualizado.cantidadAlternativa,
+            unidadAlternativa: productoActualizado.unidadAlternativa,
             coloresAsignados: coloresAsignados,
             contenedor: contenedor,
         };
@@ -58,10 +60,25 @@ function Producto({user,producto, onActualizar, contenedor}){
     }
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setProductoActualizado({
+        
+        // Crear una copia del estado actual para modificarlo
+        const nuevoEstado = {
             ...productoActualizado,
             [name]: value,
-        });
+        };
+        
+        // Si se está cambiando la unidad, actualizar automáticamente la unidad alternativa
+        if (name === 'unidad') {
+            if (value === 'm' || value === 'kg') {
+                nuevoEstado.unidadAlternativa = 'rollos';
+            } else if (value === 'uni') {
+                nuevoEstado.unidadAlternativa = 'cajas';
+            } else {
+                nuevoEstado.unidadAlternativa = null;
+            }
+        }
+        
+        setProductoActualizado(nuevoEstado);
     };
     useEffect(()=>{
         axios.get('http://localhost:3000/api/items/color').then((response)=>{
@@ -80,6 +97,9 @@ function Producto({user,producto, onActualizar, contenedor}){
                     <label><b>{producto.nombre}</b></label>
                     <label>Color: <b>{producto.color || 'Sin color'}</b></label>
                     <label>Cantidad: <b>{producto.cantidad ? `${producto.cantidad} ${producto.unidad}`: 'Sin cantidad'}</b></label>
+                    {producto.cantidadAlternativa && producto.unidadAlternativa && (
+                        <label>Cantidad Alt.: <b>{`${producto.cantidadAlternativa} ${producto.unidadAlternativa}`}</b></label>
+                    )}
                     <label>FOB: <b>${producto.precioPorUnidad}</b></label>
                     <label>Costo: <b>${(producto.precioPorUnidad*producto.cantidad).toFixed(2)}</b></label>
                 </div> :
@@ -124,6 +144,32 @@ function Producto({user,producto, onActualizar, contenedor}){
                         <option value='uni'>uni</option>
                     </select>
                     <input type='number' name='precioPorUnidad' placeholder='Precio por unidad' value={productoActualizado.precioPorUnidad || ''} onChange={handleInputChange} />
+                    
+                    <div style={{ marginTop: '10px', borderTop: '1px dashed #ccc', paddingTop: '10px' }}>
+                        <h4>Medición Alternativa</h4>
+                        <input
+                            type='number'
+                            name='cantidadAlternativa'
+                            placeholder='Cantidad alternativa'
+                            value={productoActualizado.cantidadAlternativa || ''}
+                            onChange={handleInputChange}
+                        />
+                        <select
+                            name='unidadAlternativa'
+                            value={productoActualizado.unidadAlternativa || ''}
+                            disabled={true} // Siempre deshabilitado, se selecciona automáticamente
+                        >
+                            <option value='' disabled>Seleccionar unidad alternativa</option>
+                            <option value='rollos'>Rollos</option>
+                            <option value='cajas'>Cajas</option>
+                        </select>
+                        <p style={{ fontSize: '0.8em', color: '#666' }}>
+                            {productoActualizado.unidad === 'm' || productoActualizado.unidad === 'kg' ? 'Para productos medidos en m o kg, se usa automáticamente rollos' : 
+                            productoActualizado.unidad === 'uni' ? 'Para productos medidos en unidades, se usa automáticamente cajas' : 
+                            'Seleccione una unidad principal primero'}
+                        </p>
+                    </div>
+                    
                 <button type='submit'>Actualizar</button>
             </form>
             <ConfirmarEliminar id={producto.idContenedorProductos} tipo={'ContenedorProducto'} />
