@@ -116,12 +116,15 @@ function ContendorDetalle({user}){
            
             <table style={{width:'40%', background:'white',marginBottom:'20px'}}>
                 
+                <thead>
                 <tr style={{width:'40%', background:'gray'}}>
                     <th>Estado</th>
                     <th>Ubicación</th>
                     <th>Fecha asignada</th> 
                     <th>Fecha de creacion</th>         
                 </tr>
+                </thead>
+                <tbody>
                 {
                     historial && historial.length > 1 ? historial.slice(0, -1).map((item,index)=>(
                         <tr key={index}>
@@ -131,10 +134,15 @@ function ContendorDetalle({user}){
                             <th>{fechaISOtoReadable(item.fechaHora)}</th>    
                         </tr>
                     )):<>
-                        <th>No hay estados anteriores</th>
+                        <tr>
+                            <th>Contenedor Creado</th>
+                            <th>-</th>
+                            <th>{data ? fechaISOtoReadable(data.fechaCreacion || new Date().toISOString()) : fechaISOtoReadable(new Date().toISOString())}</th>
+                            <th>{data ? fechaISOtoReadable(data.fechaCreacion || new Date().toISOString()) : fechaISOtoReadable(new Date().toISOString())}</th>
+                        </tr>
                     </>
                 }
-        
+                </tbody>
             </table>
             {
                 mostrarActualizarEstado && historial ? <ActualizarEstado

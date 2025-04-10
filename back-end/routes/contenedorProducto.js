@@ -100,6 +100,14 @@ async function editarProductoDeContenedor(req,res){
                 // Validar que la unidad alternativa sea correcta según la unidad principal para cada color
                 let unidadAltColorValidada = unidadAltValidada;
                 
+                // Calcular la cantidad alternativa proporcional para este color
+                let cantidadAltProporcional = null;
+                if (cantidadAlternativa && dataAnterior.cantidad > 0) {
+                    // Calcular proporción basada en la cantidad de este color vs la cantidad total original
+                    const proporcion = colorAsignado.cantidad / dataAnterior.cantidad;
+                    cantidadAltProporcional = Math.round((cantidadAlternativa * proporcion) * 100) / 100;
+                }
+                
                 await connection.promise().query(insertQuery, [
                     contenedor, // contenedor (usamos el mismo contenedor)
                     producto, // producto (el mismo producto)
@@ -107,10 +115,10 @@ async function editarProductoDeContenedor(req,res){
                     unidad, // unidad (la misma unidad)
                     parseInt(colorAsignado.color), // color asignado
                     precioPorUnidad, // precio por unidad (el mismo)
-                    cantidadAlternativa || null, // cantidad alternativa
+                    cantidadAltProporcional, // cantidad alternativa proporcional para este color
                     unidadAltColorValidada // unidad alternativa validada
                 ]);
-                cambiosTexto += `(${colorAsignado.color}) -> cantidad: ${colorAsignado.cantidad}\n`;
+                cambiosTexto += `(${colorAsignado.color}) -> cantidad: ${colorAsignado.cantidad}, cantidad alternativa: ${cantidadAltProporcional || 'N/A'}\n`;
             }
             
             const sqlInsert = `
