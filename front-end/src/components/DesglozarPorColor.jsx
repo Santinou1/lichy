@@ -31,34 +31,73 @@ function DesglozarPorcolor({ producto, colores, onColoresAsignadosChange, onCant
     };
 
     return (
-        <div>
-            <label>Cantidad: {cantidadRestante}/{producto.cantidad}</label>
-            <label>Color:</label>
-            <select onChange={(e) => setColorSeleccionado(parseInt(e.target.value))}>
-                <option value={0}>Sin color</option>
-                {colores.map((color) => (
-                    <option key={color.idColor} value={color.idColor}>
-                        {color.nombre}
-                    </option>
-                ))}
-            </select>
-            <input
-                type="number"
-                placeholder="Cantidad"
-                min="1"
-                max={cantidadRestante}
-                value={cantidadAsignada}
-                onChange={(e) => setCantidadAsignada(parseInt(e.target.value))}
-            />
-            <button onClick={agregarColor}>Agregar color</button>
+        <div style={{ padding: '10px', border: '1px solid #ccc', borderRadius: '5px', marginTop: '10px' }}>
+            <div style={{ marginBottom: '15px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                    <label style={{ marginRight: '10px', fontWeight: 'bold' }}>Cantidad disponible:</label>
+                    <span>{cantidadRestante}/{producto.cantidad} {producto.unidad}</span>
+                </div>
+                
+                <div style={{ marginBottom: '10px' }}>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Color:</label>
+                    <select 
+                        style={{ padding: '5px', width: '100%', marginBottom: '10px' }}
+                        onChange={(e) => setColorSeleccionado(parseInt(e.target.value))}
+                    >
+                        <option value={0}>Sin color</option>
+                        {colores.map((color) => (
+                            <option key={color.idColor} value={color.idColor}>
+                                {color.nombre}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                
+                <div style={{ marginBottom: '10px' }}>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Cantidad a asignar:</label>
+                    <input
+                        style={{ padding: '5px', width: '100%', marginBottom: '10px' }}
+                        type="number"
+                        placeholder="Cantidad"
+                        min="1"
+                        max={cantidadRestante}
+                        value={cantidadAsignada}
+                        onChange={(e) => setCantidadAsignada(parseInt(e.target.value) || 0)}
+                    />
+                </div>
+                
+                <button 
+                    style={{ 
+                        padding: '8px 15px', 
+                        backgroundColor: '#4CAF50', 
+                        color: 'white', 
+                        border: 'none', 
+                        borderRadius: '4px', 
+                        cursor: 'pointer' 
+                    }}
+                    onClick={agregarColor}
+                >
+                    Agregar color
+                </button>
+            </div>
 
             {coloresAsignados.length > 0 && (
-                coloresAsignados.map((item, index) => (
-                    <div key={index}>
-                        <label>{colores.find((c) => c.idColor === item.color)?.nombre}</label>
-                        <label>Cantidad: {item.cantidad}</label>
-                    </div>
-                ))
+                <div style={{ marginTop: '20px', borderTop: '1px dashed #ccc', paddingTop: '10px' }}>
+                    <h4 style={{ marginBottom: '10px' }}>Colores asignados:</h4>
+                    {coloresAsignados.map((item, index) => (
+                        <div key={index} style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            padding: '8px', 
+                            backgroundColor: '#f9f9f9', 
+                            marginBottom: '5px',
+                            borderRadius: '4px'
+                        }}>
+                            <span style={{ fontWeight: 'bold' }}>{colores.find((c) => c.idColor === item.color)?.nombre || 'Sin color'}</span>
+                            <span>Cantidad: {item.cantidad} {producto.unidad}</span>
+                        </div>
+                    ))}
+                </div>
             )}
         </div>
     );
