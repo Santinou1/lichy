@@ -64,15 +64,15 @@ function ContendorDetalle({user}){
     }
     useEffect(()=>{
         console.log(id)
-        axios.get(`http://localhost:3000/api/contenedores/contenedor-detalle/${id}`).then((response)=>{
+        axios.get(`http://localhost:5000/api/contenedores/contenedor-detalle/${id}`).then((response)=>{
             setData(response.data[0]);
             console.log(response.data);
         });
-        axios.get(`http://localhost:3000/api/contenedorEstado/${id}`).then((response)=>{
+        axios.get(`http://localhost:5000/api/contenedorEstado/${id}`).then((response)=>{
             console.log(response.data); 
             setHistorial(response.data);
         });
-        axios.get(`http://localhost:3000/api/contenedorProducto/${id}`).then((response)=>{
+        axios.get(`http://localhost:5000/api/contenedorProducto/${id}`).then((response)=>{
             setProductos(response.data);
         });
 

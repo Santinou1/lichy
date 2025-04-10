@@ -42,7 +42,7 @@ function Contenedores(){
     },[categoria,busqueda,data,ubicacion]);
     
     useEffect(()=>{
-        axios.get('http://localhost:3000/api/contenedores/').then((response)=>{
+        axios.get('http://localhost:5000/api/contenedores/').then((response)=>{
             console.log(response.data);
             setData(response.data);
             setDataFiltrado(response.data);
@@ -50,13 +50,13 @@ function Contenedores(){
         }).catch((error)=>{
             console.error('Error trayendo los contenedores:', error);
         });
-        axios.get('http://localhost:3000/api/items/categorias').then((response)=>{
+        axios.get('http://localhost:5000/api/items/categorias').then((response)=>{
             console.log(response.data);
             setCategorias(response.data);
 
         }).catch((error)=>{ console.error('Error trayendo las categorias:', error);
         });
-        axios.get('http://localhost:3000/api/items/ubicaciones').then((response)=>{
+        axios.get('http://localhost:5000/api/items/ubicaciones').then((response)=>{
             console.log(response.data);
             setUbicaciones(response.data);
         }).catch((error)=>{ console.error('Error trayendo las ubicaciones:', error);

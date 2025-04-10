@@ -7,7 +7,7 @@ function ActualizarDetalles({data, setData, actualizarDetalles}){
     const [nuevaData, setNuevaData] = useState(data); 
     const onSubmit= (e) =>{
         e.preventDefault();
-        axios.put(`http://localhost:3000/api/contenedores/detalle/${data.idContenedor}`,nuevaData).then((response)=>{
+        axios.put(`http://localhost:5000/api/contenedores/detalle/${data.idContenedor}`,nuevaData).then((response)=>{
             console.log(response.data[0])
             setData(response.data[0]);
             actualizarDetalles();
@@ -24,7 +24,7 @@ function ActualizarDetalles({data, setData, actualizarDetalles}){
     }
     useEffect(()=>{
         console.log(nuevaData)
-        axios.get('http://localhost:3000/api/items/proveedor/').then((response)=>{
+        axios.get('http://localhost:5000/api/items/proveedor/').then((response)=>{
 
             setProveedores(response.data);
         });

@@ -29,7 +29,7 @@ function ConfirmarEliminar({id,tipo,actualizarLista,usuario,motivo,contenedor}){
                 if(!motivo && !contenedor && (tipo === 'ContenedorProducto')){
                     throw new Error('Falta el encabezado X-Motivo.');
                 };
-                const response = await fetch(`http://localhost:3000/api/${ruta}/${id}`, {
+                const response = await fetch(`http://localhost:5000/api/${ruta}/${id}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',

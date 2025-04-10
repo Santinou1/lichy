@@ -45,7 +45,7 @@ function Producto({user,producto, onActualizar, contenedor}){
         };
         console.log(coloresAsignados)
         try {
-            const response = await axios.put(`http://localhost:3000/api/contenedorProducto/${producto.idContenedorProductos}`, datosActualizados);
+            const response = await axios.put(`http://localhost:5000/api/contenedorProducto/${producto.idContenedorProductos}`, datosActualizados);
             if (response.status === 200) {
                 
                 
@@ -81,10 +81,10 @@ function Producto({user,producto, onActualizar, contenedor}){
         setProductoActualizado(nuevoEstado);
     };
     useEffect(()=>{
-        axios.get('http://localhost:3000/api/items/color').then((response)=>{
+        axios.get('http://localhost:5000/api/items/color').then((response)=>{
             setColores(response.data);
         });
-        axios.get('http://localhost:3000/api/items/producto').then((response)=>{
+        axios.get('http://localhost:5000/api/items/producto').then((response)=>{
             setProductos(response.data);
         });
     },[]);

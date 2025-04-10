@@ -4,7 +4,7 @@ function ListaDeUsuarios({ usuarios, setUsuarios }){
 
     useEffect(()=>{
 
-        axios.get('http://localhost:3000/api/usuarios/test').then((response)=>{
+        axios.get('http://localhost:5000/api/usuarios/test').then((response)=>{
             setUsuarios(response.data);
         }).catch((error) => {
             console.error("Error al obtener la lista de usuarios:", error);

@@ -13,7 +13,7 @@ function ListaProductos() {
   // Obtener datos de la API
   useEffect(() => {
     axios
-      .get("http://localhost:3000/api/producto/sin-contenedor")
+      .get("http://localhost:5000/api/producto/sin-contenedor")
       .then((response) => {
         setProductosSinContenedor(response.data);
       })
@@ -22,7 +22,7 @@ function ListaProductos() {
       });
 
     axios
-      .get("http://localhost:3000/api/producto/con-contenedor")
+      .get("http://localhost:5000/api/producto/con-contenedor")
       .then((response) => {
         setProductosConContenedor(response.data);
       })
