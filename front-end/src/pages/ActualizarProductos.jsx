@@ -37,7 +37,7 @@ function ActualizarProductos(){
         setCantidadRestante(nuevaCantidadRestante);
     };
     useEffect(()=>{
-        axios.get(`http://localhost:3000/api/contenedorProducto/producto/${id}`).then((response)=>{
+        axios.get(`http://localhost:5000/api/contenedorProducto/producto/${id}`).then((response)=>{
             console.log(response.data[0]);
             setContendorProducto(response.data[0]);
             setDataAnterior(response.data[0]);
@@ -48,15 +48,15 @@ function ActualizarProductos(){
         }).catch((error)=>{
             console.error("Error trayendo producto de contenedor:", error);
         });
-        axios.get('http://localhost:3000/api/items/color').then((response)=>{
+        axios.get('http://localhost:5000/api/items/color').then((response)=>{
             setColores(response.data);
         }).catch((error)=>{
             console.error("Error trayendo colores:", error);
         });
-        axios.get('http://localhost:3000/api/items/color').then((response)=>{
+        axios.get('http://localhost:5000/api/items/color').then((response)=>{
             setColores(response.data);
         });
-        axios.get('http://localhost:3000/api/items/producto').then((response)=>{
+        axios.get('http://localhost:5000/api/items/producto').then((response)=>{
             setProductos(response.data);
         });
     },[]);
@@ -89,7 +89,7 @@ function ActualizarProductos(){
         };
         console.log(coloresAsignados)
         try {
-            const response = await axios.put(`http://localhost:3000/api/contenedorProducto/${contenedorProducto.idContenedorProductos}`, datosActualizados);
+            const response = await axios.put(`http://localhost:5000/api/contenedorProducto/${contenedorProducto.idContenedorProductos}`, datosActualizados);
             if (response.status === 200) {
                 
                 

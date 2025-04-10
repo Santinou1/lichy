@@ -11,7 +11,7 @@ function agregarProducto({setAgregarProducto,contenedor,actualizarLista}){
 
     
     useEffect(()=>{
-        axios.get('http://localhost:3000/api/items/producto').then((response)=>{
+        axios.get('http://localhost:5000/api/items/producto').then((response)=>{
             setProductos(response.data);
         });
     },[])
@@ -67,7 +67,7 @@ function agregarProducto({setAgregarProducto,contenedor,actualizarLista}){
             unidadAlternativa: unidadAlternativa
         }
         try{
-            const response = await axios.post('http://localhost:3000/api/contenedorProducto', datos);
+            const response = await axios.post('http://localhost:5000/api/contenedorProducto', datos);
             if(response.status === 200){
                 alert('Producto agregado correctamente');
                 setAgregarProducto(false);

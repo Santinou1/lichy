@@ -48,11 +48,11 @@ async function agregarContenedor(req,res){
                     console.warn('Producto no encontrado:', producto);
                 }
             }else{ 
-                const [nuevoProducto] = await connection.promise().query('INSERT INTO Producto (nombre, unidadPredeterminada, tipoBultoPredeterminado) VALUES (?,?)',[nombre,unidad,tipoBulto]);
+                const [nuevoProducto] = await connection.promise().query('INSERT INTO Producto (nombre, unidadPredeterminada, tipoBultoPredeterminado) VALUES (?,?,?)',[nombre,unidad,tipoBulto]);
                 productoId = nuevoProducto.insertId;
             }
 
-            await connection.promise().query('INSERT INTO ContenedorProductos (contenedor,producto,unidad,cantidad,precioPorUnidad,tipoBulto, cantidadBulto,item_proveedor) VALUES (?,?,?,?,?,?)',[idContenedor, productoId, unidad,cantidad,precioPorUnidad,tipoBulto,cantidadBulto,item_proveedor]);
+            await connection.promise().query('INSERT INTO ContenedorProductos (contenedor,producto,unidad,cantidad,precioPorUnidad,tipoBulto,cantidadBulto,item_proveedor) VALUES (?,?,?,?,?,?,?,?)',[idContenedor, productoId, unidad,cantidad,precioPorUnidad,tipoBulto,cantidadBulto,item_proveedor]);
         }
         await connection.promise().query('INSERT INTO ContenedorEstado (contenedor,estado,ubicacion) VALUES (?,?,?)',[idContenedor,'COMPRADO','FALTA DISPONER']);
         res.json({success:true, idContenedor: idContenedor});

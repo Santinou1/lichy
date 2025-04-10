@@ -5,7 +5,7 @@ function ActualizarCategoria({setMostrarActualizarCategoria,setData,id,categoria
     const [categorias, setCategorias]  = useState([]);
     const [categoria, setCategoria]  = useState(categoriaDetalle);
     useEffect(()=>{
-        axios.get('http://localhost:3000/api/items/categorias').then((response)=>{
+        axios.get('http://localhost:5000/api/items/categorias').then((response)=>{
             console.log(response.data);
             setCategorias(response.data);
 
@@ -15,7 +15,7 @@ function ActualizarCategoria({setMostrarActualizarCategoria,setData,id,categoria
 
     const actualizarCategoria = (e)=>{
         e.preventDefault();
-        axios.put(`http://localhost:3000/api/contenedores/categoria/${id}`,{categoria}).then((response)=>{
+        axios.put(`http://localhost:5000/api/contenedores/categoria/${id}`,{categoria}).then((response)=>{
             console.log(response.data);
             const categoriaNueva = response.data[0].categoria;
             setData({...setData, categoria: categoriaNueva});

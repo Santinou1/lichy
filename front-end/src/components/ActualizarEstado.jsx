@@ -8,14 +8,14 @@ function ActualizarEstado({setHistorial, contenedor, actualizarEstado,estad,ubic
     const [fechaManual, setFechaManual] = useState('');
     const [ubicaciones, setUbicaciones] = useState(null);
     useEffect(()=>{
-        axios.get('http://localhost:3000/api/items/categorias').then((response)=>{
+        axios.get('http://localhost:5000/api/items/categorias').then((response)=>{
             console.log(response.data);
             setEstados(response.data);
 
         })
     },[]);
     useEffect(()=>{
-        axios.post('http://localhost:3000/api/items/ubicaciones',{estado: estado}).then((response)=>{
+        axios.post('http://localhost:5000/api/items/ubicaciones',{estado: estado}).then((response)=>{
             console.log(response.data);
             setUbicaciones(response.data);
 
@@ -23,7 +23,7 @@ function ActualizarEstado({setHistorial, contenedor, actualizarEstado,estad,ubic
     },[estado]);
     const onSubmit = (e) =>{
         e.preventDefault();
-        axios.post('http://localhost:3000/api/contenedorEstado/',{contenedor,ubicacion,estado,fechaManual}).then((response)=>{
+        axios.post('http://localhost:5000/api/contenedorEstado/',{contenedor,ubicacion,estado,fechaManual}).then((response)=>{
             setHistorial(response.data);
             actualizarEstado(estado);
         }).catch((error)=>{

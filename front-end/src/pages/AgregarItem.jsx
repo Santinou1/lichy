@@ -17,7 +17,7 @@ function AgregarItem() {
     }, [item]);
 
     const fetchItems = () => {
-        axios.get(`http://localhost:3000/api/items/${item}`)
+        axios.get(`http://localhost:5000/api/items/${item}`)
             .then((response) => {
                 setItems(response.data);
             })
@@ -31,7 +31,7 @@ function AgregarItem() {
         
         if (isEditing) {
             // Lógica para actualizar
-            axios.put(`http://localhost:3000/api/items/${item}/${editingId}`, 
+            axios.put(`http://localhost:5000/api/items/${item}/${editingId}`, 
                 item === 'color' ? { nombre, codigoInterno } : { nombre }
             )
             .then((response) => {
@@ -45,8 +45,9 @@ function AgregarItem() {
             });
         } else {
             // Lógica para crear nuevo
-            axios.post(`http://localhost:3000/api/items/${item}`, 
-                item === 'producto' ? { nombre, unidadPredeterminada } : { nombre }
+            axios.post(`http://localhost:5000/api/items/${item}`, 
+                item === 'producto' ? { nombre, unidadPredeterminada } : 
+                item === 'color' ? { nombre, codigoInterno } : { nombre }
             )
             .then((response) => {
                 if (response.status === 200) {

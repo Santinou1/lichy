@@ -57,11 +57,22 @@ async function actualizarColor(req,res){
         const {nombre, codigoInterno} = req.body;
         const id = req.params.id;
         const connection = pool;
+        
+        // Asegurarse de que codigoInterno sea una cadena de texto
+        const codigoInternoValue = codigoInterno || '';
+        
         const [updateResults] = await connection.promise().query(
             `UPDATE color SET nombre = ?, codigoInterno = ? WHERE idColor = ?`,
-            [nombre, codigoInterno, id]
+            [nombre, codigoInternoValue, id]
         );
-        res.json(updateResults);
+        
+        // Obtener el color actualizado para devolverlo
+        const [colorActualizado] = await connection.promise().query(
+            `SELECT * FROM color WHERE idColor = ?`,
+            [id]
+        );
+        
+        res.json(colorActualizado[0]);
     }catch(error){
         console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
@@ -118,12 +129,16 @@ async function obtenerColores(req,res){
 async function agregarColor(req,res){
     try{
 
-        const {nombre} = req.body;
+        const {nombre, codigoInterno} = req.body;
         const connection = pool;
         if(!nombre){
             return res.status(400).send('Faltan campos obligatorios');
         }
-        connection.query('INSERT INTO color (nombre) VALUES (?)',[nombre],(err,results)=>{
+        
+        // Asegurarse de que codigoInterno sea una cadena de texto
+        const codigoInternoValue = codigoInterno || '';
+        
+        connection.query('INSERT INTO color (nombre, codigoInterno) VALUES (?, ?)',[nombre, codigoInternoValue],(err,results)=>{
             if(err){
                 console.error('Error ejecutando la consulta:', err);
                 return res.status(500).send('Error en el servidor.');

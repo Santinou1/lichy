@@ -17,7 +17,7 @@ const UserProvider = ({ children }) => {
     const [error, setError] = useState(null);
     const login = async (email, contrasena) => {
         try {
-            const response = await axios.post('http://localhost:3000/api/usuarios/login', { email, contrasena });
+            const response = await axios.post('http://localhost:5000/api/usuarios/login', { email, contrasena });
             if(response.status === 200) {
                 const userData = response.data;
                 if (typeof userData.permisos === "string") {
