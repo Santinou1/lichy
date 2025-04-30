@@ -11,6 +11,7 @@ function NuevoContenedor() {
     const { user } = useUserContext();
     const { register, handleSubmit, control, setValue, watch } = useForm();
     const [proveedores, setProveedores] = useState([]);
+    const [proveedoresOptions, setProveedoresOptions] = useState([]);
     const [productos, setProductos] = useState([]);
     const [productosSeleccionados, setProductosSeleccionados] = useState([]);
     const [redirigir, setRedirigir] = useState(false);
@@ -21,6 +22,12 @@ function NuevoContenedor() {
         axios.get('http://localhost:5000/api/items/proveedor')
             .then((response) => {
                 setProveedores(response.data);
+                // Formatear los proveedores para react-select
+                const formattedProveedores = response.data.map((item) => ({
+                    value: item.idProveedor.toString(),
+                    label: item.nombre
+                }));
+                setProveedoresOptions(formattedProveedores);
             })
             .catch((error) => {
                 console.error('Error trayendo los proveedores:', error);
@@ -39,6 +46,39 @@ function NuevoContenedor() {
                 console.error('Error trayendo los productos:', error);
             });
     }, []);
+
+    // Manejar la creación de nuevos proveedores
+    const handleCreateProveedor = async (inputValue) => {
+        try {
+            // Crear el proveedor en la base de datos
+            const response = await axios.post('http://localhost:5000/api/items/proveedor', {
+                nombre: inputValue
+            });
+            
+            if (response.status === 200 && response.data.length > 0) {
+                const nuevoProveedor = {
+                    value: response.data[0].idProveedor.toString(),
+                    label: response.data[0].nombre
+                };
+                
+                // Actualizar la lista de proveedores
+                setProveedoresOptions((prev) => [...prev, nuevoProveedor]);
+                setProveedores((prev) => [...prev, response.data[0]]);
+                setValue('proveedor', nuevoProveedor);
+                
+                return nuevoProveedor;
+            }
+        } catch (error) {
+            console.error('Error al crear el proveedor:', error);
+            alert('No se pudo crear el proveedor. Inténtalo de nuevo.');
+        }
+        
+        // Si falla la creación, agregar temporalmente
+        const newOption = { value: `temp-${uuidv4()}`, label: inputValue };
+        setProveedoresOptions((prev) => [...prev, newOption]);
+        setValue('proveedor', newOption);
+        return newOption;
+    };
 
     // Manejar la creación de nuevos productos
     const handleCreateProduct = async (inputValue) => {
@@ -89,6 +129,7 @@ function NuevoContenedor() {
         setUnidadDeshabilitada(false);
         return newOption;
     };
+    
     // Agregar un producto a la lista
     const agregarProducto = () => {
         const productoActual = watch('producto');
@@ -140,6 +181,11 @@ function NuevoContenedor() {
         }
         setValue('producto', selectedOption);
     };
+    
+    const handleProveedorChange = (selectedOption) => {
+        setValue('proveedor', selectedOption);
+    };
+    
     // Enviar el formulario
     const onSubmit = async (data) => {
         try {
@@ -174,8 +220,30 @@ function NuevoContenedor() {
                 }
             }
             
+            // Verificar si el proveedor es temporal y crearlo en la base de datos
+            let proveedorId = data.proveedor.value;
+            if (proveedorId.startsWith('temp-')) {
+                try {
+                    const response = await axios.post('http://localhost:5000/api/items/proveedor', {
+                        nombre: data.proveedor.label
+                    });
+                    
+                    if (response.status === 200 && response.data.length > 0) {
+                        proveedorId = response.data[0].idProveedor;
+                    } else {
+                        alert('No se pudo crear el proveedor. Verifica los datos e intenta nuevamente.');
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error al crear el proveedor:', error);
+                    alert('Error al crear el proveedor. Por favor, intenta nuevamente.');
+                    return;
+                }
+            }
+            
             const dataConUser = {
                 ...data,
+                proveedor: proveedorId,
                 usuario: user.idUsuario,
                 productos: productosActualizados,
             };
@@ -201,15 +269,28 @@ function NuevoContenedor() {
                 <input className='input-nuevoContenedor' {...register('factura')} />
             </div>
             <div className='input-container'>
-                <label htmlFor='proveedor'>Agente:</label>
-                <select className='input-nuevoContenedor' {...register('proveedor')}>
-                    <option value=''>Seleccione un agente</option>
-                    {proveedores.map((item) => (
-                        <option key={item.idProveedor} value={item.idProveedor}>
-                            {item.nombre}
-                        </option>
-                    ))}
-                </select>
+                <label htmlFor='proveedor'>Proveedor:</label>
+                <Controller
+                    name='proveedor'
+                    control={control}
+                    render={({ field }) => (
+                        <CreatableSelect
+                            {...field}
+                            options={proveedoresOptions}
+                            onChange={(selectedOption) => {
+                                handleProveedorChange(selectedOption);
+                                field.onChange(selectedOption);
+                            }}
+                            onCreateOption={handleCreateProveedor}
+                            isClearable
+                            isSearchable
+                            placeholder='Escribe o selecciona un proveedor...'
+                            noOptionsMessage={() => 'No hay coincidencias, presiona Enter para agregar.'}
+                            formatCreateLabel={(inputValue) => `Agregar "${inputValue}"`}
+                            className='text-black'
+                        />
+                    )}
+                />
             </div>
             <div className='input-container'>
                 <label htmlFor='producto'>Producto:</label>
