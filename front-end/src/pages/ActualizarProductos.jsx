@@ -3,7 +3,9 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import ConfirmarEliminar from "../components/ConfirmarEliminar";
 import DesglozarPorcolor from "../components/DesglozarPorColor";
+import CrearColor from "../components/CrearColor";
 import { useUserContext } from "../UserProvider";
+import Select from 'react-select';
 
 function ActualizarProductos() {
 
@@ -11,6 +13,7 @@ function ActualizarProductos() {
     const { id } = useParams();
     const [contenedorProducto, setContendorProducto] = useState(null);
     const [colores, setColores] = useState([]);
+    const [coloresOptions, setColoresOptions] = useState([]);
     const [color, setColor] = useState(false);
     const [producto, setProducto] = useState(null);
     const [productos, setProductos] = useState([]);
@@ -40,6 +43,28 @@ function ActualizarProductos() {
         setCantidadRestante(nuevaCantidadRestante);
     };
 
+    // Manejar la creación de un nuevo color
+    const handleColorCreated = (nuevoColor) => {
+        // Actualizar la lista de colores
+        setColores((prevColores) => [...prevColores, nuevoColor]);
+        
+        // Actualizar las opciones de colores para el Select
+        const newOption = {
+            value: nuevoColor.idColor.toString(),
+            label: nuevoColor.nombre + (nuevoColor.codigoInterno ? ` (${nuevoColor.codigoInterno})` : ''),
+            data: nuevoColor
+        };
+        setColoresOptions((prev) => [...prev, newOption]);
+        
+        // Si estamos en modo de color único, seleccionamos automáticamente el nuevo color
+        if (color) {
+            setContendorProducto((prev) => ({
+                ...prev,
+                idColor: nuevoColor.idColor
+            }));
+        }
+    };
+
     useEffect(() => {
         axios.get(`http://localhost:5000/api/contenedorProducto/producto/${id}`).then((response) => {
             console.log(response.data[0]);
@@ -52,14 +77,21 @@ function ActualizarProductos() {
         }).catch((error) => {
             console.error("Error trayendo producto de contenedor:", error);
         });
+        
         axios.get('http://localhost:5000/api/items/color').then((response) => {
             setColores(response.data);
+            
+            // Formatear los colores para react-select
+            const options = response.data.map(color => ({
+                value: color.idColor.toString(),
+                label: color.nombre + (color.codigoInterno ? ` (${color.codigoInterno})` : ''),
+                data: color
+            }));
+            setColoresOptions(options);
         }).catch((error) => {
             console.error("Error trayendo colores:", error);
         });
-        axios.get('http://localhost:5000/api/items/color').then((response) => {
-            setColores(response.data);
-        });
+        
         axios.get('http://localhost:5000/api/items/producto').then((response) => {
             setProductos(response.data);
         });
@@ -71,10 +103,24 @@ function ActualizarProductos() {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setContendorProducto({
-            ...contenedorProducto,
+        setContendorProducto(prev => ({
+            ...prev,
             [name]: value,
-        });
+        }));
+    };
+
+    const handleColorSelectChange = (selectedOption) => {
+        if (selectedOption) {
+            setContendorProducto(prev => ({
+                ...prev,
+                idColor: parseInt(selectedOption.value)
+            }));
+        } else {
+            setContendorProducto(prev => ({
+                ...prev,
+                idColor: null
+            }));
+        }
     };
 
     const onSubmit = async (e) => {
@@ -86,7 +132,6 @@ function ActualizarProductos() {
         }
 
         const datosActualizados = {
-
             producto: contenedorProducto?.idProducto, // ID del producto
             cantidad: cantidadRestante === 0 ? cantidadRestante : contenedorProducto?.cantidad,
             unidad: contenedorProducto?.unidad,
@@ -101,20 +146,51 @@ function ActualizarProductos() {
             dataAnterior: dataAnterior,
             usuarioCambio: user.idUsuario,
         };
-        console.log(coloresAsignados)
+        
         try {
             const response = await axios.put(`http://localhost:5000/api/contenedorProducto/${contenedorProducto?.idContenedorProductos}`, datosActualizados);
             if (response.status === 200) {
-
                 console.log(response.data);
                 volver();
-
             }
         } catch (error) {
             console.error('Error al actualizar el producto:', error);
             alert('Hubo un error al actualizar el producto.');
         }
     }
+
+    // Encontrar la opción de color seleccionada actualmente
+    const selectedColorOption = coloresOptions.find(
+        option => option.value === (contenedorProducto?.idColor?.toString() || '')
+    );
+
+    // Personalizar los estilos del Select
+    const customStyles = {
+        control: (provided) => ({
+            ...provided,
+            minHeight: '38px',
+            borderRadius: '4px',
+            borderColor: '#ccc',
+            boxShadow: 'none',
+            '&:hover': {
+                borderColor: '#aaa'
+            }
+        }),
+        option: (provided, state) => ({
+            ...provided,
+            backgroundColor: state.isSelected ? '#1976d2' : state.isFocused ? '#e6f7ff' : null,
+            color: state.isSelected ? 'white' : 'black',
+            padding: '8px 12px'
+        }),
+        placeholder: (provided) => ({
+            ...provided,
+            color: '#aaa'
+        }),
+        singleValue: (provided) => ({
+            ...provided,
+            color: '#333'
+        })
+    };
 
     return (
         <div className='nuevo-contenedor-container'>
@@ -137,17 +213,28 @@ function ActualizarProductos() {
                         <label>Color:</label>
                         {
                             color ?
-                                <select value={contenedorProducto?.idColor || ''} onChange={handleInputChange}>
-                                    <option value=''>Seleccionar color</option>
-                                    {colores.map((color) => (
-                                        <option key={color.idColor} value={color.idColor}>
-                                            {color.nombre}
-                                        </option>))}
-                                </select> : <DesglozarPorcolor
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <Select
+                                            options={coloresOptions}
+                                            value={selectedColorOption}
+                                            onChange={handleColorSelectChange}
+                                            placeholder="Buscar o seleccionar color..."
+                                            isClearable
+                                            isSearchable
+                                            styles={customStyles}
+                                            noOptionsMessage={() => "No se encontraron colores"}
+                                        />
+                                    </div>
+                                    <CrearColor onColorCreated={handleColorCreated} />
+                                </div> : 
+                                <DesglozarPorcolor
                                     producto={contenedorProducto}
                                     colores={colores}
+                                    coloresOptions={coloresOptions}
                                     onColoresAsignadosChange={handleColoresAsignadosChange}
                                     onCantidadRestanteChange={handleCantidadRestanteChange}
+                                    onColorCreated={handleColorCreated}
                                 />
                         }
                     </div>

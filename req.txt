@@ -1,6 +1,6 @@
 Tener la posibilidad de crear un agente desde la vista de Agregar Contenedor (Realizado)
 
-En la sección de Actualizar Producto Contenedor se deberá poder crear el color y el código directamente.
+En la sección de Actualizar Producto Contenedor se deberá poder crear el color y el código directamente. (Realizado)
 
 Mejorar el diseño del Historial de Cambios
 
