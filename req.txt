@@ -6,7 +6,7 @@ Mejorar el diseño del Historial de Cambios (Para despues)
 
 En la sección de Agregar Producto del detalle de contenedor tener la posibilidad de crear un producto desde ahi (Realizado)
 
-Sacar el 0 por defecto
+Sacar el 0 por defecto (Realizado)
 
 Si se aprieta el botón de configuración de ítems queda abierto el desplegable.
 

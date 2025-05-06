@@ -3,7 +3,7 @@ import CrearColor from "./CrearColor";
 import Select from 'react-select';
 
 function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAsignadosChange, onCantidadRestanteChange, onColorCreated }) {
-    const [cantidadAsignada, setCantidadAsignada] = useState(0);
+    const [cantidadAsignada, setCantidadAsignada] = useState('');
     const [cantidadRestante, setCantidadRestante] = useState(producto.cantidad);
     const [coloresAsignados, setColoresAsignados] = useState([]);
     const [colorSeleccionado, setColorSeleccionado] = useState(null);
@@ -29,15 +29,18 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
             return;
         }
         
-        if (cantidadAsignada <= cantidadRestante && cantidadAsignada > 0) {
+        // Convertir la cantidad asignada a número para validaciones
+        const cantidadAsignadaNum = parseFloat(cantidadAsignada);
+        
+        if (cantidadAsignadaNum <= cantidadRestante && cantidadAsignadaNum > 0) {
             // Restar la cantidad asignada de la cantidad restante
-            const nuevaCantidadRestante = cantidadRestante - cantidadAsignada;
+            const nuevaCantidadRestante = cantidadRestante - cantidadAsignadaNum;
             setCantidadRestante(nuevaCantidadRestante);
 
             // Agregar el color y la cantidad asignada a la lista
             const nuevosColoresAsignados = [
                 ...coloresAsignados,
-                { color: parseInt(colorSeleccionado.value), cantidad: cantidadAsignada },
+                { color: parseInt(colorSeleccionado.value), cantidad: cantidadAsignadaNum },
             ];
             setColoresAsignados(nuevosColoresAsignados);
 
@@ -46,7 +49,7 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
             onCantidadRestanteChange(nuevaCantidadRestante);
 
             // Reiniciar el input de cantidad asignada y el color seleccionado
-            setCantidadAsignada(0);
+            setCantidadAsignada('');
             setColorSeleccionado(null);
         } else {
             alert("La cantidad asignada no puede ser mayor que la cantidad restante o menor que 1.");
@@ -138,7 +141,7 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
                         min="1"
                         max={cantidadRestante}
                         value={cantidadAsignada}
-                        onChange={(e) => setCantidadAsignada(parseInt(e.target.value) || 0)}
+                        onChange={(e) => setCantidadAsignada(e.target.value)}
                     />
                 </div>
                 
