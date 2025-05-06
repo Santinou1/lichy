@@ -2,9 +2,9 @@ Tener la posibilidad de crear un agente desde la vista de Agregar Contenedor (Re
 
 En la sección de Actualizar Producto Contenedor se deberá poder crear el color y el código directamente. (Realizado)
 
-Mejorar el diseño del Historial de Cambios
+Mejorar el diseño del Historial de Cambios (Para despues)
 
-En la sección de Agregar Producto del detalle de contenedor tener la posibilidad de crear un producto desde ahi
+En la sección de Agregar Producto del detalle de contenedor tener la posibilidad de crear un producto desde ahi (Realizado)
 
 Sacar el 0 por defecto
 
