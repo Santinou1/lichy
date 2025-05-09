@@ -79,7 +79,7 @@ async function editarProductoDeContenedor(req,res){
     try{
      
         const id =req.params.id;
-        const {producto,cantidad,unidad,color,contenedor,precioPorUnidad,coloresAsignados,item_proveedor,motivo,dataAnterior,usuarioCambio,cantidadAlternativa,unidadAlternativa} = req.body;
+        const {producto,cantidad,unidad,color,contenedor,precioPorUnidad,coloresAsignados,item_proveedor,motivo,dataAnterior,usuarioCambio,cantidadAlternativa,unidadAlternativa,actualizarUnidadEnTodosLosProductos} = req.body;
         
         // Validar que la unidad alternativa sea correcta según la unidad principal
         let unidadAltValidada = unidadAlternativa;
@@ -170,6 +170,54 @@ async function editarProductoDeContenedor(req,res){
             const sqlInsert = `INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?);`; 
             await connection.promise().query(sqlInsert, [id, contenedor, 'UPDATE', cambios, usuarioCambio, motivo]);
         } 
+        
+        // Si se solicitó actualizar la unidad en todos los productos relacionados
+        if (actualizarUnidadEnTodosLosProductos && dataAnterior && dataAnterior.unidad !== unidad) {
+            try {
+                // Obtener el ID del producto actual
+                const productoId = producto;
+                
+                // Determinar la nueva unidad alternativa basada en la unidad principal
+                let nuevaUnidadAlternativa = 'rollos';
+                if (unidad === 'uni') {
+                    nuevaUnidadAlternativa = 'cajas';
+                }
+                
+                // Actualizar todos los productos relacionados en todos los contenedores
+                const updateQuery = `
+                    UPDATE ContenedorProductos 
+                    SET unidad = ?, unidadAlternativa = ? 
+                    WHERE producto = ? AND idContenedorProductos != ?
+                `;
+                
+                const [updateResult] = await connection.promise().query(
+                    updateQuery, 
+                    [unidad, nuevaUnidadAlternativa, productoId, id]
+                );
+                
+                console.log(`Se actualizaron ${updateResult.affectedRows} productos relacionados`);
+                
+                // Registrar este cambio masivo en el historial
+                if (updateResult.affectedRows > 0) {
+                    const cambioMasivo = `Cambio masivo de unidad: Se cambió la unidad de '${dataAnterior.unidad}' a '${unidad}' y la unidad alternativa de '${dataAnterior.unidadAlternativa || 'ninguna'}' a '${nuevaUnidadAlternativa}' en ${updateResult.affectedRows} productos relacionados.`;
+                    
+                    const sqlInsertHistorial = `
+                        INSERT INTO ContenedorProductosHistorial 
+                        (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) 
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    `;
+                    
+                    await connection.promise().query(
+                        sqlInsertHistorial, 
+                        [id, contenedor, 'UPDATE', cambioMasivo, usuarioCambio, motivo + ' (Cambio masivo de unidad)']
+                    );
+                }
+            } catch (error) {
+                console.error('Error al actualizar productos relacionados:', error);
+                // No fallamos la operación principal si esto falla
+            }
+        }
+        
         res.status(200).send('Producto actualizado y registrado en el historial.');
             
     }catch(error){
