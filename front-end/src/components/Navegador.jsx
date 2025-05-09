@@ -1,17 +1,48 @@
 import { useNavigate } from "react-router-dom";
 import '../styles/Navegador.css';
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useUserToggleContext } from "../UserProvider";
+
 function Navegador({user}){
     const { logout } = useUserToggleContext();
-    const navigate = useNavigate();
-    const redirigir = (link) =>{
-      navigate(link)
-    }
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const navigate = useNavigate();
+    const dropdownRef = useRef(null);
+    const timeoutRef = useRef(null);
+    
+    const redirigir = (link) =>{
+      navigate(link);
+      setIsDropdownOpen(false); // Cerrar el menú al navegar
+    }
+    
     const toggleDropdown = () => {
       setIsDropdownOpen(!isDropdownOpen);
     };
+    
+    const handleMouseEnter = () => {
+      // Cancelar cualquier timeout pendiente cuando el mouse entra al área
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+    
+    const handleMouseLeave = () => {
+      // Configurar un timeout para cerrar el menú después de un breve retraso
+      // para evitar cierres accidentales cuando el usuario mueve el cursor
+      timeoutRef.current = setTimeout(() => {
+        setIsDropdownOpen(false);
+      }, 300); // 300ms de retraso
+    };
+    
+    // Limpiar el timeout cuando el componente se desmonta
+    useEffect(() => {
+      return () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+      };
+    }, []);
     
     return(
       <div className='contenedor-navegador'>
@@ -35,7 +66,7 @@ function Navegador({user}){
               </li> : <></>
               }
               {
-                user.permisos["Ver-Items"] || user.permisos["Crear-Items"] ? <li style={{ marginRight: "20px", position: "relative" }}>
+                user.permisos["Ver-Items"] || user.permisos["Crear-Items"] ? <li style={{ marginRight: "20px", position: "relative" }} ref={dropdownRef} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
                 <button className="boton-navegador" onClick={toggleDropdown}>
                   Configuración de items
                 </button>
@@ -43,23 +74,17 @@ function Navegador({user}){
                   <ul className="dropdown-menu">
                     <li>
                       <button className="boton-navegador" 
-                      onClick={()=>{redirigir('/ver-items/producto')
-                      toggleDropdown()
-                      }}>
+                      onClick={()=>redirigir('/ver-items/producto')}>
                         Agregar producto
                       </button>
                     </li>
                     <li>
-                      <button className="boton-navegador" onClick={()=>{redirigir('/ver-items/color')
-                         toggleDropdown()
-                      }}>
+                      <button className="boton-navegador" onClick={()=>redirigir('/ver-items/color')}>
                         Agregar Color
                       </button>
                     </li>
                     <li>
-                      <button className="boton-navegador" onClick={()=>{redirigir('/ver-items/proveedor')
-                         toggleDropdown()
-                      }}>
+                      <button className="boton-navegador" onClick={()=>redirigir('/ver-items/proveedor')}>
                         Agregar Proveedor
                       </button>
                     </li>
