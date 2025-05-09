@@ -103,10 +103,29 @@ function ActualizarProductos() {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setContendorProducto(prev => ({
-            ...prev,
-            [name]: value,
-        }));
+        
+        // Si se está cambiando la unidad, actualizar también la unidad alternativa
+        if (name === 'unidad') {
+            let unidadAlternativa = '';
+            
+            // Determinar la unidad alternativa según la nueva unidad principal
+            if (value === 'm' || value === 'kg') {
+                unidadAlternativa = 'rollos';
+            } else if (value === 'uni') {
+                unidadAlternativa = 'cajas';
+            }
+            
+            setContendorProducto(prev => ({
+                ...prev,
+                [name]: value,
+                unidadAlternativa: unidadAlternativa
+            }));
+        } else {
+            setContendorProducto(prev => ({
+                ...prev,
+                [name]: value,
+            }));
+        }
     };
 
     const handleColorSelectChange = (selectedOption) => {
@@ -130,7 +149,10 @@ function ActualizarProductos() {
             console.error('No se puede actualizar: contenedorProducto es null');
             return;
         }
-
+        
+        // Verificar si la unidad ha cambiado con respecto a los datos originales
+        const unidadCambiada = dataAnterior?.unidad !== contenedorProducto?.unidad;
+        
         const datosActualizados = {
             producto: contenedorProducto?.idProducto, // ID del producto
             cantidad: cantidadRestante === 0 ? cantidadRestante : contenedorProducto?.cantidad,
@@ -145,9 +167,25 @@ function ActualizarProductos() {
             motivo: motivo,
             dataAnterior: dataAnterior,
             usuarioCambio: user.idUsuario,
+            // Agregar flag para indicar si se debe actualizar la unidad en todos los productos relacionados
+            actualizarUnidadEnTodosLosProductos: unidadCambiada
         };
         
         try {
+            // Mostrar confirmación si la unidad ha cambiado
+            if (unidadCambiada) {
+                const confirmar = window.confirm(
+                    `Has cambiado la unidad de medida de ${dataAnterior?.unidad} a ${contenedorProducto?.unidad}. \n\n` +
+                    `¿Deseas aplicar este cambio a todos los productos "${producto?.nombre}" en todos los contenedores?\n\n` +
+                    `- Si cambias de m/kg a uni: se cambiará la unidad alternativa de rollos a cajas.\n` +
+                    `- Si cambias entre m y kg: se mantendrá la unidad alternativa como rollos.`
+                );
+                
+                if (!confirmar) {
+                    datosActualizados.actualizarUnidadEnTodosLosProductos = false;
+                }
+            }
+            
             const response = await axios.put(`http://localhost:5000/api/contenedorProducto/${contenedorProducto?.idContenedorProductos}`, datosActualizados);
             if (response.status === 200) {
                 console.log(response.data);
@@ -304,6 +342,13 @@ function ActualizarProductos() {
                                     contenedorProducto?.unidad === 'uni' ? 'Para productos medidos en unidades, se usa automáticamente cajas' :
                                         'Seleccione una unidad principal primero'}
                             </p>
+                            {dataAnterior && dataAnterior.unidad !== contenedorProducto?.unidad && (
+                                <div style={{ marginTop: '5px', padding: '8px', backgroundColor: '#fff3cd', borderRadius: '4px', border: '1px solid #ffeeba' }}>
+                                    <p style={{ fontSize: '0.9em', color: '#856404', margin: 0 }}>
+                                        <strong>Nota:</strong> Has cambiado la unidad de medida. Al guardar, podrás elegir si aplicar este cambio a todos los productos "{producto?.nombre}" en todos los contenedores.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
