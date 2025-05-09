@@ -8,11 +8,11 @@ En la sección de Agregar Producto del detalle de contenedor tener la posibilida
 
 Sacar el 0 por defecto (Realizado)
 
-Si se aprieta el botón de configuración de ítems queda abierto el desplegable.
+Si se aprieta el botón de configuración de ítems queda abierto el desplegable (Realizado).
 
-Que no se borre el estado por defecto.
+Que no se borre el estado por defecto. (Realizado)
 
-Agregar el campo de Fecha Asignada a la hora de Crear contenedor.
+Agregar el campo de Fecha Asignada a la hora de Crear contenedor. (Realizado)
 
 A la hora de actualizar un producto, se tiene que también actualizar el nombre y el número.
 

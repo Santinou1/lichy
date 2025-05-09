@@ -32,6 +32,7 @@ function ContendorDetalle({user}){
     const [productos, setProductos] = useState([]);
     const [data, setData]= useState(null);
     const [historial, setHistorial] = useState(null);
+    const [fechaCreacionOriginal, setFechaCreacionOriginal] = useState(null);
     const {id} = useParams();
     const [agregarProducto, setAgregarProducto] = useState(false);
     const actualizarProductoEnLista = (nuevaListaProductos) => {
@@ -71,6 +72,13 @@ function ContendorDetalle({user}){
         axios.get(`http://localhost:5000/api/contenedorEstado/${id}`).then((response)=>{
             console.log(response.data); 
             setHistorial(response.data);
+            
+            // Obtener la fecha de creación del último registro de historial (el más antiguo)
+            if (response.data && response.data.length > 0) {
+                // El historial viene ordenado por idEstado DESC, por lo que el último elemento es el más antiguo
+                const ultimoEstado = response.data[response.data.length - 1];
+                setFechaCreacionOriginal(ultimoEstado.fechaHora);
+            }
         });
         axios.get(`http://localhost:5000/api/contenedorProducto/${id}`).then((response)=>{
             setProductos(response.data);
@@ -110,7 +118,7 @@ function ContendorDetalle({user}){
                 }
             </div>
             
-            <h3>Estados anteriores:</h3>
+            <h3>Estados del contenedor:</h3>
                 
            <div className='historial-form-container'>
            
@@ -125,23 +133,36 @@ function ContendorDetalle({user}){
                 </tr>
                 </thead>
                 <tbody>
-                {
-                    historial && historial.length > 1 ? historial.slice(0, -1).map((item,index)=>(
+                {/* Mostrar el estado actual primero con un estilo destacado */}
+                {historial && historial.length > 0 && (
+                    <tr style={{backgroundColor: '#e6f7ff', fontWeight: 'bold'}}>
+                        <th>{historial[0].estado} (Actual)</th>
+                        <th>{historial[0].ubicacion}</th>
+                        <th>{fechaISOtoReadable(historial[0]?.fechaManual)}</th>
+                        <th>{fechaISOtoReadable(historial[0].fechaHora)}</th>    
+                    </tr>
+                )}
+                
+                {/* Mostrar los estados anteriores */}
+                {historial && historial.length > 1 ? 
+                    historial.slice(1).map((item, index) => (
                         <tr key={index}>
                             <th>{item.estado}</th>
                             <th>{item.ubicacion}</th>
                             <th>{fechaISOtoReadable(item?.fechaManual)}</th>
                             <th>{fechaISOtoReadable(item.fechaHora)}</th>    
                         </tr>
-                    )):<>
-                        <tr>
-                            <th>Contenedor Creado</th>
-                            <th>-</th>
-                            <th>{data ? fechaISOtoReadable(data.fechaCreacion || new Date().toISOString()) : fechaISOtoReadable(new Date().toISOString())}</th>
-                            <th>{data ? fechaISOtoReadable(data.fechaCreacion || new Date().toISOString()) : fechaISOtoReadable(new Date().toISOString())}</th>
-                        </tr>
-                    </>
+                    ))
+                    : null
                 }
+                
+                {/* Mostrar el estado inicial "Contenedor Creado" al final */}
+                <tr style={{backgroundColor: '#f5f5f5'}}>
+                    <th>Contenedor Creado</th>
+                    <th>-</th>
+                    <th>{fechaCreacionOriginal ? fechaISOtoReadable(fechaCreacionOriginal) : '-'}</th>
+                    <th>{fechaCreacionOriginal ? fechaISOtoReadable(fechaCreacionOriginal) : '-'}</th>
+                </tr>
                 </tbody>
             </table>
             {
