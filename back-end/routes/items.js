@@ -14,6 +14,7 @@ router.put('/producto/:id',actualizarProducto);
 router.get('/categorias',obtenerCategorias);
 router.post('/ubicaciones', obtenerUbicacionesPorEstado);
 router.get('/ubicaciones', obtenerUbicaciones);
+router.get('/:item', obtenerItemsPorTipo);
 
 async function obtenerProveedores(req,res){
     try {
@@ -169,13 +170,13 @@ async function obtenerProductos(req,res){
 
 async function agregarProducto(req,res){    
     try{
-        const {nombre, unidadPredeterminada} = req.body;
+        const {nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado} = req.body;
         console.log(req.body);
         const connection = pool;
-        if(!nombre || !unidadPredeterminada){
-            return res.status(400).send('Faltan campos obligatorios');
+        if(!nombre || !unidadPredeterminada || !codigoInterno){
+            return res.status(400).send('Faltan campos obligatorios (nombre, unidad o código interno)');
         }
-        connection.query('INSERT INTO Producto (nombre, unidadPredeterminada) VALUES (?,?)',[nombre,unidadPredeterminada],(err,results)=>{
+        connection.query('INSERT INTO Producto (nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado) VALUES (?,?,?,?)',[nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado || null],(err,results)=>{
             if(err){
                 console.error('Error ejecutando la consulta:', err);
                 return res.status(500).send('Error en el servidor.');
@@ -227,4 +228,35 @@ async function obtenerUbicaciones(req,res){
         return res.status(500).send('Error en el servidor.');
     }
 }
+async function obtenerItemsPorTipo(req, res) {
+    try {
+        const { item } = req.params;
+        let results;
+        
+        console.log(`Obteniendo items de tipo: ${item}`);
+        
+        switch(item) {
+            case 'producto':
+                [results] = await pool.promise().query('SELECT * FROM Producto');
+                break;
+            case 'color':
+                [results] = await pool.promise().query('SELECT * FROM Color');
+                break;
+            case 'proveedor':
+                [results] = await pool.promise().query('SELECT * FROM Proveedor');
+                break;
+            default:
+                return res.status(400).send(`Tipo de item no válido: ${item}`);
+        }
+        
+        console.log(`Se encontraron ${results.length} items de tipo ${item}`);
+        console.log('Muestra de datos:', results.slice(0, 2));
+        
+        res.json(results);
+    } catch (error) {
+        console.error(`Error obteniendo items de tipo ${req.params.item}:`, error);
+        return res.status(500).send('Error en el servidor.');
+    }
+}
+
 module.exports = router;

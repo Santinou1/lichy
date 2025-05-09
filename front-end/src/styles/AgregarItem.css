@@ -1,23 +1,214 @@
-.principal-container{
+.principal-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;   
     width: 100%;
-    height: 100vh;          /* Asegura que el contenedor ocupe toda la altura de la pantalla */
+    min-height: 100vh;
+    box-sizing: border-box;
+    padding: 20px 0;
+}
+
+.agregar-container {
+    background: rgb(240, 240, 240);
+    width: 50%;
+    margin: 10px;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.lista-item-container {
+    background: rgb(240, 240, 240);
+    margin: 10px;
+    width: 50%;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.titulo {
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+.input-container {
+    margin-bottom: 15px;
+}
+
+.input-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #333;
+}
+
+.input-container input,
+.input-container select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
     box-sizing: border-box;
 }
-.agregar-container{
-    background: rgb(206, 206, 206);
-    width: 50%;
-    margin: 10px;
-    padding: 15px;
-    border-radius: 10px;
+
+.input-container input:focus,
+.input-container select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
-.lista-item-container{
-    background: rgb(206, 206, 206);
-    margin: 10px;
-    width: 50%;
+
+.error-input {
+    border-color: #dc3545 !important;
+}
+
+.error-text {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+}
+
+.info-text {
+    color: #6c757d;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+    font-style: italic;
+}
+
+.readonly-input {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+}
+
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.required {
+    color: #dc3545;
+}
+
+.buttons-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.submit-button,
+.cancel-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.submit-button {
+    background-color: #007bff;
+    color: white;
+}
+
+.submit-button:hover {
+    background-color: #0069d9;
+}
+
+.cancel-button {
+    background-color: #6c757d;
+    color: white;
+}
+
+.cancel-button:hover {
+    background-color: #5a6268;
+}
+
+/* Estilos para la lista de items */
+.lista-item-container ul {
+    list-style: none;
+    padding: 0;
+}
+
+.lista-item-container li {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
     padding: 15px;
-    border-radius: 10px;
+    margin-bottom: 12px;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease;
+}
+
+.lista-item-container li:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.item-info {
+    flex: 1;
+}
+
+.item-name {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.item-details {
+    display: flex;
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.detail-label {
+    font-weight: 500;
+    color: #666;
+    margin-right: 5px;
+    min-width: 100px;
+}
+
+.detail-value {
+    color: #333;
+}
+
+.item-actions {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 15px;
+}
+
+.edit-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.edit-button:hover {
+    background-color: #0069d9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .agregar-container,
+    .lista-item-container {
+        width: 90%;
+    }
 }
