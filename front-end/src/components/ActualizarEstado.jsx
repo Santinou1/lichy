@@ -5,7 +5,12 @@ function ActualizarEstado({setHistorial, contenedor, actualizarEstado,estad,ubic
     const [estado, setEstado] = useState(estad);
     const [ubicacion, setUbicacion] = useState('');
     const [estados, setEstados] = useState(null);
-    const [fechaManual, setFechaManual] = useState('');
+    
+    // Formatear la fecha actual en formato YYYY-MM-DD para usarla como valor por defecto
+    const hoy = new Date();
+    const fechaActual = hoy.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    
+    const [fechaManual, setFechaManual] = useState(fechaActual);
     const [ubicaciones, setUbicaciones] = useState(null);
     useEffect(()=>{
         axios.get('http://localhost:5000/api/items/categorias').then((response)=>{
@@ -23,7 +28,11 @@ function ActualizarEstado({setHistorial, contenedor, actualizarEstado,estad,ubic
     },[estado]);
     const onSubmit = (e) =>{
         e.preventDefault();
-        axios.post('http://localhost:5000/api/contenedorEstado/',{contenedor,ubicacion,estado,fechaManual}).then((response)=>{
+        
+        // Si no se ha especificado una fecha, usar la fecha actual
+        const fechaAEnviar = fechaManual || fechaActual;
+        
+        axios.post('http://localhost:5000/api/contenedorEstado/',{contenedor,ubicacion,estado,fechaManual: fechaAEnviar}).then((response)=>{
             setHistorial(response.data);
             actualizarEstado(estado);
         }).catch((error)=>{
@@ -53,8 +62,14 @@ function ActualizarEstado({setHistorial, contenedor, actualizarEstado,estad,ubic
                     ))
                 }
             </select>
-            <lable>Fecha: </lable>
-            <input type='date' value={fechaManual} onChange={(e)=>{setFechaManual(e.target.value)}} required/>
+            <label>Fecha: </label>
+            <input 
+                type='date' 
+                value={fechaManual} 
+                onChange={(e)=>{setFechaManual(e.target.value)}} 
+                placeholder={fechaActual}
+                title="Si no selecciona una fecha, se usará la fecha actual"
+            />
             <button >Cambiar estado</button>
         </form>
     );

@@ -18,6 +18,7 @@ function ActualizarProductos() {
     const [producto, setProducto] = useState(null);
     const [productos, setProductos] = useState([]);
     const [motivo, setMotivo] = useState('');
+    const [codigoInterno, setCodigoInterno] = useState('');
     const [cantidadRestante, setCantidadRestante] = useState(0);
     const [coloresAsignados, setColoresAsignados] = useState([]);
     const [dataAnterior, setDataAnterior] = useState(null);
@@ -67,15 +68,13 @@ function ActualizarProductos() {
 
     useEffect(() => {
         axios.get(`http://localhost:5000/api/contenedorProducto/producto/${id}`).then((response) => {
-            console.log(response.data[0]);
+            console.log(response.data);
             setContendorProducto(response.data[0]);
             setDataAnterior(response.data[0]);
-            setCantidadRestante(response.data[0].cantidad);
-            setColor(response.data[0].idColor);
-            setProducto(response.data[0].idProducto);
-
+            setCantidadRestante(response.data[0]?.cantidad || 0);
+            setCodigoInterno(response.data[0]?.codigoInterno || '');
         }).catch((error) => {
-            console.error("Error trayendo producto de contenedor:", error);
+            console.error('Error obteniendo los datos:', error);
         });
         
         axios.get('http://localhost:5000/api/items/color').then((response) => {
@@ -150,6 +149,18 @@ function ActualizarProductos() {
             return;
         }
         
+        // Validar que el motivo sea obligatorio
+        if (!motivo.trim()) {
+            alert('Debe ingresar un motivo para la actualización');
+            return;
+        }
+        
+        // Validar que el código interno sea obligatorio
+        if (!codigoInterno.trim()) {
+            alert('Debe ingresar un código interno para el producto');
+            return;
+        }
+        
         // Verificar si la unidad ha cambiado con respecto a los datos originales
         const unidadCambiada = dataAnterior?.unidad !== contenedorProducto?.unidad;
         
@@ -164,6 +175,7 @@ function ActualizarProductos() {
             coloresAsignados: coloresAsignados,
             contenedor: contenedorProducto?.contenedor,
             item_proveedor: contenedorProducto?.item_proveedor,
+            codigoInterno: codigoInterno,
             motivo: motivo,
             dataAnterior: dataAnterior,
             usuarioCambio: user.idUsuario,
@@ -275,6 +287,17 @@ function ActualizarProductos() {
                                     onColorCreated={handleColorCreated}
                                 />
                         }
+                    </div>
+                    <div className='input-container'>
+                        <label>Código Interno: <span style={{ color: 'red' }}>*</span></label>
+                        <input
+                            type='text'
+                            name='codigoInterno'
+                            value={codigoInterno}
+                            onChange={(e) => setCodigoInterno(e.target.value)}
+                            placeholder="Ingrese el código interno"
+                            required
+                        />
                     </div>
                     <div className='input-container'>
                         <label>Cantidad:</label>

@@ -12,7 +12,9 @@ async function obtenerProductoContenedor(req,res){
     try{
         const id = req.params.id;
         const query = `
-        SELECT  idContenedorProductos,p.nombre,p.idProducto, cp.cantidad, cp.unidad,cp.precioPorUnidad, c.nombre AS color,cp.contenedor, c.idColor, cp.item_proveedor, cp.cantidadAlternativa, cp.unidadAlternativa FROM ContenedorProductos  cp JOIN Producto p ON cp.producto = p.idProducto 
+        SELECT  idContenedorProductos, p.nombre, p.idProducto, p.codigoInterno, cp.cantidad, cp.unidad, cp.precioPorUnidad, c.nombre AS color, cp.contenedor, c.idColor, cp.item_proveedor, cp.cantidadAlternativa, cp.unidadAlternativa 
+        FROM ContenedorProductos cp 
+        JOIN Producto p ON cp.producto = p.idProducto 
         LEFT JOIN color c ON cp.color = c.idColor
         WHERE idContenedorProductos = ?; 
         `
@@ -27,7 +29,9 @@ async function obtenerProductosDeContenedor(req,res){
     try {
         const id = req.params.id;
         const query = `
-        SELECT  idContenedorProductos,p.nombre,p.idProducto, cp.cantidad, cp.unidad,cp.precioPorUnidad, c.nombre AS color,cp.contenedor, c.idColor, cp.cantidadAlternativa, cp.unidadAlternativa FROM ContenedorProductos  cp JOIN Producto p ON cp.producto = p.idProducto 
+        SELECT  idContenedorProductos, p.nombre, p.idProducto, p.codigoInterno, cp.cantidad, cp.unidad, cp.precioPorUnidad, c.nombre AS color, cp.contenedor, c.idColor, cp.cantidadAlternativa, cp.unidadAlternativa 
+        FROM ContenedorProductos cp 
+        JOIN Producto p ON cp.producto = p.idProducto 
         LEFT JOIN color c ON cp.color = c.idColor
         WHERE cp.contenedor = ?; `;
         const [results] = await pool.promise().query(query, [id]);
@@ -57,7 +61,9 @@ async function agregarProductoDeContenedor(req,res){
                 return res.status(500).send('Error en el servidor.');
             }
             const query = `
-                SELECT  idContenedorProductos,p.nombre,p.idProducto, cp.cantidad, cp.unidad,cp.precioPorUnidad, c.nombre AS color, c.idColor, cp.cantidadAlternativa, cp.unidadAlternativa FROM ContenedorProductos  cp JOIN Producto p ON cp.producto = p.idProducto 
+                SELECT  idContenedorProductos, p.nombre, p.idProducto, p.codigoInterno, cp.cantidad, cp.unidad, cp.precioPorUnidad, c.nombre AS color, c.idColor, cp.cantidadAlternativa, cp.unidadAlternativa 
+                FROM ContenedorProductos cp 
+                JOIN Producto p ON cp.producto = p.idProducto 
                 LEFT JOIN color c ON cp.color = c.idColor
                 WHERE cp.contenedor = ?; `;
             connection.query(query,[contenedor],(err,results)=>{
@@ -79,7 +85,7 @@ async function editarProductoDeContenedor(req,res){
     try{
      
         const id =req.params.id;
-        const {producto,cantidad,unidad,color,contenedor,precioPorUnidad,coloresAsignados,item_proveedor,motivo,dataAnterior,usuarioCambio,cantidadAlternativa,unidadAlternativa,actualizarUnidadEnTodosLosProductos} = req.body;
+        const {producto,cantidad,unidad,color,contenedor,precioPorUnidad,coloresAsignados,item_proveedor,motivo,dataAnterior,usuarioCambio,cantidadAlternativa,unidadAlternativa,actualizarUnidadEnTodosLosProductos,codigoInterno} = req.body;
         
         // Validar que la unidad alternativa sea correcta según la unidad principal
         let unidadAltValidada = unidadAlternativa;
@@ -139,18 +145,21 @@ async function editarProductoDeContenedor(req,res){
         }
                 
         }else if(cantidad !== 0){
-            const query = `UPDATE ContenedorProductos SET
-            producto = ?,
-            cantidad = ?,
-            unidad = ?,
-            color=?,
-            precioPorUnidad=?,
-            item_proveedor = ?,
-            cantidadAlternativa = ?,
-            unidadAlternativa = ?
-            WHERE idContenedorProductos = ?;
+            const query = `UPDATE ContenedorProductos cp
+            JOIN Producto p ON cp.producto = p.idProducto
+            SET 
+            cp.producto = ?,
+            cp.cantidad = ?,
+            cp.unidad = ?,
+            cp.color = ?,
+            cp.precioPorUnidad = ?,
+            cp.item_proveedor = ?,
+            cp.cantidadAlternativa = ?,
+            cp.unidadAlternativa = ?,
+            p.codigoInterno = ?
+            WHERE cp.idContenedorProductos = ?;
         `
-            await connection.promise().query(query,[producto,cantidad,unidad,color,precioPorUnidad,item_proveedor,cantidadAlternativa,unidadAltValidada,id],(err,results)=>{
+            await connection.promise().query(query,[producto,cantidad,unidad,color,precioPorUnidad,item_proveedor,cantidadAlternativa,unidadAltValidada,codigoInterno,id],(err,results)=>{
                 if(err){
                     console.error('Error ejecutando la consulta:', err);
                     return res.status(500).send('Error en el servidor.');
@@ -165,7 +174,8 @@ async function editarProductoDeContenedor(req,res){
                 item_proveedor:item_proveedor,
                 contenedor:contenedor,
                 cantidadAlternativa:cantidadAlternativa,
-                unidadAlternativa:unidadAltValidada}
+                unidadAlternativa:unidadAltValidada,
+                codigoInterno:codigoInterno}
             let cambios = generarTextoCambios(dataAnterior, actualizado);
             const sqlInsert = `INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?);`; 
             await connection.promise().query(sqlInsert, [id, contenedor, 'UPDATE', cambios, usuarioCambio, motivo]);

@@ -95,6 +95,7 @@ function Producto({user,producto, onActualizar, contenedor}){
                 !mostrarForm ? 
                 <div className='datos-actuales-producto'>
                     <label><b>{producto.nombre}</b></label>
+                    <label>Código Interno: <b>{producto.codigoInterno || 'Sin código'}</b></label>
                     <label>Color: <b>{producto.color || 'Sin color'}</b></label>
                     <label>Cantidad: <b>{producto.cantidad ? `${producto.cantidad} ${producto.unidad}`: 'Sin cantidad'}</b></label>
                     {producto.cantidadAlternativa && producto.unidadAlternativa && (

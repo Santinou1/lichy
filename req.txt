@@ -23,18 +23,21 @@ Pero no era M y era Unidades , por defecto en los contenedores donde se usa ese 
 Y si de M se cambia a KG que se mantenga todo igual.
 
 
-A la hora de Actualizar un producto y tengas que asignarles color que se pueda buscar por Código o por Nombre, y que se despliegue una lista.
+A la hora de Actualizar un producto y tengas que asignarles color que se pueda buscar por Código o por Nombre, y que se despliegue una lista. (Realizado)
 
-Si no se especifica fecha a la hora de agregar estados que se tome la del día actual.
+Si no se especifica fecha a la hora de agregar estados que se tome la del día actual. (Realizado)
 
-Si posteriormente a la edición de un producto se selecciona “volver” me lleva a una sección de producto-detalle/null.
+Si posteriormente a la edición de un producto se selecciona “volver” me lleva a una sección de producto-detalle/null. (Realizado)
 
-Poder importar todos los detalles de un contenedor mediante un excel.
+Poder importar todos los detalles de un contenedor mediante un excel. (CONSULTAR)
 
-Mostrar en los productos del contenedor tambien su codigo interno.
+Mostrar en los productos del contenedor tambien su codigo interno. (Realizado)
 
-Item proveedor de los detalles de productos se puede eliminar.
+Agregar tambien a la hora de crear producto el codigo interno y actualizar (Realizado)
+(FALTA MEJORAR QUE SE PUEDA CREAR UNI EN LA SECCION DE AGREGAR PRODUCTOS)
 
+Item proveedor de los detalles de productos se puede eliminar. 
+ 
 En los detalles de producto se tiene que ver la ubicacion del contenedor.
 
 Que no te deje actualizar el producto si no introducis el motivo de la actualizacion.
