@@ -16,7 +16,7 @@ Agregar el campo de Fecha Asignada a la hora de Crear contenedor.
 
 A la hora de actualizar un producto, se tiene que también actualizar el nombre y el número.
 
-Mejorar ese campo de Cambiar la unidad de medida.
+Mejorar ese campo de Cambiar la unidad de medida.   
 Por ejemplo.
 Si se crearon contenedores con el producto “sarga PD” Y se asignó como M , y después las cantidad alternativa automáticamente se aginaron como Rollos.
 Pero no era M y era Unidades , por defecto en los contenedores donde se usa ese producto que se cambia de Rollos a Cajas.
