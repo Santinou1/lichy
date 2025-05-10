@@ -34,7 +34,6 @@ Poder importar todos los detalles de un contenedor mediante un excel. (CONSULTAR
 Mostrar en los productos del contenedor tambien su codigo interno. (Realizado)
 
 Agregar tambien a la hora de crear producto el codigo interno y actualizar (Realizado)
-(FALTA MEJORAR QUE SE PUEDA CREAR UNI EN LA SECCION DE AGREGAR PRODUCTOS)
 
 Item proveedor de los detalles de productos se puede eliminar. 
  

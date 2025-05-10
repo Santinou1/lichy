@@ -27,15 +27,51 @@ async function obtenerProveedores(req,res){
 }
 async function actualizarProducto(req,res){
     try {
-        const {nombre, unidadPredeterminada, codigoInterno} = req.body;
+        const {nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado} = req.body;
         const id = req.params.id;
         const connection = pool;
         
-        const [updateResults] = await connection.promise().query(
-            `UPDATE producto SET nombre = ?, unidadPredeterminada = ?, codigoInterno = ? WHERE idProducto = ?`,
-            [nombre, unidadPredeterminada, codigoInterno, id]
-        );
+        console.log('Datos recibidos para actualizar producto:', req.body);
+        console.log('Tipo de unidadPredeterminada:', typeof unidadPredeterminada, 'Valor:', unidadPredeterminada);
+        console.log('Tipo de tipoBultoPredeterminado:', typeof tipoBultoPredeterminado, 'Valor:', tipoBultoPredeterminado);
+        
+        // Asegurar que la unidad predeterminada sea un string no vacío
+        const unidadPredeterminadaValue = String(unidadPredeterminada || '');
+        
+        // Determinar el tipo de bulto según la unidad si no está definido
+        let tipoBultoValue = String(tipoBultoPredeterminado || '');
+        if (!tipoBultoValue && unidadPredeterminadaValue) {
+            const unidadLower = unidadPredeterminadaValue.toLowerCase();
+            if (unidadLower === 'm' || unidadLower === 'kg') {
+                tipoBultoValue = 'rollo'; // Usar 'rollo' para coincidir con el enum
+            } else if (unidadLower === 'uni') {
+                tipoBultoValue = 'caja'; // Usar 'caja' para coincidir con el enum
+            }
+        }
+        
+        // Validar que el valor de tipoBulto sea uno de los permitidos en el enum
+        if (tipoBultoValue && !['rollo', 'caja', 'rollos', 'cajas'].includes(tipoBultoValue)) {
+            console.log(`Valor de tipoBulto '${tipoBultoValue}' no válido, usando valor por defecto`);
+            tipoBultoValue = unidadPredeterminadaValue.toLowerCase() === 'uni' ? 'caja' : 'rollo';
+        }
+        
+        console.log('Valores a actualizar (después de procesar):', {
+            nombre,
+            unidadPredeterminada: unidadPredeterminadaValue,
+            codigoInterno,
+            tipoBultoPredeterminado: tipoBultoValue
+        });
+        
+        const updateQuery = `UPDATE producto SET nombre = ?, unidadPredeterminada = ?, codigoInterno = ?, tipoBultoPredeterminado = ? WHERE idProducto = ?`;
+        const updateValues = [nombre, unidadPredeterminadaValue, codigoInterno, tipoBultoValue, id];
+        
+        console.log('Query de actualización:', updateQuery);
+        console.log('Valores para actualización:', updateValues);
+        
+        const [updateResults] = await connection.promise().query(updateQuery, updateValues);
 
+        console.log('Resultado de actualización:', updateResults);
+        
         if (updateResults.affectedRows === 0) {
             // Si no se actualizó ninguna fila, el producto no existe
             return res.status(404).json({ mensaje: 'Producto no encontrado.' });
@@ -46,8 +82,18 @@ async function actualizarProducto(req,res){
             `SELECT * FROM producto WHERE idProducto = ?`,
             [id]
         );
+        
+        console.log('Producto actualizado (datos crudos):', productoActualizado);
+        
+        // Asegurarse de que ningún campo sea null en la respuesta
+        const producto = productoActualizado[0];
+        if (producto) {
+            producto.unidadPredeterminada = producto.unidadPredeterminada || '';
+            producto.tipoBultoPredeterminado = producto.tipoBultoPredeterminado || '';
+            console.log('Producto procesado para respuesta:', producto);
+        }
 
-        res.json(productoActualizado[0]); // Devolvemos el 
+        res.json(producto); // Devolvemos el producto actualizado
     } catch (error) {
         console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
@@ -161,7 +207,15 @@ async function agregarColor(req,res){
 async function obtenerProductos(req,res){
     try {
         const [results] = await pool.promise().query('SELECT * FROM producto');
-        res.json(results);
+        
+        // Asegurarse de que ningún campo sea null
+        const processedResults = results.map(producto => ({
+            ...producto,
+            unidadPredeterminada: producto.unidadPredeterminada || '',
+            tipoBultoPredeterminado: producto.tipoBultoPredeterminado || ''
+        }));
+        
+        res.json(processedResults);
     } catch (error) {
         console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
@@ -171,26 +225,93 @@ async function obtenerProductos(req,res){
 async function agregarProducto(req,res){    
     try{
         const {nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado} = req.body;
-        console.log(req.body);
+        console.log('Datos recibidos para crear producto:', req.body);
+        console.log('Tipo de unidadPredeterminada:', typeof unidadPredeterminada, 'Valor:', unidadPredeterminada);
+        console.log('Tipo de tipoBultoPredeterminado:', typeof tipoBultoPredeterminado, 'Valor:', tipoBultoPredeterminado);
+        
         const connection = pool;
+        
+        // Validar campos obligatorios
         if(!nombre || !unidadPredeterminada || !codigoInterno){
             return res.status(400).send('Faltan campos obligatorios (nombre, unidad o código interno)');
         }
-        connection.query('INSERT INTO Producto (nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado) VALUES (?,?,?,?)',[nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado || null],(err,results)=>{
-            if(err){
-                console.error('Error ejecutando la consulta:', err);
+        
+        // Asegurar que la unidad predeterminada sea un string no vacío
+        const unidadPredeterminadaValue = String(unidadPredeterminada || '');
+        
+        // Determinar el tipo de bulto según la unidad si no está definido
+        let tipoBultoValue = String(tipoBultoPredeterminado || '');
+        if (!tipoBultoValue && unidadPredeterminadaValue) {
+            const unidadLower = unidadPredeterminadaValue.toLowerCase();
+            if (unidadLower === 'm' || unidadLower === 'kg') {
+                tipoBultoValue = 'rollo'; // Usar 'rollo' para coincidir con el enum
+            } else if (unidadLower === 'uni') {
+                tipoBultoValue = 'caja'; // Usar 'caja' para coincidir con el enum
+            }
+        }
+        
+        // Validar que el valor de tipoBulto sea uno de los permitidos en el enum
+        if (tipoBultoValue && !['rollo', 'caja', 'rollos', 'cajas'].includes(tipoBultoValue)) {
+            console.log(`Valor de tipoBulto '${tipoBultoValue}' no válido, usando valor por defecto`);
+            tipoBultoValue = unidadPredeterminadaValue.toLowerCase() === 'uni' ? 'caja' : 'rollo';
+        }
+        
+        console.log('Valores a insertar (después de procesar):', {
+            nombre,
+            unidadPredeterminada: unidadPredeterminadaValue,
+            codigoInterno,
+            tipoBultoPredeterminado: tipoBultoValue
+        });
+        
+        // Verificar la estructura de la tabla Producto
+        connection.query('DESCRIBE Producto', (err, tableDesc) => {
+            if (err) {
+                console.error('Error obteniendo estructura de tabla:', err);
                 return res.status(500).send('Error en el servidor.');
             }
-            const insertId = results.insertId;
-            connection.query('SELECT * FROM producto WHERE idProducto = ?',[insertId],(err,results)=>{
+            
+            console.log('Estructura de la tabla Producto:', tableDesc);
+            
+            // Continuar con la inserción
+            const insertQuery = 'INSERT INTO Producto (nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado) VALUES (?,?,?,?)';
+            const insertValues = [nombre, unidadPredeterminadaValue, codigoInterno, tipoBultoValue];
+            
+            console.log('Query de inserción:', insertQuery);
+            console.log('Valores para inserción:', insertValues);
+            
+            connection.query(insertQuery, insertValues, (err, results) => {
                 if(err){
-                    console.error('Error ejecutando la consulta:', err);
+                    console.error('Error ejecutando la inserción:', err);
                     return res.status(500).send('Error en el servidor.');
                 }
-                res.json(results);
+                
+                console.log('Resultado de inserción:', results);
+                const insertId = results.insertId;
+                
+                // Verificar qué se guardó realmente
+                connection.query('SELECT * FROM producto WHERE idProducto = ?', [insertId], (err, results) => {
+                    if(err){
+                        console.error('Error consultando el producto creado:', err);
+                        return res.status(500).send('Error en el servidor.');
+                    }
+                    
+                    console.log('Producto creado (datos crudos):', results);
+                    
+                    // Asegurarse de que los campos estén definidos antes de enviar la respuesta
+                    if (results && results.length > 0) {
+                        const producto = results[0];
+                        producto.unidadPredeterminada = producto.unidadPredeterminada || '';
+                        producto.tipoBultoPredeterminado = producto.tipoBultoPredeterminado || '';
+                        console.log('Producto procesado para respuesta:', producto);
+                        res.json([producto]);
+                    } else {
+                        console.log('No se encontró el producto recién creado');
+                        res.json(results);
+                    }
+                });
             });
         });
-    }catch(error){
+    } catch(error) {
         console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
     }
@@ -205,23 +326,20 @@ async function obtenerCategorias(req,res) {
         console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
     }
-    
 }
-
 async function obtenerUbicacionesPorEstado(req,res){
-    try{
+    try {
         const { estado } = req.body;
-        const query = `SELECT * FROM ubicacion WHERE estado = ?`
-        const [results] = await pool.promise().query(query ,[estado]);
+        const [results] = await pool.promise().query('SELECT * FROM ubicaciones WHERE estado = ?', [estado]);
         res.json(results);
-    } catch (error){
+    } catch (error) {
         console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
     }
 }
 async function obtenerUbicaciones(req,res){
     try {
-        const [results] = await pool.promise().query('SELECT * FROM ubicacion');
+        const [results] = await pool.promise().query('SELECT * FROM ubicaciones');
         res.json(results);
     } catch (error) {
         console.error('Error ejecutando la consulta:', error);
@@ -230,31 +348,37 @@ async function obtenerUbicaciones(req,res){
 }
 async function obtenerItemsPorTipo(req, res) {
     try {
-        const { item } = req.params;
-        let results;
+        const tipo = req.params.item;
+        let query;
         
-        console.log(`Obteniendo items de tipo: ${item}`);
-        
-        switch(item) {
+        switch (tipo) {
             case 'producto':
-                [results] = await pool.promise().query('SELECT * FROM Producto');
+                query = 'SELECT * FROM producto';
                 break;
             case 'color':
-                [results] = await pool.promise().query('SELECT * FROM Color');
+                query = 'SELECT * FROM color';
                 break;
             case 'proveedor':
-                [results] = await pool.promise().query('SELECT * FROM Proveedor');
+                query = 'SELECT * FROM proveedor';
                 break;
             default:
-                return res.status(400).send(`Tipo de item no válido: ${item}`);
+                return res.status(400).json({ mensaje: 'Tipo de item no válido' });
         }
         
-        console.log(`Se encontraron ${results.length} items de tipo ${item}`);
-        console.log('Muestra de datos:', results.slice(0, 2));
+        const [results] = await pool.promise().query(query);
+        
+        // Procesar resultados si es necesario
+        if (tipo === 'producto') {
+            // Asegurarse de que los campos no sean null
+            results.forEach(producto => {
+                producto.unidadPredeterminada = producto.unidadPredeterminada || '';
+                producto.tipoBultoPredeterminado = producto.tipoBultoPredeterminado || '';
+            });
+        }
         
         res.json(results);
     } catch (error) {
-        console.error(`Error obteniendo items de tipo ${req.params.item}:`, error);
+        console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
     }
 }

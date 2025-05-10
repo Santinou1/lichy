@@ -27,10 +27,13 @@ function AgregarItem() {
         
         let tipoBulto = '';
         
-        if (unidad === 'm' || unidad === 'kg') {
+        // Normalizar la unidad a minúsculas para comparación
+        const unidadLower = unidad ? unidad.toLowerCase() : '';
+        
+        if (unidadLower === 'm' || unidadLower === 'kg') {
             tipoBulto = 'rollo';
             console.log('Estableciendo tipo de bulto como rollo');
-        } else if (unidad === 'uni') {
+        } else if (unidadLower === 'uni') {
             tipoBulto = 'caja';
             console.log('Estableciendo tipo de bulto como caja');
         } else {
@@ -68,7 +71,15 @@ function AgregarItem() {
         axios.get(`http://localhost:5000/api/items/${item}`)
             .then((response) => {
                 console.log('Datos recibidos:', response.data);
-                setItems(response.data);
+                // Asegurarse de que todos los campos necesarios estén definidos
+                const itemsProcessed = response.data.map(itemData => ({
+                    ...itemData,
+                    // Asegurarse de que unidadPredeterminada nunca sea null o undefined
+                    unidadPredeterminada: itemData.unidadPredeterminada || '',
+                    // Asegurarse de que tipoBultoPredeterminado nunca sea null o undefined
+                    tipoBultoPredeterminado: itemData.tipoBultoPredeterminado || ''
+                }));
+                setItems(itemsProcessed);
             })
             .catch((error) => {
                 console.error('Error trayendo los items:', error);
@@ -96,19 +107,42 @@ function AgregarItem() {
         
         if (isEditing) {
             // Lógica para actualizar
-            axios.put(`http://localhost:5000/api/items/${item}/${editingId}`, 
-                item === 'color' ? { 
+            let dataToUpdate;
+            if (item === 'color') {
+                dataToUpdate = { 
                     nombre: data.nombre, 
                     codigoInterno: data.codigoInterno 
-                } : 
-                item === 'producto' ? {
+                };
+            } else if (item === 'producto') {
+                // Asegurarse de que la unidad predeterminada esté definida
+                const unidadPredeterminada = data.unidadPredeterminada || '';
+                
+                // Establecer el tipo de bulto según la unidad
+                let tipoBulto = data.tipoBultoPredeterminado;
+                if (!tipoBulto && unidadPredeterminada) {
+                    const unidadLower = unidadPredeterminada.toLowerCase();
+                    if (unidadLower === 'm' || unidadLower === 'kg') {
+                        tipoBulto = 'rollo';
+                    } else if (unidadLower === 'uni') {
+                        tipoBulto = 'caja';
+                    }
+                }
+                
+                dataToUpdate = {
                     nombre: data.nombre,
-                    unidadPredeterminada: data.unidadPredeterminada,
+                    unidadPredeterminada: unidadPredeterminada,
                     codigoInterno: data.codigoInterno,
-                    tipoBultoPredeterminado: data.tipoBultoPredeterminado || ''
-                } : { nombre: data.nombre }
-            )
+                    tipoBultoPredeterminado: tipoBulto || ''
+                };
+            } else {
+                dataToUpdate = { nombre: data.nombre };
+            }
+            
+            console.log('Datos de actualización a enviar:', dataToUpdate);
+            
+            axios.put(`http://localhost:5000/api/items/${item}/${editingId}`, dataToUpdate)
             .then((response) => {
+                console.log('Respuesta del servidor (actualización):', response.data);
                 if (response.status === 200) {
                     fetchItems(); // Refrescar la lista
                     resetForm();
@@ -120,25 +154,28 @@ function AgregarItem() {
             });
         } else {
             // Lógica para crear nuevo
-            // Para productos, asegurarse de que la unidad y el tipo de bulto estén establecidos correctamente
             let dataToSend;
             
             if (item === 'producto') {
-                // Establecer el tipo de bulto según la unidad si no está definido
+                // Asegurarse de que la unidad predeterminada esté definida
+                const unidadPredeterminada = data.unidadPredeterminada || '';
+                
+                // Establecer el tipo de bulto según la unidad
                 let tipoBulto = data.tipoBultoPredeterminado;
-                if (!tipoBulto && data.unidadPredeterminada) {
-                    if (data.unidadPredeterminada === 'm' || data.unidadPredeterminada === 'kg') {
+                if (!tipoBulto && unidadPredeterminada) {
+                    const unidadLower = unidadPredeterminada.toLowerCase();
+                    if (unidadLower === 'm' || unidadLower === 'kg') {
                         tipoBulto = 'rollo';
-                    } else if (data.unidadPredeterminada === 'uni') {
+                    } else if (unidadLower === 'uni') {
                         tipoBulto = 'caja';
                     }
                 }
                 
                 dataToSend = { 
                     nombre: data.nombre, 
-                    unidadPredeterminada: data.unidadPredeterminada,
+                    unidadPredeterminada: unidadPredeterminada,
                     codigoInterno: data.codigoInterno,
-                    tipoBultoPredeterminado: tipoBulto
+                    tipoBultoPredeterminado: tipoBulto || ''
                 };
                 
                 console.log('Datos del producto a enviar:', dataToSend);
@@ -346,7 +383,7 @@ function AgregarItem() {
                                         <>
                                             <div className="item-details">
                                                 <span className="detail-label">Unidad:</span> 
-                                                <span className="detail-value">{itemData.unidadPredeterminada || 'No especificada'}</span>
+                                                <span className="detail-value">{itemData.unidadPredeterminada ? itemData.unidadPredeterminada : 'No especificada'}</span>
                                             </div>
                                             {itemData.codigoInterno && (
                                                 <div className="item-details">
