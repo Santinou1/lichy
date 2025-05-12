@@ -35,7 +35,7 @@ Mostrar en los productos del contenedor tambien su codigo interno. (Realizado)
 
 Agregar tambien a la hora de crear producto el codigo interno y actualizar (Realizado)
 
-Item proveedor de los detalles de productos se puede eliminar. 
+Item proveedor de los detalles de productos se puede eliminar.  (Realizado)
  
 En los detalles de producto se tiene que ver la ubicacion del contenedor.
 
