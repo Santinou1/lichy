@@ -37,7 +37,7 @@ Agregar tambien a la hora de crear producto el codigo interno y actualizar (Real
 
 Item proveedor de los detalles de productos se puede eliminar.  (Realizado)
  
-En los detalles de producto se tiene que ver la ubicacion del contenedor.
+En los detalles de producto se tiene que ver la ubicacion del contenedor. (Realizado)
 
 Que no te deje actualizar el producto si no introducis el motivo de la actualizacion.
 
