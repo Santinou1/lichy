@@ -96,8 +96,60 @@ async function editarProductoDeContenedor(req,res){
         }
         console.log(req.body);
         console.log(coloresAsignados);
-        if (coloresAsignados && coloresAsignados.length > 0) {
+        // Si estamos actualizando un producto existente sin desglose de colores
+        if (cantidad !== 0 && (!coloresAsignados || coloresAsignados.length === 0)) {
+            const query = `UPDATE ContenedorProductos cp
+            SET 
+            cp.producto = ?,
+            cp.cantidad = ?,
+            cp.unidad = ?,
+            cp.color = ?,
+            cp.precioPorUnidad = ?,
+            cp.item_proveedor = ?,
+            cp.cantidadAlternativa = ?,
+            cp.unidadAlternativa = ?
+            WHERE cp.idContenedorProductos = ?;
+            `
+            await connection.promise().query(query,[producto,cantidad,unidad,color,precioPorUnidad,item_proveedor,cantidadAlternativa,unidadAltValidada,id]);
+            
+            let actualizado = {idContenedorProductos:parseInt(id),
+                idProducto:producto, 
+                cantidad:cantidad,
+                unidad:unidad,
+                color:color,
+                precioPorUnidad:precioPorUnidad,
+                item_proveedor:item_proveedor,
+                cantidadAlternativa:cantidadAlternativa,
+                unidadAlternativa:unidadAltValidada
+            };
+            
+            // Registrar el cambio en el historial
+            const cambiosTexto = generarTextoCambios(dataAnterior, actualizado);
+            
+            const sqlInsert = `
+                INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo)
+                VALUES (?, ?, ?, ?, ?, ?);
+            `;
+            
+            await connection.promise().query(sqlInsert, [
+                id,
+                contenedor,
+                'UPDATE',
+                cambiosTexto,
+                usuarioCambio,
+                motivo
+            ]);
+            
+            // Obtener los productos actualizados para devolver
+            const [results] = await connection.promise().query('SELECT * FROM ContenedorProductos cp JOIN Producto p ON cp.producto = p.idProducto WHERE cp.contenedor = ?', [contenedor]);
+            return res.json(results);
+        }
+        // Si hay desglose de colores, crear nuevos productos y reducir el stock del producto principal
+        else if (coloresAsignados && coloresAsignados.length > 0) {
             let cambiosTexto = `Cambios: desglose de colores al producto: (${dataAnterior.nombre})\n`;
+            let cantidadTotalAsignada = 0;
+            
+            // Primero crear los nuevos productos con colores asignados
             for (const colorAsignado of coloresAsignados) {
                 const insertQuery = ` 
                     INSERT INTO ContenedorProductos (contenedor, producto, cantidad, unidad, color, precioPorUnidad, cantidadAlternativa, unidadAlternativa)
@@ -125,12 +177,30 @@ async function editarProductoDeContenedor(req,res){
                     unidadAltColorValidada // unidad alternativa validada
                 ]);
                 cambiosTexto += `(${colorAsignado.color}) -> cantidad: ${colorAsignado.cantidad}, cantidad alternativa: ${cantidadAltProporcional || 'N/A'}\n`;
+                
+                // Sumar la cantidad asignada al total
+                cantidadTotalAsignada += parseFloat(colorAsignado.cantidad);
             }
             
-            const sqlInsert = `
-            INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo)
-            VALUES (?, ?, ?, ?, ?, ?);
-        `;
+            // Luego actualizar el producto principal reduciendo su stock
+            const nuevaCantidadProductoPrincipal = Math.max(0, parseFloat(dataAnterior.cantidad) - cantidadTotalAsignada);
+            
+            if (nuevaCantidadProductoPrincipal > 0) {
+                // Si queda stock, actualizar el producto principal
+                const updateQuery = `
+                    UPDATE ContenedorProductos 
+                    SET cantidad = ? 
+                    WHERE idContenedorProductos = ?;
+                `;
+                await connection.promise().query(updateQuery, [nuevaCantidadProductoPrincipal, id]);
+                cambiosTexto += `Producto principal: cantidad reducida de ${dataAnterior.cantidad} a ${nuevaCantidadProductoPrincipal}\n`;
+            } else {
+                // Si no queda stock, eliminar el producto principal
+                await connection.promise().query('DELETE FROM ContenedorProductos WHERE idContenedorProductos = ?', [id]);
+                cambiosTexto += `Producto principal: eliminado (todo el stock fue asignado a colores)\n`;
+            }
+            
+            const sqlInsert = `INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?);`;
        
         await connection.promise().query(sqlInsert, [
             id, // idContenedorProductos (usamos el ID original)

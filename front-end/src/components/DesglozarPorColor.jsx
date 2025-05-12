@@ -52,7 +52,7 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
             setCantidadAsignada('');
             setColorSeleccionado(null);
         } else {
-            alert("La cantidad asignada no puede ser mayor que la cantidad restante o menor que 1.");
+            alert("La cantidad asignada no puede ser mayor que la cantidad restante o menor o igual a 0.");
         }
     };
 
@@ -138,8 +138,9 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
                         style={{ padding: '5px', width: '100%', marginBottom: '10px' }}
                         type="number"
                         placeholder="Cantidad"
-                        min="1"
+                        min="0.01"
                         max={cantidadRestante}
+                        step="0.01"
                         value={cantidadAsignada}
                         onChange={(e) => setCantidadAsignada(e.target.value)}
                     />

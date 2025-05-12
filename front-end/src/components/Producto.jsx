@@ -97,9 +97,9 @@ function Producto({user,producto, onActualizar, contenedor}){
                     <label><b>{producto.nombre}</b></label>
                     <label>Código Interno: <b>{producto.codigoInterno || 'Sin código'}</b></label>
                     <label>Color: <b>{producto.color || 'Sin color'}</b></label>
-                    <label>Cantidad: <b>{producto.cantidad ? `${producto.cantidad} ${producto.unidad}`: 'Sin cantidad'}</b></label>
+                    <label>Cantidad: <b>{producto.cantidad ? `${parseFloat(producto.cantidad).toFixed(2)} ${producto.unidad}`: 'Sin cantidad'}</b></label>
                     {producto.cantidadAlternativa && producto.unidadAlternativa && (
-                        <label>Cantidad Alt.: <b>{`${producto.cantidadAlternativa} ${producto.unidadAlternativa}`}</b></label>
+                        <label>Cantidad Alt.: <b>{`${parseFloat(producto.cantidadAlternativa).toFixed(2)} ${producto.unidadAlternativa}`}</b></label>
                     )}
                     <label>FOB: <b>${producto.precioPorUnidad}</b></label>
                     <label>Costo: <b>${(producto.precioPorUnidad*producto.cantidad).toFixed(2)}</b></label>

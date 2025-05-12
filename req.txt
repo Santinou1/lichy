@@ -41,7 +41,7 @@ En los detalles de producto se tiene que ver la ubicacion del contenedor. (Reali
 
 Que no te deje actualizar el producto si no introducis el motivo de la actualizacion. (Realizado)
 
-Que permita escribir en la secciones de cantidad de producto con un determinado color decimales
+Que permita escribir en la secciones de cantidad de producto con un determinado color decimales (Realizado)
 
 Una seccion de notificaciones en la cual si hay una cantidad menor a X metros del color X.
 Que todo esto sea dinamico y pueda hacer la alerta que quiera el administrador

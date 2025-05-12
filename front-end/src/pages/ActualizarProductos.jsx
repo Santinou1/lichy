@@ -155,11 +155,14 @@ function ActualizarProductos() {
             return;
         }
         
-        // Validar que el código interno sea obligatorio
-        if (!codigoInterno.trim()) {
+        // Validar que el código interno sea obligatorio (si existe)
+        // Comentamos esta validación para que no sea obligatorio
+        /*
+        if (!codigoInterno || (typeof codigoInterno === 'string' && !codigoInterno.trim())) {
             alert('Debe ingresar un código interno para el producto');
             return;
         }
+        */
         
         // Verificar si la unidad ha cambiado con respecto a los datos originales
         const unidadCambiada = dataAnterior?.unidad !== contenedorProducto?.unidad;
