@@ -33,7 +33,7 @@ async function obtenerCantidadPorContenedor(req,res){
     try {
         const {id} = req.params;        
         const [results] = await pool.promise().query(`
-            SELECT cp.*, c.nombre, ce.ubicacion, con.idContenedor
+            SELECT cp.*, cp.precioPorUnidad, c.nombre, ce.ubicacion, con.idContenedor
             FROM contenedorProductos cp 
             LEFT JOIN color c ON c.idColor = cp.color 
             LEFT JOIN contenedor con ON cp.contenedor = con.idContenedor

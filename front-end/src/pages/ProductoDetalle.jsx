@@ -177,6 +177,7 @@ function ProductoDetalle() {
                             <th>Cantidad</th>
                             <th>Color</th>
                             <th>Ubicación</th>
+                            <th>FOB</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -187,6 +188,7 @@ function ProductoDetalle() {
                                 <th>{item.cantidad ? `${item.cantidad} ${item.unidad}` : 'Sin cantidad'}</th>
                                 <th>{item.nombre || 'Sin color'}</th>
                                 <th>{item.ubicacion || 'Sin ubicación'}</th>
+                                <th>${item.precioPorUnidad ? parseFloat(item.precioPorUnidad).toFixed(2) : '0.00'}</th>
                                 <td><button onClick={() => redirigirContenedor(item.contenedor)}>Ver contenedor</button></td>
                             </tr>
                         ))}
