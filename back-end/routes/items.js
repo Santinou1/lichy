@@ -339,7 +339,7 @@ async function obtenerUbicacionesPorEstado(req,res){
 }
 async function obtenerUbicaciones(req,res){
     try {
-        const [results] = await pool.promise().query('SELECT * FROM ubicaciones');
+        const [results] = await pool.promise().query('SELECT * FROM ubicacion');
         res.json(results);
     } catch (error) {
         console.error('Error ejecutando la consulta:', error);
