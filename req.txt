@@ -39,7 +39,7 @@ Item proveedor de los detalles de productos se puede eliminar.  (Realizado)
  
 En los detalles de producto se tiene que ver la ubicacion del contenedor. (Realizado)
 
-Que no te deje actualizar el producto si no introducis el motivo de la actualizacion.
+Que no te deje actualizar el producto si no introducis el motivo de la actualizacion. (Realizado)
 
 Que permita escribir en la secciones de cantidad de producto con un determinado color decimales
 
