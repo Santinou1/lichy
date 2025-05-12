@@ -32,7 +32,22 @@ async function obtenerProductosConContenedor(req,res){
 async function obtenerCantidadPorContenedor(req,res){
     try {
         const {id} = req.params;        
-        const [results] = await pool.promise().query('SELECT * FROM contenedorProductos cp LEFT JOIN color c ON c.idColor = cp.color WHERE producto = ?;',[id]);
+        const [results] = await pool.promise().query(`
+            SELECT cp.*, c.nombre, ce.ubicacion, con.idContenedor
+            FROM contenedorProductos cp 
+            LEFT JOIN color c ON c.idColor = cp.color 
+            LEFT JOIN contenedor con ON cp.contenedor = con.idContenedor
+            LEFT JOIN (
+                SELECT ce1.*
+                FROM contenedorestado ce1
+                INNER JOIN (
+                    SELECT contenedor, MAX(idEstado) as maxId
+                    FROM contenedorestado
+                    GROUP BY contenedor
+                ) ce2 ON ce1.contenedor = ce2.contenedor AND ce1.idEstado = ce2.maxId
+            ) ce ON cp.contenedor = ce.contenedor
+            WHERE cp.producto = ?;
+        `,[id]);
         res.json(results);
     } catch (error) {
         console.error('Error ejecutando la consulta:', error);
