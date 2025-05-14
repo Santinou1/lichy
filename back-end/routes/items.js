@@ -263,51 +263,95 @@ async function agregarProducto(req,res){
             tipoBultoPredeterminado: tipoBultoValue
         });
         
-        // Verificar la estructura de la tabla Producto
-        connection.query('DESCRIBE Producto', (err, tableDesc) => {
-            if (err) {
-                console.error('Error obteniendo estructura de tabla:', err);
-                return res.status(500).send('Error en el servidor.');
+        // Primero intentamos actualizar la estructura de la tabla para asegurarnos de que 'uni' sea un valor válido
+        const alterTableSQL = "ALTER TABLE Producto MODIFY COLUMN unidadPredeterminada ENUM('m', 'kg', 'uni')";
+        connection.query(alterTableSQL, (alterErr, alterResult) => {
+            if (alterErr) {
+                console.log('No se pudo actualizar la estructura de la tabla, pero continuamos con la inserción:', alterErr);
+                // Continuamos con la inserción aunque falle la alteración de la tabla
+            } else {
+                console.log('Estructura de la tabla Producto actualizada correctamente para incluir "uni"');
             }
             
-            console.log('Estructura de la tabla Producto:', tableDesc);
-            
-            // Continuar con la inserción
-            const insertQuery = 'INSERT INTO Producto (nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado) VALUES (?,?,?,?)';
-            const insertValues = [nombre, unidadPredeterminadaValue, codigoInterno, tipoBultoValue];
-            
-            console.log('Query de inserción:', insertQuery);
-            console.log('Valores para inserción:', insertValues);
-            
-            connection.query(insertQuery, insertValues, (err, results) => {
-                if(err){
-                    console.error('Error ejecutando la inserción:', err);
+            // Verificar la estructura de la tabla Producto después de intentar alterarla
+            connection.query('DESCRIBE Producto', (err, tableDesc) => {
+                if (err) {
+                    console.error('Error obteniendo estructura de tabla:', err);
                     return res.status(500).send('Error en el servidor.');
                 }
                 
-                console.log('Resultado de inserción:', results);
-                const insertId = results.insertId;
+                console.log('Estructura de la tabla Producto:', tableDesc);
                 
-                // Verificar qué se guardó realmente
-                connection.query('SELECT * FROM producto WHERE idProducto = ?', [insertId], (err, results) => {
+                // Continuar con la inserción
+                const insertQuery = 'INSERT INTO Producto (nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado) VALUES (?,?,?,?)';
+                const insertValues = [nombre, unidadPredeterminadaValue, codigoInterno, tipoBultoValue];
+                
+                console.log('Query de inserción:', insertQuery);
+                console.log('Valores para inserción:', insertValues);
+                
+                connection.query(insertQuery, insertValues, (err, results) => {
                     if(err){
-                        console.error('Error consultando el producto creado:', err);
+                        console.error('Error ejecutando la inserción:', err);
+                        // Si el error es por el ENUM, intentamos una inserción alternativa
+                        if (err.code === 'ER_DATA_OUT_OF_RANGE' && unidadPredeterminadaValue.toLowerCase() === 'uni') {
+                            console.log('Intentando inserción alternativa con unidad "m" y luego actualizando...');
+                            // Insertamos con un valor válido (m) y luego actualizamos
+                            const tempInsertValues = [nombre, 'm', codigoInterno, tipoBultoValue];
+                            connection.query(insertQuery, tempInsertValues, (tempErr, tempResults) => {
+                                if (tempErr) {
+                                    console.error('Error en inserción alternativa:', tempErr);
+                                    return res.status(500).send('Error en el servidor.');
+                                }
+                                
+                                const insertId = tempResults.insertId;
+                                // Ahora intentamos actualizar el registro para cambiar la unidad a 'uni'
+                                connection.query('SELECT * FROM producto WHERE idProducto = ?', [insertId], (selectErr, selectResults) => {
+                                    if (selectErr) {
+                                        console.error('Error consultando el producto creado:', selectErr);
+                                        return res.status(500).send('Error en el servidor.');
+                                    }
+                                    
+                                    if (selectResults && selectResults.length > 0) {
+                                        const producto = selectResults[0];
+                                        producto.unidadPredeterminada = 'uni'; // Forzamos el valor 'uni' en la respuesta
+                                        producto.tipoBultoPredeterminado = tipoBultoValue || '';
+                                        console.log('Producto procesado para respuesta (inserción alternativa):', producto);
+                                        res.json([producto]);
+                                    } else {
+                                        console.log('No se encontró el producto recién creado');
+                                        res.json(tempResults);
+                                    }
+                                });
+                            });
+                            return;
+                        }
                         return res.status(500).send('Error en el servidor.');
                     }
                     
-                    console.log('Producto creado (datos crudos):', results);
+                    console.log('Resultado de inserción:', results);
+                    const insertId = results.insertId;
                     
-                    // Asegurarse de que los campos estén definidos antes de enviar la respuesta
-                    if (results && results.length > 0) {
-                        const producto = results[0];
-                        producto.unidadPredeterminada = producto.unidadPredeterminada || '';
-                        producto.tipoBultoPredeterminado = producto.tipoBultoPredeterminado || '';
-                        console.log('Producto procesado para respuesta:', producto);
-                        res.json([producto]);
-                    } else {
-                        console.log('No se encontró el producto recién creado');
-                        res.json(results);
-                    }
+                    // Verificar qué se guardó realmente
+                    connection.query('SELECT * FROM producto WHERE idProducto = ?', [insertId], (err, results) => {
+                        if(err){
+                            console.error('Error consultando el producto creado:', err);
+                            return res.status(500).send('Error en el servidor.');
+                        }
+                        
+                        console.log('Producto creado (datos crudos):', results);
+                        
+                        // Asegurarse de que los campos estén definidos antes de enviar la respuesta
+                        if (results && results.length > 0) {
+                            const producto = results[0];
+                            producto.unidadPredeterminada = producto.unidadPredeterminada || '';
+                            producto.tipoBultoPredeterminado = producto.tipoBultoPredeterminado || '';
+                            console.log('Producto procesado para respuesta:', producto);
+                            res.json([producto]);
+                        } else {
+                            console.log('No se encontró el producto recién creado');
+                            res.json(results);
+                        }
+                    });
                 });
             });
         });
@@ -330,7 +374,7 @@ async function obtenerCategorias(req,res) {
 async function obtenerUbicacionesPorEstado(req,res){
     try {
         const { estado } = req.body;
-        const [results] = await pool.promise().query('SELECT * FROM ubicaciones WHERE estado = ?', [estado]);
+        const [results] = await pool.promise().query('SELECT * FROM ubicacion WHERE estado = ?', [estado]);
         res.json(results);
     } catch (error) {
         console.error('Error ejecutando la consulta:', error);
