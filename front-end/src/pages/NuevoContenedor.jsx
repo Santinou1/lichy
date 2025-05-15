@@ -35,11 +35,16 @@ function NuevoContenedor() {
 
         axios.get('http://localhost:5000/api/items/producto')
             .then((response) => {
-                const formattedProducts = response.data.map((item) => ({
-                    value: item.idProducto.toString(),
-                    label: item.nombre,
-                    unidadPredeterminada: item.unidadPredeterminada,
-                }));
+                console.log('Productos cargados del servidor:', response.data);
+                const formattedProducts = response.data.map((item) => {
+                    const formattedProduct = {
+                        value: item.idProducto.toString(),
+                        label: item.nombre,
+                        unidadPredeterminada: item.unidadPredeterminada || ''
+                    };
+                    console.log(`Producto formateado: ${item.nombre}, unidad: ${formattedProduct.unidadPredeterminada}`);
+                    return formattedProduct;
+                });
                 setProductos(formattedProducts);
             })
             .catch((error) => {
@@ -83,15 +88,15 @@ function NuevoContenedor() {
     // Manejar la creación de nuevos productos
     const handleCreateProduct = async (inputValue) => {
         // Mostrar un diálogo para seleccionar la unidad predeterminada
-        const unidad = prompt("Selecciona la unidad predeterminada para el nuevo producto (m, kg, uds):");
+        const unidad = prompt("Selecciona la unidad predeterminada para el nuevo producto (m, kg, uni):");
         
         if (!unidad) {
             alert("Debes seleccionar una unidad predeterminada para crear un producto");
             return null;
         }
         
-        if (!['m', 'kg', 'uds'].includes(unidad)) {
-            alert("La unidad debe ser 'm', 'kg' o 'uds'");
+        if (!['m', 'kg', 'uni'].includes(unidad)) {
+            alert("La unidad debe ser 'm', 'kg' o 'uni'");
             return null;
         }
         
@@ -138,6 +143,16 @@ function NuevoContenedor() {
         const precioPorUnidadActual = watch('precioPorUnidad');
         const itemProveedor = watch('item_proveedor');
         
+        // Mostrar todos los datos en la consola
+        console.log('==== DATOS DEL FORMULARIO ====');
+        console.log('Producto seleccionado:', productoActual);
+        console.log('Unidad seleccionada:', unidadActual);
+        console.log('Cantidad:', cantidadActual);
+        console.log('Precio por unidad (FOB):', precioPorUnidadActual);
+        console.log('Item proveedor:', itemProveedor);
+        console.log('Todos los datos del formulario:', watch());
+        console.log('============================');
+        
         if (!productoActual || !unidadActual || !cantidadActual || !precioPorUnidadActual) {
             alert('Todos los campos del producto son obligatorios');
             return;
@@ -170,13 +185,24 @@ function NuevoContenedor() {
     };
 
     const handleProductChange = (selectedOption) => {
+        console.log('Producto seleccionado:', selectedOption);
+        
         if (selectedOption && !selectedOption.value.startsWith('temp-')) {
             // Si el producto es existente, establecer la unidad predeterminada y deshabilitar el campo
             const productoSeleccionado = productos.find(p => p.value === selectedOption.value);
-            setValue('unidad', productoSeleccionado.unidadPredeterminada);
-            setUnidadDeshabilitada(true);
+            console.log('Producto encontrado en la lista:', productoSeleccionado);
+            
+            if (productoSeleccionado && productoSeleccionado.unidadPredeterminada) {
+                console.log(`Estableciendo unidad: ${productoSeleccionado.unidadPredeterminada}`);
+                setValue('unidad', productoSeleccionado.unidadPredeterminada);
+                setUnidadDeshabilitada(true);
+            } else {
+                console.log('Producto sin unidad predeterminada o no encontrado');
+                setUnidadDeshabilitada(false);
+            }
         } else {
             // Si el producto es nuevo, habilitar el campo de unidad
+            console.log('Producto nuevo o ninguno seleccionado, habilitando campo unidad');
             setUnidadDeshabilitada(false);
         }
         setValue('producto', selectedOption);
@@ -302,8 +328,10 @@ function NuevoContenedor() {
                             {...field}
                             options={productos}
                             onChange={(selectedOption) => {
-                                handleProductChange(selectedOption);
+                                // Primero actualizar el campo
                                 field.onChange(selectedOption);
+                                // Luego manejar los cambios adicionales
+                                handleProductChange(selectedOption);
                             }}
                             onCreateOption={handleCreateProduct}
                             isClearable
@@ -318,31 +346,36 @@ function NuevoContenedor() {
             </div>
                 
             <div className='input-container'>
-              
                 <div className='input-container'>
                     <label htmlFor='unidad'>Unidad:</label>
-                    <select className='input-nuevoContenedor' {...register('unidad')} disabled={unidadDeshabilitada}>
-                        <option value='' disabled>Seleccionar unidad</option>
-                        <option value='m'>m</option>
-                        <option value='kg'>kg</option>
-                        <option value='uds'>uds</option>
-                    </select>
+                    <input 
+                        type='text' 
+                        className='input-nuevoContenedor' 
+                        {...register('unidad')} 
+                        readOnly={true}
+                        style={{ backgroundColor: '#f2f2f2' }} 
+                    />
+                    <span className="info-text" style={{ fontSize: '11px', display: 'block', marginTop: '4px' }}>La unidad se establece automáticamente según el producto</span>
                 </div>
+                
                 <div className='input-container'>
                     <label htmlFor='cantidad'>Cantidad:</label>
                     <input type='number' className='input-nuevoContenedor' {...register('cantidad')} />
                 </div>
+                
                 <div className='input-container'>
                     <label htmlFor='fob'>FOB:</label>
                     <input type='number' step='any' className='input-nuevoContenedor' {...register('precioPorUnidad')} /> 
                 </div>
+                
                 <div className='input-container'>
-                    <label htmlFor='fob'>Item Proveedor:</label>
-                    <input type='text' step='any' className='input-nuevoContenedor' {...register('item_proveedor')} /> 
+                    <label htmlFor='itemProveedor'>Item Proveedor:</label>
+                    <input type='text' className='input-nuevoContenedor' {...register('item_proveedor')} /> 
                 </div>
+                
                 <button type='button' onClick={agregarProducto}>
-                Agregar producto
-            </button>
+                    Agregar producto
+                </button>
             </div>
             
             {productosSeleccionados.length > 0 && (

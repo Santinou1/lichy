@@ -29,7 +29,17 @@ async function agregarContenedor(req,res){
             return res.status(400).send('Faltan campos obligatorios');
         }
         
-        const [contenedorResult]= await connection.promise().query('INSERT INTO Contenedor ( usuario, proveedor,categoria,factura,comentario) VALUES (?,?,?,?,?)',[ usuario, proveedor,'COMPRADO',factura,comentario]);
+        // Primero verificar si la categoría 'Contenedor Creado' ya existe en la tabla categorias
+        const [categoriaExiste] = await connection.promise().query('SELECT * FROM categorias WHERE nombreCategoria = ?', ['Contenedor Creado']);
+        
+        // Si no existe, agregar la categoría 'Contenedor Creado' a la tabla categorias
+        if (categoriaExiste.length === 0) {
+            console.log('Agregando nueva categoría "Contenedor Creado" a la tabla categorias');
+            await connection.promise().query('INSERT INTO categorias (nombreCategoria) VALUES (?)', ['Contenedor Creado']);
+        }
+        
+        // La categoría del contenedor ahora es 'Contenedor Creado'
+        const [contenedorResult]= await connection.promise().query('INSERT INTO Contenedor ( usuario, proveedor,categoria,factura,comentario) VALUES (?,?,?,?,?)',[ usuario, proveedor,'Contenedor Creado',factura,comentario]);
         const idContenedor = contenedorResult.insertId;
         for(const producto of productos){
             const {idProducto, nombre, unidad, cantidad, cantidadBulto, tipoBulto, precioPorUnidad,item_proveedor} = producto;
@@ -54,7 +64,8 @@ async function agregarContenedor(req,res){
 
             await connection.promise().query('INSERT INTO ContenedorProductos (contenedor,producto,unidad,cantidad,precioPorUnidad,tipoBulto,cantidadBulto,item_proveedor) VALUES (?,?,?,?,?,?,?,?)',[idContenedor, productoId, unidad,cantidad,precioPorUnidad,tipoBulto,cantidadBulto,item_proveedor]);
         }
-        await connection.promise().query('INSERT INTO ContenedorEstado (contenedor,estado,ubicacion) VALUES (?,?,?)',[idContenedor,'COMPRADO','FALTA DISPONER']);
+        // Insertar solo el estado 'Contenedor Creado' sin ubicación específica
+        await connection.promise().query('INSERT INTO ContenedorEstado (contenedor,estado,ubicacion) VALUES (?,?,?)',[idContenedor,'Contenedor Creado','-']);
         res.json({success:true, idContenedor: idContenedor});
        
     }catch(error){

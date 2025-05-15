@@ -25,6 +25,7 @@ async function obtenerProveedores(req,res){
         return res.status(500).send('Error en el servidor.');
     }
 }
+
 async function actualizarProducto(req,res){
     try {
         const {nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado} = req.body;
@@ -56,8 +57,8 @@ async function actualizarProducto(req,res){
             tipoBultoValue = unidadPredeterminadaValue.toLowerCase() === 'uni' ? 'caja' : 'rollo';
         }
         
-        // Permitir que codigoInterno sea null o undefined
-        const codigoInternoValue = codigoInterno === undefined || codigoInterno === null ? null : codigoInterno;
+        // Permitir que codigoInterno sea null, undefined o cadena vacía
+        const codigoInternoValue = codigoInterno === undefined || codigoInterno === null || codigoInterno === '' ? null : codigoInterno;
         
         console.log('Valores a actualizar (después de procesar):', {
             nombre,
@@ -78,91 +79,92 @@ async function actualizarProducto(req,res){
         
         if (updateResults.affectedRows === 0) {
             // Si no se actualizó ninguna fila, el producto no existe
-            return res.status(404).json({ mensaje: 'Producto no encontrado.' });
+            return res.status(404).send('Producto no encontrado.');
         }
-
-        // Obtenemos el producto actualizado
-        const [productoActualizado] = await connection.promise().query(
-            `SELECT * FROM producto WHERE idProducto = ?`,
-            [id]
-        );
         
-        console.log('Producto actualizado (datos crudos):', productoActualizado);
+        // Obtener el producto actualizado
+        const [producto] = await connection.promise().query('SELECT * FROM producto WHERE idProducto = ?', [id]);
         
-        // Asegurarse de que ningún campo sea null en la respuesta
-        const producto = productoActualizado[0];
-        if (producto) {
-            producto.unidadPredeterminada = producto.unidadPredeterminada || '';
-            producto.tipoBultoPredeterminado = producto.tipoBultoPredeterminado || '';
-            console.log('Producto procesado para respuesta:', producto);
+        if (!producto || producto.length === 0) {
+            return res.status(404).send('No se pudo obtener el producto actualizado.');
         }
-
-        res.json(producto); // Devolvemos el producto actualizado
+        
+        res.json(producto[0]);
     } catch (error) {
         console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
     }
 }
+
 async function actualizarColor(req,res){
-    try{
+    try {
         const {nombre, codigoInterno} = req.body;
         const id = req.params.id;
         const connection = pool;
         
-        // Asegurarse de que codigoInterno sea una cadena de texto
-        const codigoInternoValue = codigoInterno || '';
+        // Validar campos obligatorios
+        if(!nombre){
+            return res.status(400).send('El nombre es obligatorio.');
+        }
         
-        const [updateResults] = await connection.promise().query(
-            `UPDATE color SET nombre = ?, codigoInterno = ? WHERE idColor = ?`,
-            [nombre, codigoInternoValue, id]
+        const [results] = await connection.promise().query(
+            'UPDATE color SET nombre = ?, codigoInterno = ? WHERE idColor = ?',
+            [nombre, codigoInterno, id]
         );
         
-        // Obtener el color actualizado para devolverlo
-        const [colorActualizado] = await connection.promise().query(
-            `SELECT * FROM color WHERE idColor = ?`,
-            [id]
-        );
+        if (results.affectedRows === 0) {
+            return res.status(404).send('Color no encontrado.');
+        }
         
-        res.json(colorActualizado[0]);
-    }catch(error){
+        res.json({ message: 'Color actualizado exitosamente.' });
+    } catch (error) {
         console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
     }
 }
 
 async function buscarProducto(req,res){
-    try{
+    try {
         const id = req.params.id;
-        const [results] = await pool.promise().query('SELECT * FROM producto WHERE idProducto = ?',[id]);
+        const [results] = await pool.promise().query('SELECT * FROM producto WHERE idProducto = ?', [id]);
+        if (results.length === 0) {
+            return res.status(404).send('Producto no encontrado.');
+        }
         res.json(results[0]);
-    }catch(error){
-        console.log('Error ejecutando la consulta:', error);
+    } catch (error) {
+        console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
     }
 }
+
 async function agregarProveedor(req,res){
     try{
-
         const {nombre} = req.body;
         const connection = pool;
+        
+        // Validar campos obligatorios
         if(!nombre){
-            return res.status(400).send('Faltan campos obligatorios');
+            return res.status(400).send('El nombre es obligatorio.');
         }
-        connection.query('INSERT INTO proveedor (nombre) VALUES (?)',[nombre],(err,results)=>{
-            if(err){
-                console.error('Error ejecutando la consulta:', err);
-                return res.status(500).send('Error en el servidor.');
-            }
-            const insertId = results.insertId;
-            connection.query('SELECT * FROM proveedor WHERE idProveedor = ?',[insertId],(err,results)=>{
-                if(err){
-                    console.error('Error ejecutando la consulta:', err);
-                    return res.status(500).send('Error en el servidor.');
-                }
-                res.json(results);
-            });
-        });
-    }catch(error){
+        
+        // Verificar si ya existe un proveedor con el mismo nombre
+        const [existingProveedores] = await connection.promise().query(
+            'SELECT * FROM proveedor WHERE nombre = ?',
+            [nombre]
+        );
+        
+        if (existingProveedores.length > 0) {
+            return res.status(400).send('Ya existe un proveedor con ese nombre.');
+        }
+        
+        const [results] = await connection.promise().query(
+            'INSERT INTO proveedor (nombre) VALUES (?)',
+            [nombre]
+        );
+        
+        const nuevoProveedor = { idProveedor: results.insertId, nombre };
+        res.json([nuevoProveedor]);
+    } catch(error){
         console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
     }
@@ -177,56 +179,57 @@ async function obtenerColores(req,res){
         return res.status(500).send('Error en el servidor.');
     }
 }
+
 async function agregarColor(req,res){
     try{
-
         const {nombre, codigoInterno} = req.body;
         const connection = pool;
+        
+        // Validar campos obligatorios
         if(!nombre){
-            return res.status(400).send('Faltan campos obligatorios');
+            return res.status(400).send('El nombre es obligatorio.');
         }
         
-        // Asegurarse de que codigoInterno sea una cadena de texto
-        const codigoInternoValue = codigoInterno || '';
+        // Verificar si ya existe un color con el mismo nombre
+        const [existingColors] = await connection.promise().query(
+            'SELECT * FROM color WHERE nombre = ?',
+            [nombre]
+        );
         
-        connection.query('INSERT INTO color (nombre, codigoInterno) VALUES (?, ?)',[nombre, codigoInternoValue],(err,results)=>{
-            if(err){
-                console.error('Error ejecutando la consulta:', err);
-                return res.status(500).send('Error en el servidor.');
-            }
-            const insertId = results.insertId;
-            connection.query('SELECT * FROM color WHERE idColor = ?',[insertId],(err,results)=>{
-                if(err){
-                    console.error('Error ejecutando la consulta:', err);
-                    return res.status(500).send('Error en el servidor.');
-                }
-                res.json(results);
-            });
-        });
-    }catch(error){
+        if (existingColors.length > 0) {
+            return res.status(400).send('Ya existe un color con ese nombre.');
+        }
+        
+        const [results] = await connection.promise().query(
+            'INSERT INTO color (nombre, codigoInterno) VALUES (?, ?)',
+            [nombre, codigoInterno]
+        );
+        
+        res.json({ id: results.insertId, nombre, codigoInterno });
+    } catch(error){
         console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
     }
 }
+
 async function obtenerProductos(req,res){
     try {
         const [results] = await pool.promise().query('SELECT * FROM producto');
         
-        // Asegurarse de que ningún campo sea null
-        const processedResults = results.map(producto => ({
-            ...producto,
-            unidadPredeterminada: producto.unidadPredeterminada || '',
-            tipoBultoPredeterminado: producto.tipoBultoPredeterminado || ''
-        }));
+        // Asegurarse de que los campos no sean null
+        results.forEach(producto => {
+            producto.unidadPredeterminada = producto.unidadPredeterminada || '';
+            producto.tipoBultoPredeterminado = producto.tipoBultoPredeterminado || '';
+        });
         
-        res.json(processedResults);
+        res.json(results);
     } catch (error) {
         console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
     }
 }
 
-async function agregarProducto(req,res){    
+async function agregarProducto(req,res){
     try{
         const {nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado} = req.body;
         console.log('Datos recibidos para crear producto:', req.body);
@@ -260,8 +263,8 @@ async function agregarProducto(req,res){
             tipoBultoValue = unidadPredeterminadaValue.toLowerCase() === 'uni' ? 'caja' : 'rollo';
         }
         
-        // Permitir que codigoInterno sea null o undefined
-        const codigoInternoValue = codigoInterno === undefined || codigoInterno === null ? null : codigoInterno;
+        // Permitir que codigoInterno sea null, undefined o cadena vacía
+        const codigoInternoValue = codigoInterno === undefined || codigoInterno === null || codigoInterno === '' ? null : codigoInterno;
         
         console.log('Valores a insertar (después de procesar):', {
             nombre,
@@ -289,84 +292,68 @@ async function agregarProducto(req,res){
                 
                 console.log('Estructura de la tabla Producto:', tableDesc);
                 
-                // Continuar con la inserción
-                const insertQuery = 'INSERT INTO Producto (nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado) VALUES (?,?,?,?)';
-                const insertValues = [nombre, unidadPredeterminadaValue, codigoInternoValue, tipoBultoValue];
-                
-                console.log('Query de inserción:', insertQuery);
-                console.log('Valores para inserción:', insertValues);
-                
-                connection.query(insertQuery, insertValues, (err, results) => {
-                    if(err){
-                        console.error('Error ejecutando la inserción:', err);
-                        // Si el error es por el ENUM, intentamos una inserción alternativa
-                        if (err.code === 'ER_DATA_OUT_OF_RANGE' && unidadPredeterminadaValue.toLowerCase() === 'uni') {
-                            console.log('Intentando inserción alternativa con unidad "m" y luego actualizando...');
-                            // Insertamos con un valor válido (m) y luego actualizamos
-                            const tempInsertValues = [nombre, 'm', codigoInternoValue, tipoBultoValue];
-                            connection.query(insertQuery, tempInsertValues, (tempErr, tempResults) => {
-                                if (tempErr) {
-                                    console.error('Error en inserción alternativa:', tempErr);
-                                    return res.status(500).send('Error en el servidor.');
-                                }
-                                
-                                const insertId = tempResults.insertId;
-                                // Ahora intentamos actualizar el registro para cambiar la unidad a 'uni'
-                                connection.query('SELECT * FROM producto WHERE idProducto = ?', [insertId], (selectErr, selectResults) => {
-                                    if (selectErr) {
-                                        console.error('Error consultando el producto creado:', selectErr);
-                                        return res.status(500).send('Error en el servidor.');
-                                    }
-                                    
-                                    if (selectResults && selectResults.length > 0) {
-                                        const producto = selectResults[0];
-                                        producto.unidadPredeterminada = 'uni'; // Forzamos el valor 'uni' en la respuesta
-                                        producto.tipoBultoPredeterminado = tipoBultoValue || '';
-                                        console.log('Producto procesado para respuesta (inserción alternativa):', producto);
-                                        res.json([producto]);
-                                    } else {
-                                        console.log('No se encontró el producto recién creado');
-                                        res.json(tempResults);
-                                    }
-                                });
-                            });
-                            return;
-                        }
+                // Verificar si ya existe un producto con el mismo nombre
+                connection.query('SELECT * FROM Producto WHERE nombre = ?', [nombre], (err, existingProducts) => {
+                    if (err) {
+                        console.error('Error verificando producto existente:', err);
                         return res.status(500).send('Error en el servidor.');
                     }
                     
-                    console.log('Resultado de inserción:', results);
-                    const insertId = results.insertId;
+                    // Si ya existe un producto con el mismo nombre, retornar error
+                    if (existingProducts && existingProducts.length > 0) {
+                        console.log('Ya existe un producto con el nombre:', nombre);
+                        return res.status(400).json({ 
+                            error: `Ya existe un producto con el nombre: ${nombre}`,
+                            producto: existingProducts[0]
+                        });
+                    }
                     
-                    // Verificar qué se guardó realmente
-                    connection.query('SELECT * FROM producto WHERE idProducto = ?', [insertId], (err, results) => {
-                        if(err){
-                            console.error('Error consultando el producto creado:', err);
+                    // Si no existe, continuar con la inserción
+                    const insertQuery = 'INSERT INTO Producto (nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado) VALUES (?,?,?,?)';
+                    const insertValues = [nombre, unidadPredeterminadaValue, codigoInternoValue, tipoBultoValue];
+                
+                    console.log('Query de inserción:', insertQuery);
+                    console.log('Valores para inserción:', insertValues);
+                    
+                    connection.query(insertQuery, insertValues, (err, result) => {
+                        if (err) {
+                            console.error('Error ejecutando la inserción:', err);
                             return res.status(500).send('Error en el servidor.');
                         }
                         
-                        console.log('Producto creado (datos crudos):', results);
+                        const insertId = result.insertId;
                         
-                        // Asegurarse de que los campos estén definidos antes de enviar la respuesta
-                        if (results && results.length > 0) {
-                            const producto = results[0];
-                            producto.unidadPredeterminada = producto.unidadPredeterminada || '';
-                            producto.tipoBultoPredeterminado = producto.tipoBultoPredeterminado || '';
-                            console.log('Producto procesado para respuesta:', producto);
-                            res.json([producto]);
-                        } else {
-                            console.log('No se encontró el producto recién creado');
-                            res.json(results);
-                        }
+                        // Obtener el producto recién creado
+                        connection.query('SELECT * FROM producto WHERE idProducto = ?', [insertId], (err, results) => {
+                            if(err){
+                                console.error('Error consultando el producto creado:', err);
+                                return res.status(500).send('Error en el servidor.');
+                            }
+                            
+                            console.log('Producto creado (datos crudos):', results);
+                            
+                            // Asegurarse de que los campos estén definidos antes de enviar la respuesta
+                            if (results && results.length > 0) {
+                                const producto = results[0];
+                                producto.unidadPredeterminada = producto.unidadPredeterminada || '';
+                                producto.tipoBultoPredeterminado = producto.tipoBultoPredeterminado || '';
+                                console.log('Producto procesado para respuesta:', producto);
+                                res.json([producto]);
+                            } else {
+                                console.log('No se encontró el producto recién creado');
+                                res.json(results);
+                            }
+                        });
                     });
-                });
-            });
-        });
+                }); // Cierre del SELECT * FROM Producto WHERE nombre = ?
+            }); // Cierre del DESCRIBE Producto
+        }); // Cierre del ALTER TABLE Producto
     } catch(error) {
         console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
     }
 }
+
 async function obtenerCategorias(req,res) {
     try {
         const query = `
@@ -378,6 +365,7 @@ async function obtenerCategorias(req,res) {
         return res.status(500).send('Error en el servidor.');
     }
 }
+
 async function obtenerUbicacionesPorEstado(req,res){
     try {
         const { estado } = req.body;
@@ -388,6 +376,7 @@ async function obtenerUbicacionesPorEstado(req,res){
         return res.status(500).send('Error en el servidor.');
     }
 }
+
 async function obtenerUbicaciones(req,res){
     try {
         const [results] = await pool.promise().query('SELECT * FROM ubicacion');
@@ -397,6 +386,7 @@ async function obtenerUbicaciones(req,res){
         return res.status(500).send('Error en el servidor.');
     }
 }
+
 async function obtenerItemsPorTipo(req, res) {
     try {
         const tipo = req.params.item;
