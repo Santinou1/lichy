@@ -99,10 +99,6 @@ function AgregarItem() {
                 setError('La unidad predeterminada es obligatoria');
                 return;
             }
-            if (!data.codigoInterno || !data.codigoInterno.trim()) {
-                setError('El código interno es obligatorio');
-                return;
-            }
         }
         
         if (isEditing) {
@@ -202,25 +198,29 @@ function AgregarItem() {
             .catch((error) => {
                 console.error('Error agregando el item:', error);
                 console.error('Detalles del error:', error.response ? error.response.data : 'No hay detalles adicionales');
-                setError('Error al agregar el item. Intente nuevamente.');
+                
+                // Verificar si es un error de producto duplicado (código 400)
+                if (error.response && error.response.status === 400 && error.response.data && error.response.data.error) {
+                    // Mostrar el mensaje personalizado del backend
+                    setError(error.response.data.error);
+                } else {
+                    setError('Error al agregar el item. Intente nuevamente.');
+                }
             });
         }
     };
 
     const handleEdit = (itemData) => {
-        setValue('nombre', itemData.nombre);
-        if (item === 'color') {
-            setValue('codigoInterno', itemData.codigoInterno || '');
-        }
-        if (item === 'producto') {
-            setValue('unidadPredeterminada', itemData.unidadPredeterminada || '');
-            setValue('codigoInterno', itemData.codigoInterno || '');
-            setValue('tipoBultoPredeterminado', itemData.tipoBultoPredeterminado || '');
-        }
         setEditingId(item === 'color' ? itemData.idColor : 
-                    item === 'proveedor' ? itemData.idProveedor : 
-                    itemData.idProducto);
+                     item === 'proveedor' ? itemData.idProveedor : 
+                     itemData.idProducto);
         setIsEditing(true);
+        reset({
+            nombre: itemData.nombre,
+            unidadPredeterminada: itemData.unidadPredeterminada || '',
+            codigoInterno: itemData.codigoInterno || '',
+            tipoBultoPredeterminado: itemData.tipoBultoPredeterminado || ''
+        });
     };
 
     const resetForm = () => {
@@ -293,24 +293,6 @@ function AgregarItem() {
                         </div>
                         
                         <div className="input-container">
-                            <label htmlFor="codigoInterno">Código interno: <span className="required">*</span></label>
-                            <Controller
-                                name="codigoInterno"
-                                control={control}
-                                rules={{ required: true }}
-                                render={({ field }) => (
-                                    <input 
-                                        {...field}
-                                        type="text" 
-                                        id="codigoInterno"
-                                        className={errors.codigoInterno ? 'error-input' : ''}
-                                    />
-                                )}
-                            />
-                            {errors.codigoInterno && <span className="error-text">Este campo es obligatorio</span>}
-                        </div>
-                        
-                        <div className="input-container">
                             <label htmlFor="tipoBultoPredeterminado">Tipo de bulto predeterminado:</label>
                             <Controller
                                 name="tipoBultoPredeterminado"
@@ -326,6 +308,23 @@ function AgregarItem() {
                                 )}
                             />
                             <span className="info-text">Se establece automáticamente según la unidad seleccionada</span>
+                        </div>
+                        
+                        <div className="input-container">
+                            <label htmlFor="codigoInterno">Código interno:</label>
+                            <Controller
+                                name="codigoInterno"
+                                control={control}
+                                render={({ field }) => (
+                                    <input 
+                                        {...field}
+                                        type="text" 
+                                        id="codigoInterno"
+                                        placeholder="Opcional"
+                                    />
+                                )}
+                            />
+                            <span className="info-text">Este campo es opcional</span>
                         </div>
                     </>
                 )}

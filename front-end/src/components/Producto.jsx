@@ -115,8 +115,6 @@ function Producto({ user, producto, onActualizar, contenedor }) {
                             {producto.cantidadAlternativa && producto.unidadAlternativa && (
                                 <label>Cantidad Alt.: <b>{`${parseFloat(producto.cantidadAlternativa).toFixed(2)} ${producto.unidadAlternativa}`}</b></label>
                             )}
-                            <label>FOB: <b>${producto.precioPorUnidad}</b></label>
-                            <label>Costo: <b>${(producto.precioPorUnidad * producto.cantidad).toFixed(2)}</b></label>
                         </div> :
                         <>
                             <form className='datos-actuales-producto' onSubmit={onSubmit}>
