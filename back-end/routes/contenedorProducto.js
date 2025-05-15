@@ -96,8 +96,12 @@ async function editarProductoDeContenedor(req,res){
         }
         console.log(req.body);
         console.log(coloresAsignados);
+        console.log('Datos recibidos del frontend:', req.body);
+        console.log('Código interno recibido:', codigoInterno);
+        
         // Si estamos actualizando un producto existente sin desglose de colores
         if (cantidad !== 0 && (!coloresAsignados || coloresAsignados.length === 0)) {
+            // 1. Actualizar la tabla ContenedorProductos
             const query = `UPDATE ContenedorProductos cp
             SET 
             cp.producto = ?,
@@ -111,6 +115,13 @@ async function editarProductoDeContenedor(req,res){
             WHERE cp.idContenedorProductos = ?;
             `
             await connection.promise().query(query,[producto,cantidad,unidad,color,precioPorUnidad,item_proveedor,cantidadAlternativa,unidadAltValidada,id]);
+            
+            // 2. Si se proporcionó un código interno, actualizar la tabla Producto
+            if (codigoInterno !== undefined) {
+                console.log('Actualizando código interno del producto:', codigoInterno);
+                const updateProductoQuery = `UPDATE Producto SET codigoInterno = ? WHERE idProducto = ?`;
+                await connection.promise().query(updateProductoQuery, [codigoInterno, producto]);
+            }
             
             let actualizado = {idContenedorProductos:parseInt(id),
                 idProducto:producto, 
@@ -180,6 +191,13 @@ async function editarProductoDeContenedor(req,res){
                 
                 // Sumar la cantidad asignada al total
                 cantidadTotalAsignada += parseFloat(colorAsignado.cantidad);
+            }
+            
+            // Si se proporcionó un código interno, actualizar la tabla Producto
+            if (codigoInterno !== undefined) {
+                console.log('Actualizando código interno del producto en caso de desglose de colores:', codigoInterno);
+                const updateProductoQuery = `UPDATE Producto SET codigoInterno = ? WHERE idProducto = ?`;
+                await connection.promise().query(updateProductoQuery, [codigoInterno, producto]);
             }
             
             // Luego actualizar el producto principal reduciendo su stock
