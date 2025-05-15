@@ -34,6 +34,7 @@ async function actualizarProducto(req,res){
         console.log('Datos recibidos para actualizar producto:', req.body);
         console.log('Tipo de unidadPredeterminada:', typeof unidadPredeterminada, 'Valor:', unidadPredeterminada);
         console.log('Tipo de tipoBultoPredeterminado:', typeof tipoBultoPredeterminado, 'Valor:', tipoBultoPredeterminado);
+        console.log('Tipo de codigoInterno:', typeof codigoInterno, 'Valor:', codigoInterno);
         
         // Asegurar que la unidad predeterminada sea un string no vacío
         const unidadPredeterminadaValue = String(unidadPredeterminada || '');
@@ -55,15 +56,18 @@ async function actualizarProducto(req,res){
             tipoBultoValue = unidadPredeterminadaValue.toLowerCase() === 'uni' ? 'caja' : 'rollo';
         }
         
+        // Permitir que codigoInterno sea null o undefined
+        const codigoInternoValue = codigoInterno === undefined || codigoInterno === null ? null : codigoInterno;
+        
         console.log('Valores a actualizar (después de procesar):', {
             nombre,
             unidadPredeterminada: unidadPredeterminadaValue,
-            codigoInterno,
+            codigoInterno: codigoInternoValue,
             tipoBultoPredeterminado: tipoBultoValue
         });
         
         const updateQuery = `UPDATE producto SET nombre = ?, unidadPredeterminada = ?, codigoInterno = ?, tipoBultoPredeterminado = ? WHERE idProducto = ?`;
-        const updateValues = [nombre, unidadPredeterminadaValue, codigoInterno, tipoBultoValue, id];
+        const updateValues = [nombre, unidadPredeterminadaValue, codigoInternoValue, tipoBultoValue, id];
         
         console.log('Query de actualización:', updateQuery);
         console.log('Valores para actualización:', updateValues);
@@ -231,9 +235,9 @@ async function agregarProducto(req,res){
         
         const connection = pool;
         
-        // Validar campos obligatorios
-        if(!nombre || !unidadPredeterminada || !codigoInterno){
-            return res.status(400).send('Faltan campos obligatorios (nombre, unidad o código interno)');
+        // Validar campos obligatorios (código interno es ahora opcional)
+        if(!nombre || !unidadPredeterminada){
+            return res.status(400).send('Faltan campos obligatorios (nombre o unidad)');
         }
         
         // Asegurar que la unidad predeterminada sea un string no vacío
@@ -256,10 +260,13 @@ async function agregarProducto(req,res){
             tipoBultoValue = unidadPredeterminadaValue.toLowerCase() === 'uni' ? 'caja' : 'rollo';
         }
         
+        // Permitir que codigoInterno sea null o undefined
+        const codigoInternoValue = codigoInterno === undefined || codigoInterno === null ? null : codigoInterno;
+        
         console.log('Valores a insertar (después de procesar):', {
             nombre,
             unidadPredeterminada: unidadPredeterminadaValue,
-            codigoInterno,
+            codigoInterno: codigoInternoValue,
             tipoBultoPredeterminado: tipoBultoValue
         });
         
@@ -284,7 +291,7 @@ async function agregarProducto(req,res){
                 
                 // Continuar con la inserción
                 const insertQuery = 'INSERT INTO Producto (nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado) VALUES (?,?,?,?)';
-                const insertValues = [nombre, unidadPredeterminadaValue, codigoInterno, tipoBultoValue];
+                const insertValues = [nombre, unidadPredeterminadaValue, codigoInternoValue, tipoBultoValue];
                 
                 console.log('Query de inserción:', insertQuery);
                 console.log('Valores para inserción:', insertValues);
@@ -296,7 +303,7 @@ async function agregarProducto(req,res){
                         if (err.code === 'ER_DATA_OUT_OF_RANGE' && unidadPredeterminadaValue.toLowerCase() === 'uni') {
                             console.log('Intentando inserción alternativa con unidad "m" y luego actualizando...');
                             // Insertamos con un valor válido (m) y luego actualizamos
-                            const tempInsertValues = [nombre, 'm', codigoInterno, tipoBultoValue];
+                            const tempInsertValues = [nombre, 'm', codigoInternoValue, tipoBultoValue];
                             connection.query(insertQuery, tempInsertValues, (tempErr, tempResults) => {
                                 if (tempErr) {
                                     console.error('Error en inserción alternativa:', tempErr);
