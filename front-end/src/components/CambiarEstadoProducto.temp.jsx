@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useUserContext } from '../UserProvider';
 import '../styles/CambiarEstadoProducto.css';
+import '../styles/CambioEstadoLote.css';
 
 function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
   const { user } = useUserContext();

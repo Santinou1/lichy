@@ -107,6 +107,12 @@ async function editarProductoDeContenedor(req,res){
         
         // Si estamos actualizando un producto existente sin desglose de colores
         if (cantidad !== 0 && (!coloresAsignados || coloresAsignados.length === 0)) {
+            // Verificar si el color es una cadena vacía o un valor no válido
+            // Si es así, establecerlo como NULL para cumplir con la restricción de clave foránea
+            const colorValue = color === '' || color === 0 || color === '0' ? null : color;
+            
+            console.log('Valor de color a guardar:', colorValue);
+            
             // 1. Actualizar la tabla ContenedorProductos
             const query = `UPDATE ContenedorProductos cp
             SET 
@@ -120,7 +126,7 @@ async function editarProductoDeContenedor(req,res){
             cp.unidadAlternativa = ?
             WHERE cp.idContenedorProductos = ?;
             `
-            await connection.promise().query(query,[producto,cantidad,unidad,color,precioPorUnidad,item_proveedor,cantidadAlternativa,unidadAltValidada,id]);
+            await connection.promise().query(query,[producto,cantidad,unidad,colorValue,precioPorUnidad,item_proveedor,cantidadAlternativa,unidadAltValidada,id]);
             
             // 2. Si se proporcionó un código interno, actualizar la tabla Producto
             if (codigoInterno !== undefined) {
