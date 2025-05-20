@@ -4,8 +4,9 @@ import NoItems from "../components/NoItems";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { use } from "react";
-function Contenedores(){
+function Contenedores(){  
     const [data,setData]=useState([]);
+    const [contenedoresPredeterminados, setContenedoresPredeterminados] = useState([]);
     const [dataFiltrado, setDataFiltrado] = useState([]);
     const [categorias, setCategorias]  = useState([]);
     const [categoria, setCategoria]  = useState('Todos');
@@ -41,11 +42,22 @@ function Contenedores(){
         setDataFiltrado(filtrado);
     },[categoria,busqueda,data,ubicacion]);
     
+    // Función para ordenar los contenedores, colocando los predeterminados primero
+    const ordenarContenedores = (contenedores) => {
+        const predeterminados = contenedores.filter(c => c.categoria === 'Predeterminado');
+        const normales = contenedores.filter(c => c.categoria !== 'Predeterminado');
+        
+        setContenedoresPredeterminados(predeterminados);
+        return [...predeterminados, ...normales];
+    };
+    
     useEffect(()=>{
         axios.get('http://localhost:5000/api/contenedores/').then((response)=>{
-            console.log(response.data);
-            setData(response.data);
-            setDataFiltrado(response.data);
+            console.log('Contenedores recibidos:', response.data);
+            // Ordenar los contenedores para que los predeterminados aparezcan primero
+            const contenedoresOrdenados = ordenarContenedores(response.data);
+            setData(contenedoresOrdenados);
+            setDataFiltrado(contenedoresOrdenados);
             setCargando(false);
         }).catch((error)=>{
             console.error('Error trayendo los contenedores:', error);
@@ -100,6 +112,25 @@ function Contenedores(){
                     placeholder="Buscar por id"
                 />
             </div>
+            {/* Sección de contenedores predeterminados */}
+            {contenedoresPredeterminados.length > 0 && (
+                <div className="contenedores-predeterminados">
+                    <h3 className="titulo" style={{marginTop: '20px', marginBottom: '10px', color: '#3498db'}}>Contenedores Predeterminados</h3>
+                    <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start', gap: '20px'}}>
+                        {contenedoresPredeterminados.map((item) => (
+                            <Contenedor 
+                                key={item.idContenedor} 
+                                data={item} 
+                                estado={categoria} 
+                                esPredeterminado={true} 
+                            />
+                        ))}
+                    </div>
+                    <hr style={{margin: '20px 0'}}></hr>
+                    <h3 className="titulo">Otros Contenedores</h3>
+                </div>
+            )}
+            
             {cargando ? (
                 <p>Cargando datos...</p>
             ) : dataFiltrado.length === 0 ? (

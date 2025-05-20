@@ -2,6 +2,9 @@ const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 
+// Importar función para crear contenedores predeterminados
+const { crearContenedoresPredeterminados } = require('./db/default_containers');
+
 const app = express();
 
 
@@ -28,6 +31,16 @@ app.use('/api/contenedorEstado',contendorEstado);
 app.use('/api/contenedorProducto',contenedorProducto);
 app.use('/api/producto',producto);
 app.use('/api/historial',historial)
+
+// Crear contenedores predeterminados al iniciar la aplicación
+console.log('Iniciando creación de contenedores predeterminados Mitre y Lichy...');
+crearContenedoresPredeterminados()
+  .then((result) => {
+    console.log('Resultado de verificación de contenedores predeterminados:', result);
+    console.log('Verificación de contenedores predeterminados completada');
+  })
+  .catch(err => console.error('Error al verificar contenedores predeterminados:', err));
+
 module.exports = {
     app
 };

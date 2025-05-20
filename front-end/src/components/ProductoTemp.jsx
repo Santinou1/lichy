@@ -7,10 +7,8 @@ import DesglozarPorcolor from './DesglozarPorColor';
 import ConfirmarEliminar from './ConfirmarEliminar';
 import CambiarEstadoProducto from './CambiarEstadoProducto';
 import { useNavigate } from 'react-router-dom';
-import Select from 'react-select';
-import CreatableSelect from 'react-select/creatable';
 
-function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, registrarCambioProducto }) {
+function Producto({ user, producto, onActualizar, contenedor }) {
     const nav = useNavigate();
     const [mostrarForm, setMostrarForm] = useState(false);
     const [mostrarCambioEstado, setMostrarCambioEstado] = useState(false);
@@ -25,26 +23,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
     const [editForm, setEditForm] = useState({
         codigoInterno: producto.codigoInterno || '',
         color: producto.idColor || '',
-        colorNombre: producto.color || '', // Usamos producto.color en lugar de producto.nombreColor
-        colorNuevo: null,
         cantidad: producto.cantidad || 0
-    });
-    
-    // Estado local para el modo de edición por lotes
-    const [loteForm, setLoteForm] = useState({
-        codigoInterno: producto.codigoInterno || '',
-        color: producto.idColor || '',
-        colorNombre: producto.color || '', // Usamos producto.color en lugar de producto.nombreColor
-        cantidad: producto.cantidad || 0,
-        // Añadimos una bandera para saber si el color ha sido modificado
-        colorModificado: false
-    });
-    
-    // Estado para manejar la creación de un nuevo color
-    const [creandoColor, setCreandoColor] = useState(false);
-    const [nuevoColor, setNuevoColor] = useState({
-        nombre: '',
-        codigoInterno: ''
     });
     
     // Función para mostrar/ocultar el formulario completo
@@ -59,9 +38,6 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
     
     // Función para iniciar la edición en línea
     const iniciarEdicion = () => {
-        // Si estamos en modo edición por lotes, no hacemos nada
-        if (modoEdicionLotes) return;
-        
         setEditando(true);
         setMostrarCambioEstado(false);
         setMostrarForm(false);
@@ -69,71 +45,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
         setEditForm({
             codigoInterno: productoActualizado.codigoInterno || '',
             color: productoActualizado.idColor || '',
-            colorNombre: productoActualizado.color || '', // Usamos productoActualizado.color en lugar de productoActualizado.nombreColor
-            colorNuevo: null,
             cantidad: productoActualizado.cantidad || 0
-        });
-    }
-    
-    // Función para manejar la creación de un nuevo color
-    const handleCreateColor = async (inputValue) => {
-        console.log('Creando nuevo color:', inputValue);
-        // Mostrar modal para ingresar código interno del color
-        setCreandoColor(true);
-        setNuevoColor({
-            nombre: inputValue,
-            codigoInterno: ''
-        });
-    }
-    
-    // Función para guardar un nuevo color en la base de datos
-    const guardarNuevoColor = async () => {
-        try {
-            console.log('Guardando nuevo color:', nuevoColor);
-            
-            // Validar que se ingresó un código interno
-            if (!nuevoColor.codigoInterno) {
-                alert('Debe ingresar un código interno para el color');
-                return;
-            }
-            
-            // Enviar petición para crear el color
-            const response = await axios.post('http://localhost:5000/api/items/color', {
-                nombre: nuevoColor.nombre,
-                codigoInterno: nuevoColor.codigoInterno
-            });
-            
-            console.log('Respuesta del servidor:', response.data);
-            
-            // Actualizar la lista de colores
-            const nuevoColorCreado = response.data;
-            setColores(prevColores => [...prevColores, nuevoColorCreado]);
-            
-            // Actualizar el formulario con el nuevo color
-            setEditForm({
-                ...editForm,
-                color: nuevoColorCreado.idColor,
-                colorNombre: nuevoColorCreado.nombre // Guardamos solo el nombre para la base de datos
-            });
-            
-            // Cerrar el modal
-            setCreandoColor(false);
-            
-            alert(`Color "${nuevoColorCreado.nombre}" creado exitosamente`);
-            
-        } catch (error) {
-            console.error('Error al crear el color:', error);
-            console.error('Detalles del error:', error.response ? error.response.data : 'No hay detalles adicionales');
-            alert('Hubo un error al crear el color. Por favor, inténtelo de nuevo.');
-        }
-    }
-    
-    // Función para cancelar la creación de un nuevo color
-    const cancelarCreacionColor = () => {
-        setCreandoColor(false);
-        setNuevoColor({
-            nombre: '',
-            codigoInterno: ''
         });
     }
     
@@ -260,79 +172,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
     };
     
     // Manejar cambios en el formulario de edición en línea
-    const handleColorChange = (newValue, actionMeta) => {
-        console.log('Color change:', newValue, actionMeta);
-        
-        // La creación de nuevos colores ahora se maneja con onCreateOption
-        // Aquí solo manejamos la selección de colores existentes
-        if (newValue) {
-            // Extraer el nombre del color sin el código para guardarlo en la base de datos
-            const colorData = newValue.data || colores.find(c => c.idColor === newValue.value);
-            const nombreColor = colorData ? colorData.nombre : newValue.label.split(' (')[0];
-            
-            // Si estamos en modo edición por lotes, actualizamos el estado local y registramos el cambio
-            if (modoEdicionLotes && registrarCambioProducto) {
-                // Actualizar el estado local para que el usuario vea lo que ha seleccionado
-                setLoteForm(prevState => ({
-                    ...prevState,
-                    color: newValue.value,
-                    colorNombre: nombreColor,
-                    colorModificado: true // Marcamos que el color ha sido modificado
-                }));
-                
-                // Registrar el cambio para guardarlo posteriormente
-                registrarCambioProducto(producto.idContenedorProductos, {
-                    color: newValue.value,
-                    producto: producto.idProducto,
-                    cantidad: producto.cantidad,
-                    unidad: producto.unidad,
-                    precioPorUnidad: producto.precioPorUnidad,
-                    cantidadAlternativa: producto.cantidadAlternativa,
-                    unidadAlternativa: producto.unidadAlternativa
-                });
-                return;
-            }
-            
-            // Modo edición normal
-            setEditForm(prevState => ({
-                ...prevState,
-                color: newValue.value,
-                colorNombre: nombreColor // Guardamos solo el nombre sin el código
-            }));
-        } else {
-            if (modoEdicionLotes && registrarCambioProducto) {
-                // Actualizar el estado local
-                setLoteForm(prevState => ({
-                    ...prevState,
-                    color: '',
-                    colorNombre: '',
-                    colorModificado: true // Marcamos que el color ha sido modificado
-                }));
-                
-                // Registrar el cambio
-                registrarCambioProducto(producto.idContenedorProductos, {
-                    color: null,
-                    producto: producto.idProducto,
-                    cantidad: producto.cantidad,
-                    unidad: producto.unidad,
-                    precioPorUnidad: producto.precioPorUnidad,
-                    cantidadAlternativa: producto.cantidadAlternativa,
-                    unidadAlternativa: producto.unidadAlternativa
-                });
-                return;
-            }
-            
-            setEditForm(prevState => ({
-                ...prevState,
-                color: '',
-                colorNombre: ''
-            }));
-        }
-    };
-    
-    // Manejar cambios en el formulario de edición en línea
     const handleEditFormChange = (e) => {
-        // Para eventos de input normales
         const { name, value } = e.target;
         let processedValue = value;
         
@@ -340,43 +180,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
             processedValue = value === '' ? '' : Number(value);
         }
         
-        // Si estamos en modo edición por lotes, actualizamos el estado local y registramos el cambio
-        if (modoEdicionLotes && registrarCambioProducto) {
-            // Actualizar el estado local para que el usuario vea lo que está escribiendo
-            setLoteForm(prevState => ({
-                ...prevState,
-                [name]: processedValue
-            }));
-            
-            // Registrar el cambio para guardarlo posteriormente
-            registrarCambioProducto(producto.idContenedorProductos, {
-                [name]: processedValue,
-                producto: producto.idProducto,
-                unidad: producto.unidad,
-                precioPorUnidad: producto.precioPorUnidad,
-                cantidadAlternativa: producto.cantidadAlternativa,
-                unidadAlternativa: producto.unidadAlternativa
-            });
-            return;
-        }
-        
-        // Modo edición normal
         setEditForm(prevState => ({
-            ...prevState,
-            [name]: processedValue
-        }));
-    };
-    
-    // Manejar cambios en el formulario de nuevo color
-    const handleNuevoColorChange = (e) => {
-        const { name, value } = e.target;
-        let processedValue = value;
-        
-        if (name === 'codigoInterno') {
-            processedValue = value === '' ? '' : Number(value);
-        }
-        
-        setNuevoColor(prevState => ({
             ...prevState,
             [name]: processedValue
         }));
@@ -404,25 +208,8 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
             cantidadAlternativa: nuevoProductoActualizado.cantidadAlternativa,
             unidadAlternativa: nuevoProductoActualizado.unidadAlternativa,
             contenedor: contenedor,
-            codigoInterno: editForm.codigoInterno,
-            // Incluir los datos anteriores para el historial
-            dataAnterior: {
-                idContenedorProductos: producto.idContenedorProductos,
-                nombre: producto.nombre,
-                codigoInterno: producto.codigoInterno,
-                cantidad: producto.cantidad,
-                unidad: producto.unidad,
-                color: producto.idColor,
-                precioPorUnidad: producto.precioPorUnidad,
-                cantidadAlternativa: producto.cantidadAlternativa,
-                unidadAlternativa: producto.unidadAlternativa
-            },
-            // Incluir usuario para el historial
-            usuarioCambio: user.username || 'sistema',
-            motivo: 'Edición en línea'
+            codigoInterno: editForm.codigoInterno
         };
-        
-        console.log('Enviando datos actualizados:', datosActualizados);
         
         try {
             await axios.put(`http://localhost:5000/api/contenedorProducto/${producto.idContenedorProductos}`, datosActualizados);
@@ -438,79 +225,42 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
             
         } catch (error) {
             console.error('Error al actualizar el producto:', error);
-            console.error('Detalles del error:', error.response ? error.response.data : 'No hay detalles adicionales');
             alert('Hubo un error al actualizar el producto. Por favor, inténtelo de nuevo.');
         }
     };
 
-    // Obtener colores disponibles
-    const fetchColores = async () => {
-        try {
-            console.log('Obteniendo colores...');
-            const response = await axios.get('http://localhost:5000/api/items/color');
-            console.log('Colores obtenidos:', response.data);
-            setColores(response.data);
-        } catch (error) {
-            console.error('Error al obtener colores:', error);
-        }
-    };
-    
-    // Obtener productos disponibles
-    const fetchProductos = async () => {
-        try {
-            const response = await axios.get('http://localhost:5000/api/items/producto');
-            setProductos(response.data);
-        } catch (error) {
-            console.error('Error al obtener productos:', error);
-        }
-    };
-    
-    // Cargar datos al montar el componente
+    useEffect(() => {
+        const fetchColores = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/api/color');
+                setColores(response.data);
+            } catch (error) {
+                console.error('Error al obtener colores:', error);
+            }
+        };
 
-// Cargar datos al montar el componente
-useEffect(() => {
-    fetchColores();
-    fetchProductos();
-}, []);
+        const fetchProductos = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/api/producto');
+                setProductos(response.data);
+            } catch (error) {
+                console.error('Error al obtener productos:', error);
+            }
+        };
 
-// Efecto para actualizar el estado cuando cambia el producto
-useEffect(() => {
-    console.log('Producto actualizado:', producto);
-    console.log('Color del producto:', producto.color);
-    console.log('ID del color:', producto.idColor);
+        fetchColores();
+        fetchProductos();
+    }, []);
     
-    setProductoActualizado(producto);
-    
-    // Actualizar también el estado de edición por lotes cuando cambia el producto
-    setLoteForm({
-        codigoInterno: producto.codigoInterno || '',
-        color: producto.idColor || '',
-        colorNombre: producto.color || '', // Usamos producto.color en lugar de producto.nombreColor
-        cantidad: producto.cantidad || 0,
-        colorModificado: false // Reiniciamos la bandera cuando cambia el producto
-    });
-    
-    console.log('Estado loteForm actualizado:', {
-        codigoInterno: producto.codigoInterno || '',
-        color: producto.idColor || '',
-        colorNombre: producto.color || '',
-        cantidad: producto.cantidad || 0
-    });
-}, [producto]);
+    // Actualizar el formulario de edición cuando cambia el producto
+    useEffect(() => {
+        setEditForm({
+            codigoInterno: productoActualizado.codigoInterno || '',
+            color: productoActualizado.idColor || '',
+            cantidad: productoActualizado.cantidad || 0
+        });
+    }, [productoActualizado]);
 
-// Actualizar el formulario de edición cuando cambia el producto actualizado
-useEffect(() => {
-    console.log('Producto actualizado en efecto:', productoActualizado);
-    console.log('Color del producto actualizado:', productoActualizado.color);
-    
-    setEditForm({
-        codigoInterno: productoActualizado.codigoInterno || '',
-        color: productoActualizado.idColor || '',
-        colorNombre: productoActualizado.color || '', // Usamos productoActualizado.color en lugar de productoActualizado.nombreColor
-        colorNuevo: null,
-        cantidad: productoActualizado.cantidad || 0
-    });
-}, [productoActualizado]);
     return (
         <>
             <div className='producto-container'>
@@ -598,7 +348,7 @@ useEffect(() => {
                         </form>
                         <ConfirmarEliminar id={producto.idContenedorProductos} tipo={'ContenedorProducto'} />
                     </>
-                ) : editando || modoEdicionLotes ? (
+                ) : editando ? (
                     <div className='datos-actuales-producto edicion-inline-container'>
                         <label><b>{productoActualizado.nombre}</b></label>
                         
@@ -607,7 +357,7 @@ useEffect(() => {
                             <input 
                                 type="number" 
                                 name="codigoInterno" 
-                                value={modoEdicionLotes ? loteForm.codigoInterno : editForm.codigoInterno} 
+                                value={editForm.codigoInterno} 
                                 onChange={handleEditFormChange}
                                 className="edicion-inline"
                             />
@@ -615,93 +365,20 @@ useEffect(() => {
                         
                         <div className="campo-editable">
                             <label>Color:</label>
-                            <CreatableSelect
-                                className="edicion-inline-select"
-                                placeholder="Selecciona o crea un color"
-                                isClearable
-                                options={colores.map(color => ({
-                                    value: color.idColor,
-                                    label: `${color.nombre} (${color.codigoInterno})`,
-                                    data: color // Guardamos el objeto completo para acceder a todas sus propiedades
-                                }))}
-                                value={
-                                    modoEdicionLotes ? 
-                                    (loteForm.colorModificado ? 
-                                        // Si el color ha sido modificado, usamos el valor del estado loteForm
-                                        (loteForm.color ? {
-                                            value: loteForm.color,
-                                            label: loteForm.colorNombre ? 
-                                                (loteForm.colorNombre.includes('(') ? 
-                                                    loteForm.colorNombre : 
-                                                    `${loteForm.colorNombre} ${colores.find(c => c.idColor === loteForm.color)?.codigoInterno ? `(${colores.find(c => c.idColor === loteForm.color)?.codigoInterno})` : ''}`) : 
-                                                ''
-                                        } : null) :
-                                        // Si el color no ha sido modificado, usamos el valor original del producto
-                                        (producto.idColor ? {
-                                            value: producto.idColor,
-                                            label: `${producto.color || ''} ${colores.find(c => c.idColor === producto.idColor)?.codigoInterno ? `(${colores.find(c => c.idColor === producto.idColor)?.codigoInterno})` : ''}`
-                                        } : null)
-                                    ) :
-                                    (editForm.color ? {
-                                        value: editForm.color,
-                                        label: editForm.colorNombre && editForm.colorNombre.includes('(') ? 
-                                               editForm.colorNombre : 
-                                               `${editForm.colorNombre || ''} ${colores.find(c => c.idColor === editForm.color)?.codigoInterno ? `(${colores.find(c => c.idColor === editForm.color)?.codigoInterno})` : ''}`
-                                    } : null)
-                                }
-                                onChange={handleColorChange}
-                                formatCreateLabel={(inputValue) => `Crear nuevo color "${inputValue}"`}
-                                onCreateOption={handleCreateColor}
-                                filterOption={(option, inputValue) => {
-                                    if (!option || !inputValue) return true;
-                                    
-                                    const label = option.label?.toLowerCase() || '';
-                                    const input = inputValue.toLowerCase();
-                                    const data = option.data || {};
-                                    
-                                    // Permitir búsqueda por nombre o código
-                                    return label.includes(input) || 
-                                           (data.codigoInterno?.toString() || '').includes(input) ||
-                                           (data.nombre?.toLowerCase() || '').includes(input);
-                                }}
-                            />
+                            <select 
+                                name="color" 
+                                value={editForm.color} 
+                                onChange={handleEditFormChange}
+                                className="edicion-inline"
+                            >
+                                <option value="">Sin color</option>
+                                {colores.map(color => (
+                                    <option key={color.idColor} value={color.idColor}>
+                                        {color.nombre}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-                        
-                        {/* Modal para crear un nuevo color */}
-                        {creandoColor && (
-                            <div className="color-modal-overlay">
-                                <div className="color-modal">
-                                    <h3>Crear nuevo color</h3>
-                                    <div className="color-modal-content">
-                                        <div className="form-group">
-                                            <label>Nombre:</label>
-                                            <input
-                                                type="text"
-                                                name="nombre"
-                                                value={nuevoColor.nombre}
-                                                onChange={handleNuevoColorChange}
-                                                disabled
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <label>Código Interno:</label>
-                                            <input
-                                                type="number"
-                                                name="codigoInterno"
-                                                value={nuevoColor.codigoInterno}
-                                                onChange={handleNuevoColorChange}
-                                                placeholder="Ingrese un código numérico"
-                                                autoFocus
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="color-modal-actions">
-                                        <button onClick={guardarNuevoColor} className="btn-guardar-color">Guardar Color</button>
-                                        <button onClick={cancelarCreacionColor} className="btn-cancelar-color">Cancelar</button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                         
                         <div className="campo-editable">
                             <label>Cantidad:</label>
@@ -709,7 +386,7 @@ useEffect(() => {
                                 <input 
                                     type="number" 
                                     name="cantidad" 
-                                    value={modoEdicionLotes ? loteForm.cantidad : editForm.cantidad} 
+                                    value={editForm.cantidad} 
                                     onChange={handleEditFormChange}
                                     className="edicion-inline"
                                     min="0"
@@ -736,18 +413,16 @@ useEffect(() => {
                             )}
                         </div>
                         
-                        {!modoEdicionLotes && (
-                            <div className="edicion-inline-botones">
-                                <button onClick={guardarEdicionEnLinea} className="btn-guardar-inline">Guardar</button>
-                                <button onClick={cancelarEdicion} className="btn-cancelar-inline">Cancelar</button>
-                            </div>
-                        )}
+                        <div className="edicion-inline-botones">
+                            <button onClick={guardarEdicionEnLinea} className="btn-guardar-inline">Guardar</button>
+                            <button onClick={cancelarEdicion} className="btn-cancelar-inline">Cancelar</button>
+                        </div>
                     </div>
                 ) : (
                     <div className='datos-actuales-producto'>
                         <label><b>{productoActualizado.nombre}</b></label>
                         <label>Código Interno: <b>{productoActualizado.codigoInterno || 'Sin código'}</b></label>
-                        <label>Color: <b>{productoActualizado.color || 'Sin color'}</b></label>
+                        <label>Color: <b>{productoActualizado.nombreColor || 'Sin color'}</b></label>
                         <label>Cantidad: <b>{productoActualizado.cantidad ? `${parseFloat(productoActualizado.cantidad).toFixed(2)} ${productoActualizado.unidad}` : 'Sin cantidad'}</b></label>
                         {productoActualizado.cantidadAlternativa && productoActualizado.unidadAlternativa && (
                             <label>Cantidad Alt.: <b>{`${parseFloat(productoActualizado.cantidadAlternativa).toFixed(2)} ${productoActualizado.unidadAlternativa}`}</b></label>

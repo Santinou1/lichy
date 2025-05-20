@@ -1,0 +1,161 @@
+/* Estilos para la edición en línea de productos */
+
+.edicion-inline-container {
+  position: relative;
+}
+
+.campo-editable {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 10px;
+}
+
+.campo-editable label {
+  min-width: 120px;
+  font-weight: 500;
+}
+
+.edicion-inline {
+  padding: 5px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 150px;
+}
+
+.edicion-inline-select {
+  width: 250px;
+  z-index: 100;
+}
+
+.cantidad-con-unidad {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cantidad-con-unidad span {
+  font-weight: 500;
+}
+
+.edicion-inline-botones {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.btn-guardar-inline {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-cancelar-inline {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-guardar-inline:hover {
+  background-color: #45a049;
+}
+
+.btn-cancelar-inline:hover {
+  background-color: #d32f2f;
+}
+
+/* Estilos para el modal de creación de colores */
+.color-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.color-modal {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.color-modal h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.color-modal-content {
+  margin-bottom: 20px;
+}
+
+.color-modal .form-group {
+  margin-bottom: 15px;
+}
+
+.color-modal .form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.color-modal .form-group input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.color-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-guardar-color {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-cancelar-color {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-guardar-color:hover {
+  background-color: #45a049;
+}
+
+.btn-cancelar-color:hover {
+  background-color: #d32f2f;
+}

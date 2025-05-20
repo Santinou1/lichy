@@ -79,6 +79,8 @@ async function obtenerContenedores(req,res) {
         SELECT 
             c.idContenedor,
             c.categoria,
+            c.comentario,
+            c.codigoContenedor,
             ce.idEstado,
             ce.estado,
             ce.ubicacion
