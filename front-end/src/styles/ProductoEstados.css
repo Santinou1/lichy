@@ -1,0 +1,61 @@
+/* Estilos para los estados de productos */
+
+.estado-producto {
+  margin-top: 8px;
+  font-size: 0.9em;
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+.en-stock {
+  background-color: #81c784;
+  color: #1b5e20;
+}
+
+.entregado {
+  background-color: #90caf9;
+  color: #0d47a1;
+}
+
+.destino-badge {
+  display: inline-block;
+  margin-left: 5px;
+  font-weight: bold;
+  color: #3498db;
+}
+
+.producto-acciones {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.producto-acciones button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-editar {
+  background-color: #f0ad4e;
+  color: white;
+}
+
+.btn-estado {
+  background-color: #5bc0de;
+  color: white;
+}
+
+.cambio-estado-wrapper {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}

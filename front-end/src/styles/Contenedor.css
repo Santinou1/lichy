@@ -4,4 +4,69 @@
     border-radius: 10px;
     margin: 10px 0px 10px 0px;
     padding: 10px;
+    transition: all 0.3s ease;
+}
+
+/* Estilo para contenedores predeterminados */
+.contenedor-predeterminado {
+    border: 2px solid #3498db;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background: #f8f9fa;
+}
+
+/* Estilo específico para contenedor Lichy */
+.contenedor-lichy {
+    border-color: #e74c3c;
+    background: linear-gradient(to right, #fff, #ffedeb);
+}
+
+/* Estilo específico para contenedor Mitre */
+.contenedor-mitre {
+    border-color: #2ecc71;
+    background: linear-gradient(to right, #fff, #ebffef);
+}
+
+/* Estilo para la etiqueta de predeterminado */
+.contenedor-predeterminado-badge {
+    background-color: #3498db;
+    color: white;
+    font-size: 0.8em;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.contenedor-lichy .titulo {
+    color: #e74c3c;
+}
+
+.contenedor-mitre .titulo {
+    color: #2ecc71;
+}
+
+/* Estilos para la información del contenedor */
+.contenedor-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* Estilo para el nombre del contenedor */
+.contenedor-nombre {
+    font-size: 1.2em;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.contenedor-lichy .contenedor-nombre b {
+    color: #e74c3c;
+    font-size: 1.3em;
+    text-transform: uppercase;
+}
+
+.contenedor-mitre .contenedor-nombre b {
+    color: #2ecc71;
+    font-size: 1.3em;
+    text-transform: uppercase;
 }

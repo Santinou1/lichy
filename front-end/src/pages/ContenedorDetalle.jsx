@@ -1,5 +1,6 @@
 import Producto from '../components/Producto';
 import '../styles/ContenedorDetalle.css';
+import '../styles/EdicionLotes.css';
 import { useNavigate, useParams, useSearchParams} from 'react-router-dom';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
@@ -35,8 +36,74 @@ function ContendorDetalle({user}){
     const [fechaCreacionOriginal, setFechaCreacionOriginal] = useState(null);
     const {id} = useParams();
     const [agregarProducto, setAgregarProducto] = useState(false);
+    const [modoEdicionLotes, setModoEdicionLotes] = useState(false);
+    const [productosEditados, setProductosEditados] = useState({});
     const actualizarProductoEnLista = (nuevaListaProductos) => {
         setProductos(nuevaListaProductos);
+    };
+    
+    // Función para activar/desactivar el modo de edición por lotes
+    const toggleModoEdicionLotes = () => {
+        if (modoEdicionLotes) {
+            // Si estamos saliendo del modo edición, limpiamos los productos editados
+            setProductosEditados({});
+        }
+        setModoEdicionLotes(!modoEdicionLotes);
+    };
+    
+    // Función para registrar los cambios de un producto en el modo de edición por lotes
+    const registrarCambioProducto = (idProducto, cambios) => {
+        setProductosEditados(prev => ({
+            ...prev,
+            [idProducto]: {
+                ...prev[idProducto],
+                ...cambios
+            }
+        }));
+    };
+    
+    // Función para guardar todos los cambios de productos en lote
+    const guardarCambiosLote = async () => {
+        try {
+            // Crear un array de promesas para todas las actualizaciones
+            const promesas = Object.entries(productosEditados).map(([idProducto, cambios]) => {
+                return axios.put(`http://localhost:5000/api/contenedorProducto/${idProducto}`, {
+                    ...cambios,
+                    contenedor: id,
+                    // Incluir los datos necesarios para el historial
+                    dataAnterior: {
+                        idContenedorProductos: idProducto,
+                        nombre: productos.find(p => p.idContenedorProductos.toString() === idProducto)?.nombre || '',
+                        codigoInterno: productos.find(p => p.idContenedorProductos.toString() === idProducto)?.codigoInterno || '',
+                        cantidad: productos.find(p => p.idContenedorProductos.toString() === idProducto)?.cantidad || 0,
+                        unidad: productos.find(p => p.idContenedorProductos.toString() === idProducto)?.unidad || '',
+                        color: productos.find(p => p.idContenedorProductos.toString() === idProducto)?.idColor || '',
+                        precioPorUnidad: productos.find(p => p.idContenedorProductos.toString() === idProducto)?.precioPorUnidad || 0,
+                        cantidadAlternativa: productos.find(p => p.idContenedorProductos.toString() === idProducto)?.cantidadAlternativa || null,
+                        unidadAlternativa: productos.find(p => p.idContenedorProductos.toString() === idProducto)?.unidadAlternativa || null
+                    },
+                    usuarioCambio: user.username || 'sistema',
+                    motivo: 'Edición en lote'
+                });
+            });
+            
+            // Ejecutar todas las actualizaciones en paralelo
+            await Promise.all(promesas);
+            
+            // Actualizar la lista de productos
+            const response = await axios.get(`http://localhost:5000/api/contenedorProducto/${id}`);
+            setProductos(response.data);
+            
+            // Salir del modo edición por lotes
+            setModoEdicionLotes(false);
+            setProductosEditados({});
+            
+            alert('Todos los cambios se han guardado correctamente');
+            
+        } catch (error) {
+            console.error('Error al guardar los cambios en lote:', error);
+            alert('Hubo un error al guardar los cambios. Por favor, inténtelo de nuevo.');
+        }
     };
 
     const openModal = () => setIsModalOpen(true);
@@ -180,12 +247,36 @@ function ContendorDetalle({user}){
             <hr></hr>
             <div className='encabezados-container' >
                 <h3>Productos:</h3>
-                <button onClick={()=>setAgregarProducto(true)}> Agregar producto</button>
+                <div className="botones-productos">
+                    {user.permisos["Editar-Contenedores"] && (
+                        <>
+                            <button onClick={toggleModoEdicionLotes} className={modoEdicionLotes ? "btn-cancelar" : "btn-editar"}>
+                                {modoEdicionLotes ? "Cancelar edición" : "Editar productos"}
+                            </button>
+                            
+                            {modoEdicionLotes && Object.keys(productosEditados).length > 0 && (
+                                <button onClick={guardarCambiosLote} className="btn-guardar">
+                                    Guardar cambios ({Object.keys(productosEditados).length})
+                                </button>
+                            )}
+                        </>
+                    )}
+                    <button onClick={()=>setAgregarProducto(true)}> Agregar producto</button>
+                </div>
             </div>
-            <div className='productos-lista'>
+            <div className={`productos-lista ${modoEdicionLotes ? 'edicion-lotes-activa' : ''}`}>
             {
                 productos ? productos.map((item)=> (
-                    <Producto user={user} key={item.idContenedorProductos} producto={item} contenedor={id} onActualizar={actualizarProductoEnLista} setProducto={setProductos}/>
+                    <Producto 
+                        user={user} 
+                        key={item.idContenedorProductos} 
+                        producto={item} 
+                        contenedor={id} 
+                        onActualizar={actualizarProductoEnLista} 
+                        setProducto={setProductos}
+                        modoEdicionLotes={modoEdicionLotes}
+                        registrarCambioProducto={registrarCambioProducto}
+                    />
                 )) : <></>
             }
             {
