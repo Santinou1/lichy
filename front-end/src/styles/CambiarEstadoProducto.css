@@ -9,14 +9,17 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 15px;
+  box-sizing: border-box;
 }
 
 .cambiar-estado-modal {
-  width: 90%;
-  max-width: 500px;
+  width: 95%;
+  max-width: 550px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
+  margin: 0 auto;
 }
 
 .cambiar-estado-container {
@@ -25,6 +28,7 @@
   border-radius: 8px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
   width: 100%;
+  box-sizing: border-box;
 }
 
 .cambiar-estado-header {
@@ -75,6 +79,8 @@
 
 .form-group {
   margin-bottom: 15px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group label {
@@ -91,6 +97,8 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .input-info {
@@ -104,6 +112,9 @@
 .form-group textarea {
   min-height: 80px;
   resize: vertical;
+  max-height: 150px;
+  box-sizing: border-box;
+  font-family: inherit;
 }
 
 .error-message {
