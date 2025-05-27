@@ -9,6 +9,8 @@ import ProductoDetalle from "./pages/ProductoDetalle.jsx";
 import AgregarItem from "./pages/AgregarItem.jsx";
 import Redireccion from "./components/Redireccion.jsx";
 import ActualizarProductos from "./pages/ActualizarProductos.jsx";
+import Pedidos from "./pages/Pedidos.jsx";
+import PedidoDetalle from "./pages/PedidoDetalle.jsx";
 
 import { ProtectedRoute } from "./components/ProtectedRoute.jsx";
 import { useUserContext } from "./UserProvider.jsx";
@@ -50,6 +52,10 @@ function App() {
           </Route>
           <Route element={<ProtectedRoute user={user} requiredPermission={'Usuarios'} />}>
             <Route path='/ver-usuarios' element={<ConfiguraciónUsuarios />} />
+          </Route>
+          <Route element={<ProtectedRoute user={user} requiredPermission={'Productos'} />}>
+            <Route path='/pedidos' element={<Pedidos />} />
+            <Route path='/pedido-detalle/:id' element={<PedidoDetalle />} />
           </Route>
           <Route path='*' element={<h1>Not Found</h1>} />  
         </Routes>

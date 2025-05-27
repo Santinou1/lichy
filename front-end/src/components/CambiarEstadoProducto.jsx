@@ -1,66 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useUserContext } from '../UserProvider';
+import { useNavigate } from 'react-router-dom';
 import '../styles/CambiarEstadoProducto.css';
 
 function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
   const { user } = useUserContext();
-  const [estado, setEstado] = useState('En stock');
-  const [contenedorDestino, setContenedorDestino] = useState('');
-  const [cantidadEntregada, setCantidadEntregada] = useState(1);
+  const navigate = useNavigate();
+  const [destino, setDestino] = useState('nuevo_pedido'); // 'nuevo_pedido' o 'pedido_existente'
+  const [pedidoExistente, setPedidoExistente] = useState('');
+  const [pedidosPendientes, setPedidosPendientes] = useState([]);
   const [cantidadTransferir, setCantidadTransferir] = useState(producto.cantidad || 1);
   const [cantidadAlternativaTransferir, setCantidadAlternativaTransferir] = useState(producto.cantidadAlternativa || 0);
   const [motivo, setMotivo] = useState('');
-  const [contenedoresPredeterminados, setContenedoresPredeterminados] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // Cargar los contenedores predeterminados al iniciar
+  // Cargar los pedidos pendientes al iniciar
   useEffect(() => {
-    console.log('Cargando contenedores predeterminados...');
-    
-    // Primero intentar obtener contenedores de la API específica
-    axios.get('http://localhost:5000/api/contenedorProducto/predeterminados')
+    // Obtener pedidos pendientes
+    axios.get('http://localhost:5000/api/pedidos?estado=Pendiente')
       .then(response => {
-        console.log('Respuesta de predeterminados:', response.data);
         if (response.data && response.data.length > 0) {
-          setContenedoresPredeterminados(response.data);
-          setContenedorDestino(response.data[0].idContenedor);
+          setPedidosPendientes(response.data);
         } else {
-          // Si no hay resultados específicos, intentar obtener los contenedores con categoría 'Predeterminado'
-          return axios.get('http://localhost:5000/api/contenedores/')
-            .then(allContResponse => {
-              console.log('Buscando contenedores con categoría Predeterminado...');
-              const predeterminados = allContResponse.data.filter(c => c.categoria === 'Predeterminado');
-              console.log('Contenedores filtrados:', predeterminados);
-              
-              if (predeterminados.length > 0) {
-                setContenedoresPredeterminados(predeterminados);
-                setContenedorDestino(predeterminados[0].idContenedor);
-              } else {
-                console.log('No se encontraron contenedores predeterminados');
-                setError('No hay contenedores Mitre o Lichy disponibles');
-              }
-            });
+          console.log('No hay pedidos pendientes');
         }
       })
       .catch(error => {
-        console.error('Error cargando contenedores predeterminados:', error);
-        setError('Error cargando contenedores predeterminados. Intente de nuevo más tarde.');
-        
-        // Intentar cargar todos los contenedores como plan B
-        axios.get('http://localhost:5000/api/contenedores/')
-          .then(allContResponse => {
-            const contenedores = allContResponse.data;
-            if (contenedores && contenedores.length > 0) {
-              setContenedoresPredeterminados(contenedores);
-              setContenedorDestino(contenedores[0].idContenedor);
-              setError(''); // Limpiar mensaje de error
-            }
-          })
-          .catch(secondError => {
-            console.error('Error en plan alternativo:', secondError);
-          });
+        console.error('Error cargando pedidos pendientes:', error);
+        setError('Error cargando pedidos pendientes. Intente de nuevo más tarde.');
       });
   }, []);
 
@@ -70,51 +39,29 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
     setError('');
 
     try {
-      // Validaciones según el estado seleccionado
-      if (estado === 'En stock') {
-        if (!contenedorDestino) {
-          setError('Debe seleccionar un contenedor destino');
-          setLoading(false);
-          return;
-        }
-        
-        if (!cantidadTransferir || cantidadTransferir <= 0) {
-          setError('Debe especificar una cantidad válida para transferir');
-          setLoading(false);
-          return;
-        }
-        
-        if (cantidadTransferir > producto.cantidad) {
-          setError('La cantidad a transferir no puede ser mayor que la cantidad disponible');
-          setLoading(false);
-          return;
-        }
-        
-        // Validar cantidad alternativa si existe
-        if (producto.cantidadAlternativa && cantidadAlternativaTransferir) {
-          if (cantidadAlternativaTransferir < 0) {
-            setError('La cantidad alternativa no puede ser negativa');
-            setLoading(false);
-            return;
-          }
-          
-          if (cantidadAlternativaTransferir > producto.cantidadAlternativa) {
-            setError('La cantidad alternativa a transferir no puede ser mayor que la cantidad alternativa disponible');
-            setLoading(false);
-            return;
-          }
-        }
+      // Validaciones para los datos del producto
+      if (!cantidadTransferir || cantidadTransferir <= 0) {
+        setError('Debe especificar una cantidad válida para transferir');
+        setLoading(false);
+        return;
       }
-
-      if (estado === 'Entregado') {
-        if (!cantidadEntregada || cantidadEntregada <= 0) {
-          setError('Debe especificar una cantidad entregada válida');
+      
+      if (cantidadTransferir > producto.cantidad) {
+        setError('La cantidad a transferir no puede ser mayor que la cantidad disponible');
+        setLoading(false);
+        return;
+      }
+      
+      // Validar cantidad alternativa si existe
+      if (producto.cantidadAlternativa && cantidadAlternativaTransferir) {
+        if (cantidadAlternativaTransferir < 0) {
+          setError('La cantidad alternativa no puede ser negativa');
           setLoading(false);
           return;
         }
         
-        if (cantidadEntregada > producto.cantidad) {
-          setError('La cantidad entregada no puede ser mayor que la cantidad disponible');
+        if (cantidadAlternativaTransferir > producto.cantidadAlternativa) {
+          setError('La cantidad alternativa a transferir no puede ser mayor que la cantidad alternativa disponible');
           setLoading(false);
           return;
         }
@@ -126,153 +73,164 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
         return;
       }
 
-      // Preparar datos para enviar al servidor
-      const data = {
-        estado,
-        motivo,
-        usuarioCambio: user?.idUsuario
-      };
-
-      // Agregar datos específicos según el estado
-      if (estado === 'En stock') {
-        data.contenedorDestino = contenedorDestino;
-        data.cantidadTransferir = cantidadTransferir; // Cantidad parcial a transferir
-        
-        // Incluir cantidad alternativa si el producto la tiene
-        if (producto.cantidadAlternativa) {
-          data.cantidadAlternativaTransferir = cantidadAlternativaTransferir;
-          data.unidadAlternativa = producto.unidadAlternativa;
-        }
-      } else if (estado === 'Entregado') {
-        data.cantidadEntregada = cantidadEntregada;
-        
-        // Incluir cantidad alternativa si el producto la tiene
-        if (producto.cantidadAlternativa) {
-          // Calcular proporcionalmente la cantidad alternativa
-          const proporcion = cantidadEntregada / producto.cantidad;
-          const cantidadAltEntregada = Math.round((producto.cantidadAlternativa * proporcion) * 100) / 100;
-          data.cantidadAlternativaEntregada = cantidadAltEntregada;
-          data.unidadAlternativa = producto.unidadAlternativa;
-        }
-      }
-
-      // Enviar petición al servidor
-      const response = await axios.put(`http://localhost:5000/api/contenedorProducto/estado/${producto.idContenedorProductos}`, data);
+      let idPedido;
       
-      if (onEstadoCambiado) {
-        onEstadoCambiado(response.data);
+      // Determinar si crear un nuevo pedido o usar uno existente
+      if (destino === 'nuevo_pedido') {
+        // Crear un nuevo pedido
+        const nuevoPedidoResponse = await axios.post('http://localhost:5000/api/pedidos', {
+          usuarioCreacion: user.idUsuario,
+          observaciones: `Pedido creado desde cambio de estado de producto: ${producto.nombre}`
+        });
+        
+        idPedido = nuevoPedidoResponse.data.idPedido;
+      } else {
+        // Usar un pedido existente
+        if (!pedidoExistente) {
+          setError('Debe seleccionar un pedido existente');
+          setLoading(false);
+          return;
+        }
+        idPedido = pedidoExistente;
       }
+      
+      // Agregar el producto al pedido
+      await axios.post(`http://localhost:5000/api/pedidos/${idPedido}/productos`, {
+        idContenedorProducto: producto.idContenedorProductos,
+        cantidadTransferir: cantidadTransferir,
+        cantidadAlternativaTransferir: cantidadAlternativaTransferir || 0,
+        ubicacionDestino: 'Pendiente', // Estado inicial pendiente, se asignará ubicación en el pedido
+        usuarioCreacion: user.idUsuario,
+        motivo: motivo,
+        unidad: producto.unidad,
+        unidadAlternativa: producto.unidadAlternativa || null,
+        // Guardar información adicional para mostrar en la tabla de pedidos
+        codigoInterno: producto.codigoInterno,
+        color: producto.color,
+        nombreProducto: producto.nombre
+      });
+      
+      // Mostrar mensaje de éxito y cerrar el modal
+      alert(`Producto agregado al Pedido #${idPedido}. Puede gestionar este pedido en la sección de Pedidos.`);
       
       if (onClose) {
         onClose();
       }
+      
+      // Redirigir al usuario a la página de detalles del pedido utilizando React Router
+      navigate(`/pedido-detalle/${idPedido}`);
+      
     } catch (error) {
-      console.error('Error cambiando estado del producto:', error);
-      setError(error.response?.data || 'Error cambiando estado del producto');
+      console.error('Error al procesar el pedido:', error);
+      setError(error.response?.data || 'Error al procesar el pedido. Por favor, intente de nuevo.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="cambiar-estado-overlay">
-      <div className="cambiar-estado-modal">
-        <div className="cambiar-estado-container">
-          <div className="cambiar-estado-header">
-            <h2>Cambiar Estado del Producto</h2>
-            <button type="button" className="close-button" onClick={onClose}>&times;</button>
-          </div>
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-body">
+          <h2>Enviar Producto a Pedido</h2>
           
           <div className="producto-info">
-            <p><strong>Producto:</strong> {producto.nombre}</p>
-            <p><strong>Cantidad:</strong> {parseFloat(producto.cantidad).toFixed(2)} {producto.unidad}</p>
-            {producto.cantidadAlternativa > 0 && (
-              <p><strong>Cantidad Alt.:</strong> {parseFloat(producto.cantidadAlternativa).toFixed(2)} {producto.unidadAlternativa}</p>
-            )}
-            {producto.color && <p><strong>Color:</strong> {producto.color}</p>}
-            <p><strong>Estado actual:</strong> {producto.estado || 'Sin estado'}</p>
+            <h3>{producto.nombre}</h3>
+            <p>Código: {producto.codigoInterno}</p>
+            {producto.color && <p>Color: {producto.color}</p>}
+            <p>
+              Cantidad: {parseFloat(producto.cantidad).toFixed(2)} {producto.unidad}
+              {producto.cantidadAlternativa > 0 && ` / ${parseFloat(producto.cantidadAlternativa).toFixed(2)} ${producto.unidadAlternativa}`}
+            </p>
           </div>
           
           {error && <div className="error-message">{error}</div>}
           
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Estado:</label>
-              <select value={estado} onChange={(e) => setEstado(e.target.value)}>
-                <option value="En stock">En stock</option>
-                <option value="Entregado">Entregado</option>
-              </select>
+              <label>Destino del producto:</label>
+              <div className="radio-group">
+                <label>
+                  <input 
+                    type="radio" 
+                    name="destino" 
+                    value="nuevo_pedido" 
+                    checked={destino === 'nuevo_pedido'} 
+                    onChange={() => setDestino('nuevo_pedido')}
+                  />
+                  Crear nuevo pedido
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="destino" 
+                    value="pedido_existente" 
+                    checked={destino === 'pedido_existente'} 
+                    onChange={() => setDestino('pedido_existente')}
+                  />
+                  Agregar a pedido existente
+                </label>
+              </div>
             </div>
             
-            {estado === 'En stock' && (
-              <>
-                <div className="form-group">
-                  <label>Contenedor destino:</label>
-                  <select value={contenedorDestino} onChange={(e) => setContenedorDestino(e.target.value)}>
-                    <option value="">Seleccione un contenedor</option>
-                    {contenedoresPredeterminados.length > 0 ? (
-                      contenedoresPredeterminados.map(cont => (
-                        <option key={cont.idContenedor} value={cont.idContenedor}>
-                          {cont.comentario || `Contenedor ${cont.idContenedor}`} {cont.categoria === 'Predeterminado' ? '(Predeterminado)' : ''}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="" disabled>Cargando contenedores...</option>
-                    )}
-                  </select>
-                  {contenedoresPredeterminados.length === 0 && (
-                    <div className="info-message">
-                      <p>Buscando contenedores disponibles...</p>
-                    </div>
+            {destino === 'pedido_existente' && (
+              <div className="form-group">
+                <label>Seleccionar pedido:</label>
+                <select 
+                  value={pedidoExistente} 
+                  onChange={(e) => setPedidoExistente(e.target.value)}
+                  required={destino === 'pedido_existente'}
+                >
+                  <option value="">Seleccione un pedido</option>
+                  {pedidosPendientes.length > 0 ? (
+                    pedidosPendientes.map(pedido => (
+                      <option key={pedido.idPedido} value={pedido.idPedido}>
+                        Pedido #{pedido.idPedido} - {new Date(pedido.fechaCreacion).toLocaleDateString()}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" disabled>No hay pedidos pendientes disponibles</option>
                   )}
-                </div>
-                
-                <div className="form-group">
-                  <label>Cantidad a transferir:</label>
-                  <input 
-                    type="number" 
-                    value={cantidadTransferir} 
-                    onChange={(e) => setCantidadTransferir(Number(e.target.value))}
-                    min="0.01"
-                    max={producto.cantidad}
-                    step="0.01"
-                  />
-                  <span className="input-info">
-                    Cantidad disponible: {parseFloat(producto.cantidad).toFixed(2)} {producto.unidad}
-                  </span>
-                </div>
-                
-                {/* Campo para cantidad alternativa si el producto la tiene */}
-                {producto.cantidadAlternativa > 0 && (
-                  <div className="form-group">
-                    <label>Cantidad alternativa a transferir ({producto.unidadAlternativa}):</label>
-                    <input 
-                      type="number" 
-                      value={cantidadAlternativaTransferir} 
-                      onChange={(e) => setCantidadAlternativaTransferir(Number(e.target.value))}
-                      min="0"
-                      max={producto.cantidadAlternativa}
-                      step="0.01"
-                    />
-                    <span className="input-info">
-                      Cantidad alternativa disponible: {parseFloat(producto.cantidadAlternativa).toFixed(2)} {producto.unidadAlternativa}
-                    </span>
+                </select>
+                {pedidosPendientes.length === 0 && (
+                  <div className="info-message">
+                    <p>No hay pedidos pendientes. Se creará uno nuevo.</p>
                   </div>
                 )}
-              </>
+              </div>
             )}
             
-            {estado === 'Entregado' && (
+            <div className="form-group">
+              <label>Cantidad a transferir:</label>
+              <input 
+                type="number" 
+                value={cantidadTransferir} 
+                onChange={(e) => setCantidadTransferir(Number(e.target.value))}
+                min="0.01"
+                max={producto.cantidad}
+                step="0.01"
+                required
+              />
+              <span className="input-info">
+                Cantidad disponible: {parseFloat(producto.cantidad).toFixed(2)} {producto.unidad}
+              </span>
+            </div>
+            
+            {/* Campo para cantidad alternativa si el producto la tiene */}
+            {producto.cantidadAlternativa > 0 && (
               <div className="form-group">
-                <label>Cantidad entregada:</label>
+                <label>Cantidad alternativa a transferir ({producto.unidadAlternativa}):</label>
                 <input 
                   type="number" 
-                  value={cantidadEntregada} 
-                  onChange={(e) => setCantidadEntregada(Number(e.target.value))}
-                  min="1"
-                  max={producto.cantidad}
+                  value={cantidadAlternativaTransferir} 
+                  onChange={(e) => setCantidadAlternativaTransferir(Number(e.target.value))}
+                  min="0"
+                  max={producto.cantidadAlternativa}
                   step="0.01"
                 />
+                <span className="input-info">
+                  Cantidad alternativa disponible: {parseFloat(producto.cantidadAlternativa).toFixed(2)} {producto.unidadAlternativa}
+                </span>
               </div>
             )}
             
@@ -281,15 +239,19 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
               <textarea
                 value={motivo}
                 onChange={(e) => setMotivo(e.target.value)}
-                placeholder="Indique el motivo de este cambio"
+                placeholder="Indique el motivo para agregar este producto al pedido"
                 required
               />
+            </div>
+            
+            <div className="info-message">
+              <p><strong>Nota:</strong> Una vez agregado el producto al pedido, podrá distribuirlo a Mitre o Lichy desde la sección de Pedidos.</p>
             </div>
             
             <div className="buttons">
               <button type="button" onClick={onClose} disabled={loading}>Cancelar</button>
               <button type="submit" disabled={loading}>
-                {loading ? 'Procesando...' : 'Guardar cambios'}
+                {loading ? 'Procesando...' : 'Enviar a Pedido'}
               </button>
             </div>
           </form>
