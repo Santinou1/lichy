@@ -745,16 +745,17 @@ useEffect(() => {
                     </div>
                 ) : (
                     <div className='datos-actuales-producto'>
-                        <label><b>{productoActualizado.nombre}</b></label>
+                        <label style={{ fontSize: '1.1em', fontWeight: 'bold', marginBottom: '5px' }}>{productoActualizado.nombre}</label>
                         <label>Código Interno: <b>{productoActualizado.codigoInterno || 'Sin código'}</b></label>
                         <label>Color: <b>{productoActualizado.color || 'Sin color'}</b></label>
-                        <label>Cantidad: <b>{productoActualizado.cantidad ? `${parseFloat(productoActualizado.cantidad).toFixed(2)} ${productoActualizado.unidad}` : 'Sin cantidad'}</b></label>
+                        <label>
+                            Cantidad: <b>
+                                {productoActualizado.cantidad ? `${parseFloat(productoActualizado.cantidad).toFixed(2)} ${productoActualizado.unidad}` : 'Sin cantidad'}
+                            </b>
+                        </label>
                         {productoActualizado.cantidadAlternativa && productoActualizado.unidadAlternativa && (
                             <label>Cantidad Alt.: <b>{`${parseFloat(productoActualizado.cantidadAlternativa).toFixed(2)} ${productoActualizado.unidadAlternativa}`}</b></label>
                         )}
-                        <div className="precio-total">
-                            ${(productoActualizado.cantidad * productoActualizado.precioPorUnidad).toFixed(2)} ({productoActualizado.cantidad} {productoActualizado.unidad} x ${productoActualizado.precioPorUnidad})
-                        </div>
                         <div className="estado-producto">
                             Estado: <span className={`estado-badge ${productoActualizado.estado === 'Entregado' ? 'entregado' : 'en-stock'}`}>
                                 {productoActualizado.estado || 'En stock'}
@@ -770,13 +771,35 @@ useEffect(() => {
                 <div className="producto-acciones">
                     {user.permisos["Editar-Contenedores"] && (
                         <>
-                            {!editando && !mostrarCambioEstado && (
-                                <button onClick={iniciarEdicion} className="btn-editar">Editar</button>
-                            )}
-                            {!editando && !mostrarForm && (
-                                <button onClick={toggleCambioEstado} className="btn-estado">
-                                    {mostrarCambioEstado ? 'Cancelar' : 'Cambiar Estado'}
+                            {!productoActualizado.idColor ? (
+                                // Mostrar el botón 'Disponer colores' cuando el producto no tiene color
+                                <button 
+                                    onClick={cambiarNumero} 
+                                    className="btn-disponer-colores"
+                                    style={{
+                                        backgroundColor: '#4a90e2',
+                                        color: 'white',
+                                        padding: '8px 12px',
+                                        borderRadius: '4px',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        fontWeight: 'bold'
+                                    }}
+                                >
+                                    {mostrarForm ? 'Cancelar' : 'Disponer colores'}
                                 </button>
+                            ) : (
+                                // Mostrar los botones originales cuando el producto tiene color
+                                <>
+                                    {!editando && !mostrarCambioEstado && (
+                                        <button onClick={iniciarEdicion} className="btn-editar">Editar</button>
+                                    )}
+                                    {!editando && !mostrarForm && (
+                                        <button onClick={toggleCambioEstado} className="btn-estado">
+                                            {mostrarCambioEstado ? 'Cancelar' : 'Cambiar Estado'}
+                                        </button>
+                                    )}
+                                </>
                             )}
                         </>
                     )}
@@ -796,7 +819,7 @@ useEffect(() => {
             
             {!productoActualizado.idColor && mostrarForm && (
                 <DesglozarPorcolor
-                    producto={producto}
+                    producto={{...producto, idContenedor: contenedor}}
                     colores={colores}
                     onColoresAsignadosChange={handleColoresAsignadosChange}
                     onCantidadRestanteChange={handleCantidadRestanteChange}

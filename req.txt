@@ -1,60 +1,35 @@
-Tener la posibilidad de crear un agente desde la vista de Agregar Contenedor (Realizado)
+Editar la seccion de colores en el detalle de contenedor para poder distribuir todo el volumen en diferentes colores de manera dinamica.
+Cuando hay un producto sin color, que en vez de los 2 botones de Editar y Cambiar Estado.
+Que exista un boton que sea Disponer colores  , y que si haces click puedas dividir todo el total del producto en los colores deseados y tambien ahi mismo se le tiene que asignar los rollos.
 
-En la sección de Actualizar Producto Contenedor se deberá poder crear el color y el código directamente. (Realizado)
+Y despues eso tiene que ser editable (los colores y unidad alternativa) (Realizado)
 
-Mejorar el diseño del Historial de Cambios (Para despues)
-
-En la sección de Agregar Producto del detalle de contenedor tener la posibilidad de crear un producto desde ahi (Realizado)
-
-Sacar el 0 por defecto (Realizado)
-
-Si se aprieta el botón de configuración de ítems queda abierto el desplegable (Realizado).
-
-Que no se borre el estado por defecto. (Realizado)
-
-Agregar el campo de Fecha Asignada a la hora de Crear contenedor. (Realizado)
-
-A la hora de actualizar un producto, se tiene que también actualizar el nombre y el número. (CONSULTAR)
-
-Mejorar ese campo de Cambiar la unidad de medida.   (Realizado)
-Por ejemplo.
-Si se crearon contenedores con el producto “sarga PD” Y se asignó como M , y después las cantidad alternativa automáticamente se aginaron como Rollos.
-Pero no era M y era Unidades , por defecto en los contenedores donde se usa ese producto que se cambia de Rollos a Cajas.
-Y si de M se cambia a KG que se mantenga todo igual.
+Las unidades alternativas tambien se tienen que enviar en el cambiar estado (Realizado)
 
 
-A la hora de Actualizar un producto y tengas que asignarles color que se pueda buscar por Código o por Nombre, y que se despliegue una lista. (Realizado)
+En la Navbar agregar 2 botones.
+-Pedidos
+-Facturacion
 
-Si no se especifica fecha a la hora de agregar estados que se tome la del día actual. (Realizado)
+Agregar la funcionalidad de eliminar producto 
 
-Si posteriormente a la edición de un producto se selecciona “volver” me lleva a una sección de producto-detalle/null. (Realizado)
+Que el cambar estado funcione de manera global, como lo hace ahora la funcionalidad de “editar productos”
 
-Poder importar todos los detalles de un contenedor mediante un excel. (CONSULTAR)
+Que sea por ejemplo
+Codigo Interno ->  Estado (Pedidos)
 
-Mostrar en los productos del contenedor tambien su codigo interno. (Realizado)
+Color - > Ubicacion (Mitre o Lichy)
 
-Agregar tambien a la hora de crear producto el codigo interno y actualizar (Realizado)
+Cantidad -> Cantidad que se envie
 
-Item proveedor de los detalles de productos se puede eliminar.  (Realizado)
- 
-En los detalles de producto se tiene que ver la ubicacion del contenedor. (Realizado)
-
-Que no te deje actualizar el producto si no introducis el motivo de la actualizacion. (Realizado)
-
-Que permita escribir en la secciones de cantidad de producto con un determinado color decimales (Realizado)
-
-Una seccion de notificaciones en la cual si hay una cantidad menor a X metros del color X.
-Que todo esto sea dinamico y pueda hacer la alerta que quiera el administrador
-
-Que el precio NO se muestre en la lista de productod. (Realizado)
-
-Que aparzca en la parte de detalles por ejemplo producto XYZ  FOB:0.70  (Realizado)
-
-(
-    CONSULTAR PORQUE NOSOTROS EN LOS PRODUCTOS NO GUARDAMOS EL FOB, EL FOB SE GUARDA EN CADA CONTENEDOR, ESTAMOS ASUMIENDO DE QUE UN PRODUCTO PUEDE TENER DIFERENTE FOB SEGUN EL CONTENEDOR
-)
+Agregar envio de unidad de Alternativa
 
 
-ARREGLAR EL ERROR DE QUE NO SE GUARDA EL ubicacion  EN LOS PRODUCTOS
 
-ARREGLAR EL TIPO DE Unidad
+Los datos de Nombre de producto, Codigo interno , y color ponerlo arriba de cada producto en chiuito
+
+(Todo esto en la seccion nueva de Pedidos)
+
+Modificar el Cambiar estado que en vez de que se vaya directamente a mitre o lichy, que ahora vaya a una nueva seccion que se llame 
+“Pedidos” , y que lo que se envie ahi a la hora de mandar productos se guarde como
+Pedido 1 por ejenplo, y despues de ese pedido 1 , distribuirlo a mitre o lichy.

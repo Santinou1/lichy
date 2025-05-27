@@ -25,15 +25,45 @@ function CrearColor({ onColorCreated }) {
                 codigoInterno 
             });
             
-            if (response.status === 200 && response.data.length > 0) {
-                const nuevoColor = response.data[0];
-                onColorCreated(nuevoColor);
-                setNombre('');
-                setCodigoInterno('');
-                setShowForm(false);
-            } else {
-                setError('No se pudo crear el color. Inténtalo de nuevo.');
+            console.log('Respuesta del servidor:', response.data);
+            
+            // Comprobar diferentes formatos posibles de respuesta
+            if (response.status === 200) {
+                let nuevoColor;
+                
+                if (Array.isArray(response.data) && response.data.length > 0) {
+                    // Si es un array, tomar el primer elemento
+                    nuevoColor = response.data[0];
+                } else if (response.data && response.data.idColor) {
+                    // Si es un objeto con idColor
+                    nuevoColor = response.data;
+                } else if (response.data && response.data.id) {
+                    // Si es un objeto con id (formato {id: number, nombre: string, codigoInterno: string})
+                    nuevoColor = {
+                        idColor: response.data.id,
+                        nombre: response.data.nombre,
+                        codigoInterno: response.data.codigoInterno
+                    };
+                } else if (response.data && response.data.insertId) {
+                    // Si devuelve un objeto con insertId
+                    nuevoColor = {
+                        idColor: response.data.insertId,
+                        nombre: nombre,
+                        codigoInterno: codigoInterno
+                    };
+                }
+                
+                if (nuevoColor) {
+                    onColorCreated(nuevoColor);
+                    setNombre('');
+                    setCodigoInterno('');
+                    setShowForm(false);
+                    return;
+                }
             }
+            
+            // Si llegamos aquí, algo salió mal
+            setError('No se pudo crear el color. Inténtalo de nuevo.');
         } catch (error) {
             console.error('Error al crear el color:', error);
             setError('Error al crear el color. Verifica la conexión e inténtalo de nuevo.');

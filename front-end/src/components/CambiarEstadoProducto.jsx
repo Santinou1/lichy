@@ -8,7 +8,8 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
   const [estado, setEstado] = useState('En stock');
   const [contenedorDestino, setContenedorDestino] = useState('');
   const [cantidadEntregada, setCantidadEntregada] = useState(1);
-  const [cantidadTransferir, setCantidadTransferir] = useState(1);
+  const [cantidadTransferir, setCantidadTransferir] = useState(producto.cantidad || 1);
+  const [cantidadAlternativaTransferir, setCantidadAlternativaTransferir] = useState(producto.cantidadAlternativa || 0);
   const [motivo, setMotivo] = useState('');
   const [contenedoresPredeterminados, setContenedoresPredeterminados] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -88,6 +89,21 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
           setLoading(false);
           return;
         }
+        
+        // Validar cantidad alternativa si existe
+        if (producto.cantidadAlternativa && cantidadAlternativaTransferir) {
+          if (cantidadAlternativaTransferir < 0) {
+            setError('La cantidad alternativa no puede ser negativa');
+            setLoading(false);
+            return;
+          }
+          
+          if (cantidadAlternativaTransferir > producto.cantidadAlternativa) {
+            setError('La cantidad alternativa a transferir no puede ser mayor que la cantidad alternativa disponible');
+            setLoading(false);
+            return;
+          }
+        }
       }
 
       if (estado === 'Entregado') {
@@ -121,8 +137,23 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
       if (estado === 'En stock') {
         data.contenedorDestino = contenedorDestino;
         data.cantidadTransferir = cantidadTransferir; // Cantidad parcial a transferir
+        
+        // Incluir cantidad alternativa si el producto la tiene
+        if (producto.cantidadAlternativa) {
+          data.cantidadAlternativaTransferir = cantidadAlternativaTransferir;
+          data.unidadAlternativa = producto.unidadAlternativa;
+        }
       } else if (estado === 'Entregado') {
         data.cantidadEntregada = cantidadEntregada;
+        
+        // Incluir cantidad alternativa si el producto la tiene
+        if (producto.cantidadAlternativa) {
+          // Calcular proporcionalmente la cantidad alternativa
+          const proporcion = cantidadEntregada / producto.cantidad;
+          const cantidadAltEntregada = Math.round((producto.cantidadAlternativa * proporcion) * 100) / 100;
+          data.cantidadAlternativaEntregada = cantidadAltEntregada;
+          data.unidadAlternativa = producto.unidadAlternativa;
+        }
       }
 
       // Enviar petición al servidor
@@ -154,7 +185,10 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
           
           <div className="producto-info">
             <p><strong>Producto:</strong> {producto.nombre}</p>
-            <p><strong>Cantidad:</strong> {producto.cantidad} {producto.unidad}</p>
+            <p><strong>Cantidad:</strong> {parseFloat(producto.cantidad).toFixed(2)} {producto.unidad}</p>
+            {producto.cantidadAlternativa > 0 && (
+              <p><strong>Cantidad Alt.:</strong> {parseFloat(producto.cantidadAlternativa).toFixed(2)} {producto.unidadAlternativa}</p>
+            )}
             {producto.color && <p><strong>Color:</strong> {producto.color}</p>}
             <p><strong>Estado actual:</strong> {producto.estado || 'Sin estado'}</p>
           </div>
@@ -199,14 +233,32 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
                     type="number" 
                     value={cantidadTransferir} 
                     onChange={(e) => setCantidadTransferir(Number(e.target.value))}
-                    min="1"
+                    min="0.01"
                     max={producto.cantidad}
                     step="0.01"
                   />
                   <span className="input-info">
-                    Cantidad disponible: {producto.cantidad} {producto.unidad}
+                    Cantidad disponible: {parseFloat(producto.cantidad).toFixed(2)} {producto.unidad}
                   </span>
                 </div>
+                
+                {/* Campo para cantidad alternativa si el producto la tiene */}
+                {producto.cantidadAlternativa > 0 && (
+                  <div className="form-group">
+                    <label>Cantidad alternativa a transferir ({producto.unidadAlternativa}):</label>
+                    <input 
+                      type="number" 
+                      value={cantidadAlternativaTransferir} 
+                      onChange={(e) => setCantidadAlternativaTransferir(Number(e.target.value))}
+                      min="0"
+                      max={producto.cantidadAlternativa}
+                      step="0.01"
+                    />
+                    <span className="input-info">
+                      Cantidad alternativa disponible: {parseFloat(producto.cantidadAlternativa).toFixed(2)} {producto.unidadAlternativa}
+                    </span>
+                  </div>
+                )}
               </>
             )}
             
