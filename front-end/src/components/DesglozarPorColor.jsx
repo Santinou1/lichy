@@ -3,7 +3,7 @@ import CrearColor from "./CrearColor";
 import Select from 'react-select';
 import axios from 'axios';
 
-function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAsignadosChange, onCantidadRestanteChange, onColorCreated }) {
+function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAsignadosChange, onCantidadRestanteChange, onColorCreated, onDistribucionGuardada }) {
     const [cantidadAsignada, setCantidadAsignada] = useState('');
     const [cantidadRestante, setCantidadRestante] = useState(producto.cantidad);
     const [coloresAsignados, setColoresAsignados] = useState([]);
@@ -192,11 +192,14 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
             };
             
             // Enviar solicitud al servidor para actualizar el producto
-            await axios.put(`http://localhost:5000/api/contenedorProducto/${producto.idContenedorProductos}`, dataToSend);
+            const response = await axios.put(`http://localhost:5000/api/contenedorProducto/${producto.idContenedorProductos}`, dataToSend);
             
             alert("Distribución por colores guardada correctamente.");
-            // Recargar la página para mostrar los cambios
-            window.location.reload();
+            
+            // En lugar de recargar la página, notificar al componente padre que la distribución se guardó
+            if (typeof onDistribucionGuardada === 'function') {
+                onDistribucionGuardada(response.data);
+            }
         } catch (error) {
             console.error('Error al guardar la distribución:', error);
             alert("Error al guardar la distribución. Por favor, intente nuevamente.");

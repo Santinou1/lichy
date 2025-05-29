@@ -475,6 +475,28 @@ function Producto({ user, producto, onActualizar, contenedor }) {
                     colores={colores}
                     onColoresAsignadosChange={handleColoresAsignadosChange}
                     onCantidadRestanteChange={handleCantidadRestanteChange}
+                    onDistribucionGuardada={(data) => {
+                        // Actualizar el estado local con los datos actualizados
+                        if (onActualizar && typeof onActualizar === 'function') {
+                            // Fetch the updated product list from the server
+                            axios.get(`http://localhost:5000/api/contenedorProducto/${producto.idContenedor}`)
+                                .then(response => {
+                                    // Update the product list in the parent component
+                                    onActualizar(response.data);
+                                    
+                                    // Update the local product state with the new data
+                                    const updatedProduct = response.data.find(p => p.idContenedorProductos === producto.idContenedorProductos);
+                                    if (updatedProduct) {
+                                        setProductoActualizado(updatedProduct);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error fetching updated products:', error);
+                                });
+                        }
+                        // Ocultar el formulario de desglose
+                        setMostrarForm(false);
+                    }}
                 />
             )}
             
