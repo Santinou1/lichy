@@ -382,10 +382,14 @@ router.delete('/:idPedido/productos/:idProductoPedido', (req, res) => {
 
 // Completar un pedido
 router.put('/:id/completar', (req, res) => {
-  const { usuarioModificacion, contenedorDestino } = req.body;
+  const { usuarioModificacion, contenedorDestino, comentario, productosEditados } = req.body;
   
   if (!contenedorDestino) {
     return res.status(400).send('Debe especificar un contenedor destino');
+  }
+  
+  if (!comentario || comentario.trim() === '') {
+    return res.status(400).send('Debe proporcionar un comentario');
   }
   
   // Obtener una conexión del pool
@@ -428,14 +432,15 @@ router.put('/:id/completar', (req, res) => {
                 return rollbackAndRelease(connection, null, 'El pedido no tiene productos', res, 400);
               }
               
-              // Actualizar el estado del pedido
+              // Actualizar el estado del pedido y agregar el comentario
               connection.query(
                 `UPDATE Pedidos 
                  SET estado = 'Completado', 
-                     fechaCompletado = NOW(), 
-                     usuarioCompletado = ?
+                      fechaCompletado = NOW(), 
+                      usuarioCompletado = ?,
+                      observaciones = ?
                  WHERE idPedido = ?`,
-                [usuarioModificacion, req.params.id],
+                [usuarioModificacion, comentario, req.params.id],
                 (err) => {
                   if (err) {
                     return rollbackAndRelease(connection, err, 'Error al actualizar estado del pedido', res);
@@ -462,10 +467,24 @@ router.put('/:id/completar', (req, res) => {
                     
                     const producto = productos[index];
                     
-                    // Actualizar el estado del producto en el pedido
+                    // Buscar si hay cantidades editadas para este producto
+                    let cantidadFinal = parseFloat(producto.cantidad);
+                    let cantidadAlternativaFinal = producto.cantidadAlternativa ? parseFloat(producto.cantidadAlternativa) : null;
+                    
+                    if (productosEditados && productosEditados.length > 0) {
+                      const productoEditado = productosEditados.find(p => p.idProductoPedido === producto.idProductoPedido);
+                      if (productoEditado) {
+                        cantidadFinal = parseFloat(productoEditado.cantidad);
+                        cantidadAlternativaFinal = productoEditado.cantidadAlternativa !== null ? 
+                          parseFloat(productoEditado.cantidadAlternativa) : null;
+                      }
+                    }
+                    
+                    // Actualizar el estado y las cantidades del producto en el pedido
                     connection.query(
-                      "UPDATE ProductosPedido SET estado = 'Completado' WHERE idProductoPedido = ?",
-                      [producto.idProductoPedido],
+                      "UPDATE ProductosPedido SET estado = 'Completado', cantidad = ?, cantidadAlternativa = ? WHERE idProductoPedido = ?",
+                      [cantidadFinal, cantidadAlternativaFinal, producto.idProductoPedido],
+                      
                       (err) => {
                         if (err) {
                           return rollbackAndRelease(connection, err, 'Error al actualizar estado del producto en pedido', res);
@@ -474,12 +493,13 @@ router.put('/:id/completar', (req, res) => {
                         // Registrar el cambio en el historial
                         const cambiosJSON = JSON.stringify({
                           producto: producto.nombreProducto,
-                          cantidad: parseFloat(producto.cantidad),
-                          cantidadAlternativa: producto.cantidadAlternativa ? parseFloat(producto.cantidadAlternativa) : null,
+                          cantidad: cantidadFinal,
+                          cantidadAlternativa: cantidadAlternativaFinal,
                           unidad: producto.unidad,
                           unidadAlternativa: producto.unidadAlternativa,
                           ubicacionDestino: producto.ubicacionDestino,
-                          contenedorDestino: contenedorDestino // Usar el contenedor destino seleccionado
+                          contenedorDestino: contenedorDestino, // Usar el contenedor destino seleccionado
+                          comentario: comentario
                         });
                         
                         // Crear el producto en el contenedor destino
@@ -491,8 +511,8 @@ router.put('/:id/completar', (req, res) => {
                            WHERE cp.idContenedorProductos = ?`,
                           [
                             contenedorDestino, 
-                            parseFloat(producto.cantidad),
-                            producto.cantidadAlternativa ? parseFloat(producto.cantidadAlternativa) : null,
+                            cantidadFinal,
+                            cantidadAlternativaFinal,
                             producto.unidad,
                             producto.unidadAlternativa,
                             producto.ubicacionDestino, // El estado será la ubicación destino (Mitre o Lichy)
