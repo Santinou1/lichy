@@ -349,19 +349,31 @@ async function eliminarProductoDeContenedor(req,res){
         const usuarioCambio= req.headers['x-usuario'];
         const contenedor = req.headers['x-contenedor'];
         const connection = pool;
+        
+        console.log('Eliminando producto:', { id, motivo, usuarioCambio, contenedor });
+        
         if(!motivo){
             return res.status(400).send('Falta el encabezado X-Motivo.');
         }
-        const [results] = await connection.promise().query('SELECT * FROM contenedorProductos WHERE idContenedorProductos = ?',[id]);
-
-        await connection.promise().query('DELETE FROM contenedorProductos WHERE idContenedorProductos = ? ',[id],(err,results)=>{
-            if(err){
-                console.error('Error ejecutando la consulta:', err);
-                return res.status(500).send('Error en el servidor.');
-            }
-        })
+        
+        if(!id){
+            return res.status(400).send('Falta el ID del producto a eliminar.');
+        }
+        
+        // Asegurarnos de usar el nombre de tabla consistente: ContenedorProductos (C mayúscula)
+        const [results] = await connection.promise().query('SELECT * FROM ContenedorProductos WHERE idContenedorProductos = ?',[id]);
+        
+        if (results.length === 0) {
+            return res.status(404).send(`No se encontró el producto con ID ${id}`);
+        }
+        
+        console.log('Producto encontrado:', results[0]);
+        
+        // Eliminar el producto usando el nombre de tabla correcto
+        await connection.promise().query('DELETE FROM ContenedorProductos WHERE idContenedorProductos = ?',[id])
+        
         const cambios = JSON.stringify(results[0]);
-
+        
         const sqlInsert = `INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?);`;
         
         await connection.promise().query(sqlInsert, [id, contenedor, 'DELETE', cambios, usuarioCambio, motivo]);

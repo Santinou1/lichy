@@ -1,12 +1,79 @@
 .producto-container{
     display: flex;
     margin: 10px;
+    position: relative;
 }
 .linea-producto{
     margin: 0px;
 }
 .datos-actuales-producto{
-    width: 95%;
+    width: 100%;
     display: flex;
     justify-content: space-around;
+}
+
+/* Estilos para los botones de acción */
+.producto-acciones {
+    display: inline-block;
+    width: auto;
+    vertical-align: middle;
+    margin: 0;
+    padding: 0;
+}
+
+.botones-accion-producto {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+}
+
+.btn-editar, .btn-estado, .btn-eliminar {
+    padding: 2px 4px;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 9px;
+    font-weight: bold;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    transition: all 0.2s ease;
+    width: auto;
+    white-space: nowrap;
+    margin-bottom: 1px;
+}
+
+.btn-editar {
+    background-color: #4a90e2;
+    color: white;
+}
+
+.btn-editar:hover {
+    background-color: #3a80d2;
+}
+
+.btn-estado {
+    background-color: #f5a623;
+    color: white;
+}
+
+.btn-estado:hover {
+    background-color: #e59613;
+}
+
+.btn-eliminar {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-eliminar:hover {
+    background-color: #d73c2c;
+}
+
+/* Añadir íconos de Font Awesome */
+.fas {
+    font-size: 14px;
 }

@@ -26,9 +26,16 @@ function ConfirmarEliminar({id,tipo,actualizarLista,usuario,motivo,contenedor}){
                 ruta = 'producto'
             }
             try{
+                console.log('Eliminando:', { tipo, id, motivo, contenedor });
+                
                 if(!motivo && !contenedor && (tipo === 'ContenedorProducto')){
                     throw new Error('Falta el encabezado X-Motivo.');
                 };
+                
+                if (!id) {
+                    throw new Error('ID no definido. No se puede eliminar el elemento.');
+                }
+                
                 const response = await fetch(`http://localhost:5000/api/${ruta}/${id}`, {
                     method: 'DELETE',
                     headers: {
@@ -42,10 +49,14 @@ function ConfirmarEliminar({id,tipo,actualizarLista,usuario,motivo,contenedor}){
                     throw new Error('Error al eliminar el elemento');
                 }
                 Swal.fire('Eliminado', 'El elemento ha sido eliminado.', 'success');
-                if(tipo==='contenedor' || tipo==='producto' || tipo==='ContenedorProducto'){
+                
+                // Ejecutar inmediatamente la función de actualización
+                if (typeof actualizarLista === 'function') {
+                    actualizarLista();
+                }
+                
+                if(tipo==='contenedor' || tipo==='producto'){
                     setRedireccionar(true);
-                }else{
-                    actualizarLista((productos) => productos.filter((p) => p.idContenedorProductos !== id));
                 }
             }catch(error){
                 Swal.fire('Error', 'No se pudo eliminar el elemento'+error, 'error');
