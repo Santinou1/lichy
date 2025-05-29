@@ -2,7 +2,7 @@ Sacar scroll en el input de FOB de crear nuevo contenedor y en el precio por uni
 
 Tambien en cantidad asignar a la hora de disponer colores en la seccion de medidas y unidades alternativas. (Realizado)
 
-Que no se reinicie la pagina CUANDO dispones todos los colores. 
+Que no se reinicie la pagina CUANDO dispones todos los colores.  (Realizado)
 
 Si se edita productos SIEMPRE SIEMPRE tiene que tener una descripcion.
 

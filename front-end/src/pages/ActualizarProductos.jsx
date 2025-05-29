@@ -288,6 +288,20 @@ function ActualizarProductos() {
                                     onColoresAsignadosChange={handleColoresAsignadosChange}
                                     onCantidadRestanteChange={handleCantidadRestanteChange}
                                     onColorCreated={handleColorCreated}
+                                    onDistribucionGuardada={(data) => {
+                                        // Fetch updated data before redirecting
+                                        axios.get(`http://localhost:5000/api/contenedorProducto/${contenedorProducto.contenedor}`)
+                                            .then(response => {
+                                                // Ensure data is refreshed in the parent component
+                                                // Then redirect to the container detail page
+                                                nav(`/contenedor-detalle/${contenedorProducto.contenedor}`);
+                                            })
+                                            .catch(error => {
+                                                console.error('Error fetching updated products:', error);
+                                                // Still redirect even if there's an error
+                                                nav(`/contenedor-detalle/${contenedorProducto.contenedor}`);
+                                            });
+                                    }}
                                 />
                         }
                     </div>
