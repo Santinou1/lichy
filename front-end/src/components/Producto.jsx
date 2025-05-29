@@ -3,6 +3,7 @@ import '../styles/Producto.css';
 import '../styles/ProductoEstados.css'; // Estilos adicionales para estados
 import '../styles/ProductoInlineEdit.css'; // Estilos para edición en línea
 import axios from 'axios';
+import Swal from 'sweetalert2';
 import DesglozarPorcolor from './DesglozarPorColor';
 import ConfirmarEliminar from './ConfirmarEliminar';
 import CambiarEstadoProducto from './CambiarEstadoProducto';
@@ -14,6 +15,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
     const nav = useNavigate();
     const [mostrarForm, setMostrarForm] = useState(false);
     const [mostrarCambioEstado, setMostrarCambioEstado] = useState(false);
+    const [mostrarConfirmacionEliminar, setMostrarConfirmacionEliminar] = useState(false);
     const [colores, setColores] = useState([]);
     const [productos, setProductos] = useState([]);
     const [productoActualizado, setProductoActualizado] = useState(producto);
@@ -151,6 +153,55 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
             setEditando(false);
         }
     }
+    
+    // Función para eliminar directamente con modal de confirmación
+    const eliminarProductoDirectamente = async () => {
+        // Usar SweetAlert2 directamente para la confirmación
+        const result = await Swal.fire({
+            title: '¿Estás seguro de eliminar?',
+            text: 'Esta acción no se puede deshacer',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+        
+        // Si el usuario confirma, proceder con la eliminación
+        if (result.isConfirmed) {
+            try {
+                console.log('Eliminando producto:', productoActualizado.idContenedorProductos);
+                
+                // Realizar la solicitud de eliminación
+                const response = await fetch(`http://localhost:5000/api/ContenedorProducto/${productoActualizado.idContenedorProductos}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-usuario': user.username || 'sistema',
+                        'x-motivo': 'Eliminación solicitada por el usuario',
+                        'x-contenedor': contenedor,
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Error al eliminar el elemento');
+                }
+                
+                // Mostrar mensaje de éxito
+                Swal.fire('Eliminado', 'El producto ha sido eliminado correctamente', 'success');
+                
+                // Actualizar la lista de productos
+                if (onActualizar) {
+                    const productosResponse = await axios.get(`http://localhost:5000/api/contenedorProducto/${contenedor}`);
+                    onActualizar(productosResponse.data);
+                }
+            } catch (error) {
+                console.error('Error eliminando producto:', error);
+                Swal.fire('Error', `No se pudo eliminar el producto: ${error.message}`, 'error');
+            }
+        }
+    };
     
     // Función que maneja cuando un estado ha sido cambiado
     const handleEstadoCambiado = (productoConNuevoEstado) => {
@@ -789,17 +840,27 @@ useEffect(() => {
                                     {mostrarForm ? 'Cancelar' : 'Disponer colores'}
                                 </button>
                             ) : (
-                                // Mostrar los botones originales cuando el producto tiene color
-                                <>
-                                    {!editando && !mostrarCambioEstado && (
-                                        <button onClick={iniciarEdicion} className="btn-editar">Editar</button>
-                                    )}
-                                    {!editando && !mostrarForm && (
-                                        <button onClick={toggleCambioEstado} className="btn-estado">
-                                            {mostrarCambioEstado ? 'Cancelar' : 'Cambiar Estado'}
+                                // Mostrar los tres botones: Editar, Cambiar Estado y Eliminar
+                                <div className="botones-accion-producto">
+                                    {!editando && !mostrarCambioEstado && !mostrarConfirmacionEliminar && (
+                                        <button onClick={iniciarEdicion} className="btn-editar">
+                                            <i className="fas fa-edit"></i> Editar
                                         </button>
                                     )}
-                                </>
+                                    {!editando && !mostrarForm && !mostrarConfirmacionEliminar && (
+                                        <button onClick={toggleCambioEstado} className="btn-estado">
+                                            <i className="fas fa-exchange-alt"></i> Estado
+                                        </button>
+                                    )}
+                                    {!editando && !mostrarForm && !mostrarCambioEstado && (
+                                        <button 
+                                            onClick={eliminarProductoDirectamente} 
+                                            className="btn-eliminar"
+                                        >
+                                            <i className="fas fa-trash-alt"></i> Borrar
+                                        </button>
+                                    )}
+                                </div>
                             )}
                         </>
                     )}
@@ -814,6 +875,36 @@ useEffect(() => {
                             onClose={() => setMostrarCambioEstado(false)}
                         />
                     </div>
+                )}
+                
+                {/* Confirmación de eliminación */}
+                {mostrarConfirmacionEliminar && (
+                    <ConfirmarEliminar
+                        id={productoActualizado.idContenedorProductos}
+                        tipo="ContenedorProducto"
+                        actualizarLista={() => {
+                            // Actualizar la lista de productos después de eliminar
+                            if (onActualizar) {
+                                console.log('Actualizando lista después de eliminar producto');
+                                // Cerrar el modal de confirmación inmediatamente
+                                setMostrarConfirmacionEliminar(false);
+                                
+                                // Actualizar la lista de productos
+                                axios.get(`http://localhost:5000/api/contenedorProducto/${contenedor}`)
+                                    .then(response => {
+                                        // Actualizar la lista de productos en el componente padre
+                                        onActualizar(response.data);
+                                        console.log('Lista actualizada con éxito');
+                                    })
+                                    .catch(error => {
+                                        console.error('Error actualizando lista de productos:', error);
+                                    });
+                            }
+                        }}
+                        usuario={user.username || 'sistema'}
+                        motivo="Eliminación solicitada por el usuario"
+                        contenedor={contenedor}
+                    />
                 )}
             </div>
             
