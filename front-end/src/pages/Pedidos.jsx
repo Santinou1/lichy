@@ -6,8 +6,10 @@ import { useUserContext } from '../UserProvider';
 
 function Pedidos() {
   const [pedidos, setPedidos] = useState([]);
+  const [filteredPedidos, setFilteredPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [mostrarCompletados, setMostrarCompletados] = useState(false);
   const { user } = useUserContext();
   const navigate = useNavigate();
 
@@ -18,6 +20,23 @@ function Pedidos() {
       console.log('Componente Pedidos desmontado');
     };
   }, []);
+
+  // Filtrar pedidos cuando cambia la lista de pedidos o el estado de mostrarCompletados
+  useEffect(() => {
+    filtrarPedidos();
+  }, [pedidos, mostrarCompletados]);
+  
+  // Función para filtrar pedidos según el estado de mostrarCompletados
+  const filtrarPedidos = () => {
+    if (mostrarCompletados) {
+      // Mostrar todos los pedidos
+      setFilteredPedidos(pedidos);
+    } else {
+      // Filtrar para excluir los pedidos con estado "Completado"
+      const pedidosFiltrados = pedidos.filter(pedido => pedido.estado !== 'Completado');
+      setFilteredPedidos(pedidosFiltrados);
+    }
+  };
 
   const cargarPedidos = async () => {
     try {
@@ -34,6 +53,11 @@ function Pedidos() {
     } finally {
       setLoading(false);
     }
+  };
+  
+  // Función para cambiar el estado de mostrar/ocultar pedidos completados
+  const toggleMostrarCompletados = () => {
+    setMostrarCompletados(!mostrarCompletados);
   };
 
   const crearNuevoPedido = async () => {
@@ -53,7 +77,7 @@ function Pedidos() {
     }
   };
 
-  console.log('Renderizando componente Pedidos', { pedidos, loading, error });
+  console.log('Renderizando componente Pedidos', { pedidos, filteredPedidos, loading, error, mostrarCompletados });
 
   return (
     <div className="pedidos-container">
@@ -63,6 +87,16 @@ function Pedidos() {
         <button className="btn-crear-pedido" onClick={crearNuevoPedido}>
           Crear Nuevo Pedido
         </button>
+        <div className="filter-controls">
+          <label className="toggle-label">
+            <input 
+              type="checkbox" 
+              checked={mostrarCompletados} 
+              onChange={toggleMostrarCompletados} 
+            />
+            Mostrar pedidos completados
+          </label>
+        </div>
       </div>
       
       {error && <div className="error-message">{error}</div>}
@@ -71,7 +105,7 @@ function Pedidos() {
         <div className="loading">Cargando pedidos...</div>
       ) : (
         <div className="pedidos-list">
-          {pedidos.length > 0 ? (
+          {filteredPedidos.length > 0 ? (
             <table className="pedidos-table">
               <thead>
                 <tr>
@@ -83,7 +117,7 @@ function Pedidos() {
                 </tr>
               </thead>
               <tbody>
-                {pedidos.map(pedido => (
+                {filteredPedidos.map(pedido => (
                   <tr key={pedido.idPedido}>
                     <td>Pedido #{pedido.idPedido}</td>
                     <td>{new Date(pedido.fechaCreacion).toLocaleDateString()}</td>
@@ -103,7 +137,9 @@ function Pedidos() {
             </table>
           ) : (
             <div className="no-pedidos">
-              No hay pedidos disponibles. Cree un nuevo pedido haciendo clic en "Crear Nuevo Pedido".
+              {pedidos.length > 0 ? 
+                "No hay pedidos disponibles con los filtros actuales. Active 'Mostrar pedidos completados' para ver todos los pedidos." :
+                "No hay pedidos disponibles. Cree un nuevo pedido haciendo clic en \"Crear Nuevo Pedido\"."}
             </div>
           )}
         </div>
