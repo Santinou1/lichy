@@ -502,51 +502,129 @@ router.put('/:id/completar', (req, res) => {
                           comentario: comentario
                         });
                         
-                        // Crear el producto en el contenedor destino
-                        connection.query(
-                          `INSERT INTO ContenedorProductos 
-                           (contenedor, producto, cantidad, cantidadAlternativa, unidad, unidadAlternativa, color, estado, precioPorUnidad) 
-                           SELECT ?, cp.producto, ?, ?, ?, ?, cp.color, ?, cp.precioPorUnidad
-                           FROM ContenedorProductos cp
-                           WHERE cp.idContenedorProductos = ?`,
-                          [
-                            contenedorDestino, 
-                            cantidadFinal,
-                            cantidadAlternativaFinal,
-                            producto.unidad,
-                            producto.unidadAlternativa,
-                            producto.ubicacionDestino, // El estado será la ubicación destino (Mitre o Lichy)
-                            producto.idContenedorProducto
-                          ],
-                          (err, insertResult) => {
-                            if (err) {
-                              return rollbackAndRelease(connection, err, 'Error al crear producto en contenedor destino', res);
-                            }
-                            
-                            // Registrar en el historial
-                            connection.query(
-                              `INSERT INTO ContenedorProductosHistorial 
-                               (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) 
-                               VALUES (?, ?, ?, ?, ?, ?)`,
-                              [
-                                producto.idContenedorProducto,
-                                contenedorDestino, // Usar el contenedor destino seleccionado
-                                'Completado',
-                                cambiosJSON,
-                                usuarioModificacion,
-                                `Producto de Pedido #${req.params.id} completado y enviado a ${producto.ubicacionDestino}`
-                              ],
-                              (err) => {
-                                if (err) {
-                                  return rollbackAndRelease(connection, err, 'Error al registrar historial', res);
-                                }
+                        // Si es Facturación (valor 3), no creamos productos en ningún contenedor físico
+                        if (contenedorDestino === '3') {
+                          // Registrar en el historial para Facturación
+                          connection.query(
+                            `INSERT INTO ContenedorProductosHistorial 
+                             (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) 
+                             VALUES (?, ?, ?, ?, ?, ?)`,
+                            [
+                              producto.idContenedorProducto,
+                              null, // No asignamos a ningún contenedor físico
+                              'Facturación',
+                              cambiosJSON,
+                              usuarioModificacion,
+                              `Producto de Pedido #${req.params.id} completado y marcado para Facturación`
+                            ],
+                            (err) => {
+                              if (err) {
+                                return rollbackAndRelease(connection, err, 'Error al registrar historial', res);
+                              }
+                              
+                              // Si es el último producto, crear la factura automáticamente
+                              if (index === productos.length - 1) {
+                                // Generar número de factura automático (basado en fecha y ID del pedido)
+                                const fechaActual = new Date();
+                                const numeroFactura = `FAC-${fechaActual.getFullYear()}${(fechaActual.getMonth() + 1).toString().padStart(2, '0')}${fechaActual.getDate().toString().padStart(2, '0')}-${req.params.id}`;
                                 
-                                // Procesar el siguiente producto
+                                // Calcular importe total del pedido
+                                connection.query(
+                                  `SELECT SUM(pp.cantidad * cp.precioPorUnidad) as importeTotal
+                                   FROM ProductosPedido pp
+                                   JOIN ContenedorProductos cp ON pp.idContenedorProducto = cp.idContenedorProductos
+                                   WHERE pp.idPedido = ?`,
+                                  [req.params.id],
+                                  (err, resultados) => {
+                                    if (err) {
+                                      return rollbackAndRelease(connection, err, 'Error al calcular importe total', res);
+                                    }
+                                    
+                                    const importeTotal = resultados[0] ? (resultados[0].importeTotal || 0) : 0;
+                                    
+                                    // Crear la factura automáticamente
+                                    connection.query(
+                                      `INSERT INTO Facturas (
+                                        idPedido, 
+                                        numeroFactura, 
+                                        fechaFactura, 
+                                        usuarioCreacion, 
+                                        observaciones,
+                                        importeTotal
+                                      )
+                                      VALUES (?, ?, ?, ?, ?, ?)`,
+                                      [
+                                        req.params.id,
+                                        numeroFactura,
+                                        fechaActual.toISOString().split('T')[0], // Formato YYYY-MM-DD
+                                        usuarioModificacion,
+                                        comentario || 'Factura generada automáticamente',
+                                        importeTotal
+                                      ],
+                                      (err) => {
+                                        if (err) {
+                                          return rollbackAndRelease(connection, err, 'Error al crear factura automática', res);
+                                        }
+                                        
+                                        // Continuar al siguiente producto (que sería el fin del proceso)
+                                        procesarProductos(index + 1);
+                                      }
+                                    );
+                                  }
+                                );
+                              } else {
+                                // Si no es el último producto, continuar al siguiente
                                 procesarProductos(index + 1);
                               }
-                            );
-                          }
-                        );
+                            }
+                          );
+                        } else {
+                          // Crear el producto en el contenedor destino para Mitre (1) o Lichy (2)
+                          connection.query(
+                            `INSERT INTO ContenedorProductos 
+                             (contenedor, producto, cantidad, cantidadAlternativa, unidad, unidadAlternativa, color, estado, precioPorUnidad) 
+                             SELECT ?, cp.producto, ?, ?, ?, ?, cp.color, ?, cp.precioPorUnidad
+                             FROM ContenedorProductos cp
+                             WHERE cp.idContenedorProductos = ?`,
+                            [
+                              contenedorDestino, 
+                              cantidadFinal,
+                              cantidadAlternativaFinal,
+                              producto.unidad,
+                              producto.unidadAlternativa,
+                              producto.ubicacionDestino, // El estado será la ubicación destino (Mitre o Lichy)
+                              producto.idContenedorProducto
+                            ],
+                            (err, insertResult) => {
+                              if (err) {
+                                return rollbackAndRelease(connection, err, 'Error al crear producto en contenedor destino', res);
+                              }
+                              
+                              // Registrar en el historial
+                              connection.query(
+                                `INSERT INTO ContenedorProductosHistorial 
+                                 (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) 
+                                 VALUES (?, ?, ?, ?, ?, ?)`,
+                                [
+                                  producto.idContenedorProducto,
+                                  contenedorDestino, // Usar el contenedor destino seleccionado
+                                  'Completado',
+                                  cambiosJSON,
+                                  usuarioModificacion,
+                                  `Producto de Pedido #${req.params.id} completado y enviado a ${producto.ubicacionDestino}`
+                                ],
+                                (err) => {
+                                  if (err) {
+                                    return rollbackAndRelease(connection, err, 'Error al registrar historial', res);
+                                  }
+                                  
+                                  // Procesar el siguiente producto
+                                  procesarProductos(index + 1);
+                                }
+                              );
+                            }
+                          );
+                        }
                       }
                     );
                   }

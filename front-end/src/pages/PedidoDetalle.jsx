@@ -347,6 +347,16 @@ function PedidoDetalle() {
                       />
                       Lichy
                     </label>
+                    <label className="radio-label">
+                      <input 
+                        type="radio" 
+                        name="contenedorDestino" 
+                        value="3" // ID para Facturación
+                        checked={contenedorDestino === '3'}
+                        onChange={() => setContenedorDestino('3')}
+                      />
+                      Facturación
+                    </label>
                   </div>
                 </div>
                 

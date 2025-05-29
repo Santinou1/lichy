@@ -62,15 +62,15 @@ function Navegador({user}){
               }
               
               {/* Nuevos botones de Pedidos y Facturación */}
-              { user.permisos["Ver-Contenedores"] ? 
+              { user.permisos["Ver-Productos"] ? 
               <li style={{marginRight: "20px"}}>
                 <button className='boton-navegador' onClick={()=>redirigir('/pedidos')}>Pedidos</button>
               </li> : <></>
               }
               
-              { user.permisos["Ver-Contenedores"] ? 
+              { user.permisos["Ver-Productos"] ? 
               <li style={{marginRight: "20px"}}>
-                <button className='boton-navegador' onClick={()=>redirigir('/facturacion')}>Facturación</button>
+                <button className='boton-navegador' onClick={()=>redirigir('/facturacion')}>Facturas</button>
               </li> : <></>
               }
               { user.permisos["Ver-Productos"] ?
