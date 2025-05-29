@@ -21,9 +21,12 @@ function PedidoDetalle() {
   const [cantidadAlternativaTransferir, setCantidadAlternativaTransferir] = useState(0);
   const [ubicacionDestino, setUbicacionDestino] = useState('');
   
-  // Estado para selección de contenedor al completar
+  // Estados para completar pedido
   const [mostrarSeleccionContenedor, setMostrarSeleccionContenedor] = useState(false);
   const [contenedorDestino, setContenedorDestino] = useState('');
+  const [comentarioCompletado, setComentarioCompletado] = useState('');
+  const [productosEditados, setProductosEditados] = useState([]);
+  const [editandoCantidades, setEditandoCantidades] = useState(false);
   
   // Estado para filtrar productos
   const [filtroCodigoInterno, setFiltroCodigoInterno] = useState('');
@@ -172,18 +175,70 @@ function PedidoDetalle() {
     setMostrarSeleccionContenedor(true);
   };
   
-  // Marcar el pedido como completado con el contenedor seleccionado
+  // Inicializar productos editados con los valores actuales cuando se abra el modal
+  useEffect(() => {
+    if (mostrarSeleccionContenedor && productos.length > 0 && productosEditados.length === 0) {
+      const productosIniciales = productos.map(producto => ({
+        idProductoPedido: producto.idProductoPedido,
+        cantidad: parseFloat(producto.cantidad),
+        cantidadAlternativa: producto.cantidadAlternativa ? parseFloat(producto.cantidadAlternativa) : null,
+        confirmado: false
+      }));
+      setProductosEditados(productosIniciales);
+    }
+  }, [mostrarSeleccionContenedor, productos]);
+
+  // Función para actualizar las cantidades de un producto en el array de productosEditados
+  const actualizarCantidadProducto = (idProductoPedido, campo, valor) => {
+    const nuevosProductos = productosEditados.map(producto => {
+      if (producto.idProductoPedido === idProductoPedido) {
+        return { ...producto, [campo]: valor };
+      }
+      return producto;
+    });
+    setProductosEditados(nuevosProductos);
+  };
+
+  // Función para confirmar un producto
+  const confirmarProducto = (idProductoPedido) => {
+    const nuevosProductos = productosEditados.map(producto => {
+      if (producto.idProductoPedido === idProductoPedido) {
+        return { ...producto, confirmado: true };
+      }
+      return producto;
+    });
+    setProductosEditados(nuevosProductos);
+  };
+
+  // Validar si todos los productos están confirmados
+  const todosProductosConfirmados = () => {
+    return productosEditados.every(producto => producto.confirmado);
+  };
+
+  // Marcar el pedido como completado con el contenedor seleccionado y el comentario
   const completarPedido = async () => {
     if (!contenedorDestino) {
       setError('Debe seleccionar un contenedor destino');
       return;
     }
+
+    if (!comentarioCompletado.trim()) {
+      setError('Debe ingresar un comentario');
+      return;
+    }
+
+    if (!todosProductosConfirmados()) {
+      setError('Debe confirmar todas las cantidades antes de completar el pedido');
+      return;
+    }
     
     try {
-      // Llamada API con el contenedor destino
+      // Llamada API con el contenedor destino, comentario y productos editados
       await axios.put(`http://localhost:5000/api/pedidos/${id}/completar`, {
         usuarioModificacion: user.idUsuario,
-        contenedorDestino: contenedorDestino
+        contenedorDestino: contenedorDestino,
+        comentario: comentarioCompletado,
+        productosEditados: productosEditados
       });
       
       // Redirigir a la lista de pedidos
@@ -259,54 +314,154 @@ function PedidoDetalle() {
         )}
       </div>
       
-      {/* Modal de selección de contenedor */}
+      {/* Modal de completar pedido */}
       {mostrarSeleccionContenedor && (
         <div className="seleccion-contenedor-modal">
           <div className="seleccion-contenedor-content">
-            <h2>Seleccionar Contenedor Destino</h2>
-            <p>Elija el contenedor predeterminado para los productos:</p>
+            <h2>Completar Pedido</h2>
             
-            <div className="form-group">
-              <label>Contenedor Destino:</label>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input 
-                    type="radio" 
-                    name="contenedorDestino" 
-                    value="1" // ID del contenedor Mitre
-                    checked={contenedorDestino === '1'}
-                    onChange={() => setContenedorDestino('1')}
+            {!editandoCantidades ? (
+              <>
+                <p>Elija el contenedor predeterminado para los productos:</p>
+                
+                <div className="form-group">
+                  <label>Contenedor Destino:</label>
+                  <div className="radio-group">
+                    <label className="radio-label">
+                      <input 
+                        type="radio" 
+                        name="contenedorDestino" 
+                        value="1" // ID del contenedor Mitre
+                        checked={contenedorDestino === '1'}
+                        onChange={() => setContenedorDestino('1')}
+                      />
+                      Mitre
+                    </label>
+                    <label className="radio-label">
+                      <input 
+                        type="radio" 
+                        name="contenedorDestino" 
+                        value="2" // ID del contenedor Lichy
+                        checked={contenedorDestino === '2'}
+                        onChange={() => setContenedorDestino('2')}
+                      />
+                      Lichy
+                    </label>
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label>Comentario: <span className="campo-requerido">*</span></label>
+                  <textarea 
+                    value={comentarioCompletado}
+                    onChange={(e) => setComentarioCompletado(e.target.value)}
+                    placeholder="Ingrese un comentario sobre este pedido..."
+                    rows="3"
+                    required
                   />
-                  Mitre
-                </label>
-                <label className="radio-label">
-                  <input 
-                    type="radio" 
-                    name="contenedorDestino" 
-                    value="2" // ID del contenedor Lichy
-                    checked={contenedorDestino === '2'}
-                    onChange={() => setContenedorDestino('2')}
-                  />
-                  Lichy
-                </label>
-              </div>
-            </div>
-            
-            <div className="form-actions">
-              <button 
-                className="btn-submit"
-                onClick={completarPedido}
-                disabled={!contenedorDestino}
-              >
-                Confirmar y Completar Pedido
-              </button>
-              <button 
-                className="btn-cancelar"
-                onClick={() => setMostrarSeleccionContenedor(false)}
-              >
-                Cancelar
-              </button>
-            </div>
+                </div>
+
+                <div className="form-actions">
+                  <button 
+                    className="btn-editar-cantidades"
+                    onClick={() => setEditandoCantidades(true)}
+                  >
+                    Revisar y Editar Cantidades
+                  </button>
+                  <button 
+                    className="btn-cancelar"
+                    onClick={() => setMostrarSeleccionContenedor(false)}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p>Confirme las cantidades de los productos:</p>
+                
+                <div className="productos-confirmacion">
+                  <table className="productos-table">
+                    <thead>
+                      <tr>
+                        <th>Producto</th>
+                        <th>Código</th>
+                        <th>Color</th>
+                        <th>Cantidad</th>
+                        <th>Cantidad Alt.</th>
+                        <th>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {productos.map(producto => {
+                        const productoEditado = productosEditados.find(p => p.idProductoPedido === producto.idProductoPedido);
+                        return (
+                          <tr key={producto.idProductoPedido} className={productoEditado?.confirmado ? 'producto-confirmado' : ''}>
+                            <td>{producto.nombreProducto}</td>
+                            <td>{producto.codigoInterno || 'Sin código'}</td>
+                            <td>{producto.color || 'Sin color'}</td>
+                            <td>
+                              <input 
+                                type="number" 
+                                value={productoEditado?.cantidad || producto.cantidad} 
+                                onChange={(e) => actualizarCantidadProducto(producto.idProductoPedido, 'cantidad', Number(e.target.value))}
+                                step="0.01"
+                                min="0.01"
+                                disabled={productoEditado?.confirmado}
+                              />
+                              {producto.unidad}
+                            </td>
+                            <td>
+                              {producto.cantidadAlternativa ? (
+                                <>
+                                  <input 
+                                    type="number" 
+                                    value={productoEditado?.cantidadAlternativa || producto.cantidadAlternativa} 
+                                    onChange={(e) => actualizarCantidadProducto(producto.idProductoPedido, 'cantidadAlternativa', Number(e.target.value))}
+                                    step="0.01"
+                                    min="0"
+                                    disabled={productoEditado?.confirmado}
+                                  />
+                                  {producto.unidadAlternativa}
+                                </>
+                              ) : '-'}
+                            </td>
+                            <td>
+                              {!productoEditado?.confirmado ? (
+                                <button 
+                                  className="btn-confirmar"
+                                  onClick={() => confirmarProducto(producto.idProductoPedido)}
+                                >
+                                  Confirmar
+                                </button>
+                              ) : (
+                                <span className="texto-confirmado">Confirmado</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="form-actions">
+                  <button 
+                    className="btn-submit"
+                    onClick={completarPedido}
+                    disabled={!contenedorDestino || !comentarioCompletado.trim() || !todosProductosConfirmados()}
+                  >
+                    Confirmar y Completar Pedido
+                  </button>
+                  <button 
+                    className="btn-volver"
+                    onClick={() => setEditandoCantidades(false)}
+                  >
+                    Volver
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
