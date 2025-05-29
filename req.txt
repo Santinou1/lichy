@@ -14,7 +14,7 @@ A la hora de Completar pedido el los detalles de un pedido , que tengas la posib
 
 Eliminar el boton de Agregar producto. (Realizado)
 
-A la hora de confirmar un pedido que este la opcion de enviarlo a facturacion.
+A la hora de confirmar un pedido que este la opcion de enviarlo a facturacion. (Realizado)
 
 Cuando se envia un pedido que de asigne automaticamente la ubicacion del contenedor adonde se envio.
 Y Arreglar el Agregar el nuevo estado de los detalles predeterminados.

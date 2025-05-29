@@ -96,7 +96,7 @@ router.post('/', (req, res) => {
             
             // Calcular el importe total del pedido
             connection.query(
-              `SELECT SUM(cantidad * precioPorUnidad) as importeTotal
+              `SELECT SUM(pp.cantidad * cp.precioPorUnidad) as importeTotal
                FROM ProductosPedido pp
                JOIN ContenedorProductos cp ON pp.idContenedorProducto = cp.idContenedorProductos
                WHERE pp.idPedido = ?`,

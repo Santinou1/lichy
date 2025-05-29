@@ -97,7 +97,7 @@ function Facturacion() {
 
   return (
     <div className="facturacion-container">
-      <h1>Gestión de Facturación</h1>
+      <h1>Gestión de Facturas</h1>
       
       <div className="facturacion-actions">
         {!mostrarFormulario ? (
@@ -195,7 +195,7 @@ function Facturacion() {
                     <td>{factura.numeroFactura}</td>
                     <td>{new Date(factura.fechaFactura).toLocaleDateString()}</td>
                     <td>Pedido #{factura.idPedido}</td>
-                    <td>${factura.importeTotal?.toFixed(2) || '0.00'}</td>
+                    <td>${typeof factura.importeTotal === 'number' ? factura.importeTotal.toFixed(2) : parseFloat(factura.importeTotal || 0).toFixed(2)}</td>
                     <td>{factura.observaciones || '-'}</td>
                     <td>
                       <button 

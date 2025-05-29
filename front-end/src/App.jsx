@@ -9,8 +9,9 @@ import ProductoDetalle from "./pages/ProductoDetalle.jsx";
 import AgregarItem from "./pages/AgregarItem.jsx";
 import Redireccion from "./components/Redireccion.jsx";
 import ActualizarProductos from "./pages/ActualizarProductos.jsx";
-import Pedidos from "./pages/Pedidos.jsx";
-import PedidoDetalle from "./pages/PedidoDetalle.jsx";
+import Pedidos from './pages/Pedidos';
+import PedidoDetalle from './pages/PedidoDetalle';
+import Facturacion from './pages/Facturacion.jsx';
 
 import { ProtectedRoute } from "./components/ProtectedRoute.jsx";
 import { useUserContext } from "./UserProvider.jsx";
@@ -56,6 +57,9 @@ function App() {
           <Route element={<ProtectedRoute user={user} requiredPermission={'Productos'} />}>
             <Route path='/pedidos' element={<Pedidos />} />
             <Route path='/pedido-detalle/:id' element={<PedidoDetalle />} />
+          </Route>
+          <Route element={<ProtectedRoute user={user} requiredPermission={'Productos'} />}>
+            <Route path='/facturacion' element={<Facturacion />} />
           </Route>
           <Route path='*' element={<h1>Not Found</h1>} />  
         </Routes>
