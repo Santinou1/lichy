@@ -6,11 +6,7 @@ Que no se reinicie la pagina CUANDO dispones todos los colores.  (Realizado)
 
 Si se edita productos SIEMPRE SIEMPRE tiene que tener una descripcion.
 
-A la hora de crear un nuevo contenedor se tiene que escribir la Unidad alternativa tambien.
-
-En la seccion de productos que se pueda modificar las cantidades.
-
-Y SI SE ELIMINA que vuelva a la cantidad original.
+A la hora de crear un nuevo contenedor se tiene que escribir la Unidad alternativa tambien. (Realizado)
 
 Los pedidos completados que no se muestren ni en la seccion de pedidos i en la seccion de agregar pedido existente.
 
@@ -26,6 +22,11 @@ Y Arreglar el Agregar el nuevo estado de los detalles predeterminados.
 Que puedas filtrar todos los productos que estan en lichy o mitre. En la seccion de Lista de productos.
 
 Cuando dispones colores que no aparezca todos los campos del producto para editar solamente disponer color.
+
+En la seccion de productos que se pueda modificar las cantidades.
+
+Y SI SE ELIMINA que vuelva a la cantidad original.
+
 
 
 Cuando filtras por estado por ejemplo , si esta en Deposito nacional y ubicacion altitud 

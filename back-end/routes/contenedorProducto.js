@@ -171,6 +171,7 @@ async function editarProductoDeContenedor(req,res){
         else if (coloresAsignados && coloresAsignados.length > 0) {
             let cambiosTexto = `Cambios: desglose de colores al producto: (${dataAnterior.nombre})\n`;
             let cantidadTotalAsignada = 0;
+            let cantidadAlternativaTotalAsignada = 0;
             
             // Primero crear los nuevos productos con colores asignados
             for (const colorAsignado of coloresAsignados) {
@@ -181,13 +182,8 @@ async function editarProductoDeContenedor(req,res){
                 // Validar que la unidad alternativa sea correcta según la unidad principal para cada color
                 let unidadAltColorValidada = unidadAltValidada;
                 
-                // Calcular la cantidad alternativa proporcional para este color
-                let cantidadAltProporcional = null;
-                if (cantidadAlternativa && dataAnterior.cantidad > 0) {
-                    // Calcular proporción basada en la cantidad de este color vs la cantidad total original
-                    const proporcion = colorAsignado.cantidad / dataAnterior.cantidad;
-                    cantidadAltProporcional = Math.round((cantidadAlternativa * proporcion) * 100) / 100;
-                }
+                // Usar la cantidad alternativa directamente proporcionada para este color
+                let cantidadAltProporcional = colorAsignado.cantidadAlternativa || null;
                 
                 await connection.promise().query(insertQuery, [
                     contenedor, // contenedor (usamos el mismo contenedor)
@@ -203,6 +199,11 @@ async function editarProductoDeContenedor(req,res){
                 
                 // Sumar la cantidad asignada al total
                 cantidadTotalAsignada += parseFloat(colorAsignado.cantidad);
+                
+                // Sumar la cantidad alternativa asignada al total si existe
+                if (cantidadAltProporcional) {
+                    cantidadAlternativaTotalAsignada += parseFloat(cantidadAltProporcional);
+                }
             }
             
             // Si se proporcionó un código interno, actualizar la tabla Producto
@@ -215,22 +216,28 @@ async function editarProductoDeContenedor(req,res){
             // Luego actualizar el producto principal reduciendo su stock
             const nuevaCantidadProductoPrincipal = Math.max(0, parseFloat(dataAnterior.cantidad) - cantidadTotalAsignada);
             
-            if (nuevaCantidadProductoPrincipal > 0) {
-                // Si queda stock, actualizar el producto principal
-                const updateQuery = `
-                    UPDATE ContenedorProductos 
-                    SET cantidad = ? 
-                    WHERE idContenedorProductos = ?;
-                `;
-                await connection.promise().query(updateQuery, [nuevaCantidadProductoPrincipal, id]);
-                cambiosTexto += `Producto principal: cantidad reducida de ${dataAnterior.cantidad} a ${nuevaCantidadProductoPrincipal}\n`;
-            } else {
-                // Si no queda stock, eliminar el producto principal
-                await connection.promise().query('DELETE FROM ContenedorProductos WHERE idContenedorProductos = ?', [id]);
-                cambiosTexto += `Producto principal: eliminado (todo el stock fue asignado a colores)\n`;
-            }
-            
-            const sqlInsert = `INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?);`;
+// Calcular la nueva cantidad alternativa restando lo asignado a los colores
+let nuevaCantidadAlternativaPrincipal = null;
+if (cantidadAlternativa) {
+    nuevaCantidadAlternativaPrincipal = Math.max(0, parseFloat(cantidadAlternativa) - cantidadAlternativaTotalAsignada);
+}
+
+// Si queda stock, actualizar el producto principal con la nueva cantidad y cantidad alternativa
+if (nuevaCantidadProductoPrincipal > 0) {
+    const updateQuery = `
+        UPDATE ContenedorProductos 
+        SET cantidad = ?, cantidadAlternativa = ? 
+        WHERE idContenedorProductos = ?;
+    `;
+    await connection.promise().query(updateQuery, [nuevaCantidadProductoPrincipal, nuevaCantidadAlternativaPrincipal, id]);
+    cambiosTexto += `Producto principal: cantidad reducida de ${dataAnterior.cantidad} a ${nuevaCantidadProductoPrincipal}, cantidad alternativa de ${cantidadAlternativa} a ${nuevaCantidadAlternativaPrincipal}\n`;
+} else {
+    // Si no queda stock, eliminar el producto principal
+    await connection.promise().query('DELETE FROM ContenedorProductos WHERE idContenedorProductos = ?', [id]);
+    cambiosTexto += `Producto principal: eliminado (todo el stock fue asignado a colores)\n`;
+}
+
+const sqlInsert = `INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?);`;
        
         await connection.promise().query(sqlInsert, [
             id, // idContenedorProductos (usamos el ID original)
