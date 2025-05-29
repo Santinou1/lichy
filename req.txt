@@ -1,35 +1,36 @@
-Editar la seccion de colores en el detalle de contenedor para poder distribuir todo el volumen en diferentes colores de manera dinamica.
-Cuando hay un producto sin color, que en vez de los 2 botones de Editar y Cambiar Estado.
-Que exista un boton que sea Disponer colores  , y que si haces click puedas dividir todo el total del producto en los colores deseados y tambien ahi mismo se le tiene que asignar los rollos.
+Sacar scroll en el input de FOB de crear nuevo contenedor y en el precio por unidad a la hora de crear productos en un contenedor. (Realizado)
 
-Y despues eso tiene que ser editable (los colores y unidad alternativa) (Realizado)
+Tambien en cantidad asignar a la hora de disponer colores en la seccion de medidas y unidades alternativas. (Realizado)
 
-Las unidades alternativas tambien se tienen que enviar en el cambiar estado (Realizado)
+Que no se reinicie la pagina CUANDO dispones todos los colores. 
+
+Si se edita productos SIEMPRE SIEMPRE tiene que tener una descripcion.
+
+A la hora de crear un nuevo contenedor se tiene que escribir la Unidad alternativa tambien.
+
+En la seccion de productos que se pueda modificar las cantidades.
+
+Y SI SE ELIMINA que vuelva a la cantidad original.
+
+Los pedidos completados que no se muestren ni en la seccion de pedidos i en la seccion de agregar pedido existente.
+
+A la hora de Completar pedido el los detalles de un pedido , que tengas la posibilidad de confirmar cantidades y/o editar y que tengas que escribir un comentario.
+
+Eliminar el boton de Agregar producto.
+
+A la hora de confirmar un pedido que este la opcion de enviarlo a facturacion.
+
+Cuando se envia un pedido que de asigne automaticamente la ubicacion del contenedor adonde se envio.
+Y Arreglar el Agregar el nuevo estado de los detalles predeterminados.
+
+Que puedas filtrar todos los productos que estan en lichy o mitre. En la seccion de Lista de productos.
+
+Cuando dispones colores que no aparezca todos los campos del producto para editar solamente disponer color.
 
 
-En la Navbar agregar 2 botones.
--Pedidos
--Facturacion
-
-Agregar la funcionalidad de eliminar producto 
-
-Que el cambar estado funcione de manera global, como lo hace ahora la funcionalidad de “editar productos”
-
-Que sea por ejemplo
-Codigo Interno ->  Estado (Pedidos)
-
-Color - > Ubicacion (Mitre o Lichy)
-
-Cantidad -> Cantidad que se envie
-
-Agregar envio de unidad de Alternativa
-
-
-
-Los datos de Nombre de producto, Codigo interno , y color ponerlo arriba de cada producto en chiuito
-
-(Todo esto en la seccion nueva de Pedidos)
-
-Modificar el Cambiar estado que en vez de que se vaya directamente a mitre o lichy, que ahora vaya a una nueva seccion que se llame 
-“Pedidos” , y que lo que se envie ahi a la hora de mandar productos se guarde como
-Pedido 1 por ejenplo, y despues de ese pedido 1 , distribuirlo a mitre o lichy.
+Cuando filtras por estado por ejemplo , si esta en Deposito nacional y ubicacion altitud 
+Que te traiga todos los detalles de ese producto (Corderito simple) con color rojo que esta en deposito nacional (estado) altitud (ubicacion).
+pero si tenes tambien tenes el mismo producto de color rojo en otro contenedor que esta en deposito nacional (estado) pero en open cargo (ubicacion) y vos filtras por deposito nacional (estado) no por ubicacion, que ahi te traiga el total.
+Pero si elegis open cargo solo los de open cargo
+Que si filtras por estado te traiga el total de todos los que tiene ese estado discriminando la ubicacion y si traes por ubicacion solamente esos
+QUE SE PUEDA CAMBIAR ESTADO MASIVAMENTE
