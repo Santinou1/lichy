@@ -7,7 +7,25 @@
 .pedidos-actions {
   margin: 20px 0;
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filter-controls {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 15px;
+}
+
+.toggle-label input[type="checkbox"] {
+  margin-right: 8px;
 }
 
 .btn-crear-pedido {

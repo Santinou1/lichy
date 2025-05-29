@@ -8,7 +8,7 @@ Si se edita productos SIEMPRE SIEMPRE tiene que tener una descripcion.
 
 A la hora de crear un nuevo contenedor se tiene que escribir la Unidad alternativa tambien. (Realizado)
 
-Los pedidos completados que no se muestren ni en la seccion de pedidos i en la seccion de agregar pedido existente.
+Los pedidos completados que no se muestren ni en la seccion de pedidos i en la seccion de agregar pedido existente. (Realizado)
 
 A la hora de Completar pedido el los detalles de un pedido , que tengas la posibilidad de confirmar cantidades y/o editar y que tengas que escribir un comentario.
 
