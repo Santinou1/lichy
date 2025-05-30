@@ -1,6 +1,7 @@
 import Producto from '../components/Producto';
 import '../styles/ContenedorDetalle.css';
 import '../styles/EdicionLotes.css';
+import '../styles/Modal.css';
 import { useNavigate, useParams, useSearchParams} from 'react-router-dom';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
@@ -11,6 +12,8 @@ import ConfirmarEliminar from '../components/ConfirmarEliminar';
 import AgregarProducto from '../components/AgregarProducto';
 import { fechaISOtoReadable } from '../utils/fecha';
 import VerHistorial from '../components/VerHistorial';
+import EnvioPedidoMasivo from '../components/EnvioPedidoMasivo';
+
 function ContendorDetalle({user}){
     const navigate = useNavigate();
     const redirigir = ()=>{
@@ -38,6 +41,9 @@ function ContendorDetalle({user}){
     const [agregarProducto, setAgregarProducto] = useState(false);
     const [modoEdicionLotes, setModoEdicionLotes] = useState(false);
     const [productosEditados, setProductosEditados] = useState({});
+    const [mostrarCambioEstadoMasivo, setMostrarCambioEstadoMasivo] = useState(false);
+    const [mensajeExito, setMensajeExito] = useState('');
+
     const actualizarProductoEnLista = (nuevaListaProductos) => {
         setProductos(nuevaListaProductos);
     };
@@ -108,9 +114,11 @@ function ContendorDetalle({user}){
 
     const openModal = () => setIsModalOpen(true);
     const closeModal = () => setIsModalOpen(false);
-    const actualizarCategoria = ()=>{
-        setMostrarActualizarCategoria(true);
+    const toggleCambioEstadoMasivo = () => {
+        // Mostrar/ocultar el modal de EnvioPedidoMasivo
+        setMostrarCambioEstadoMasivo(!mostrarCambioEstadoMasivo);
     };
+    const actualizarCategoria = () => setMostrarActualizarCategoria(!mostrarActualizarCategoria);
     const actualizarEstado = (estado)=>{
         if(mostrarActualizarEstado){
             setData(prevData => ({
@@ -123,13 +131,28 @@ function ContendorDetalle({user}){
             setMostrarActualizarEstado(true);
         }
     };
-    const actualizarDetalles = () =>{
-        if(mostrarActualizarDetalles){
-            setMostrarActualizarDetalles(false)
-        }else{
-        setMostrarActualizarDetalles(true);
+    const actualizarDetalles = () => {
+        setMostrarActualizarDetalles(!mostrarActualizarDetalles)
+        if(mostrarActualizarEstado){
+            setMostrarActualizarEstado(false)
+        }if(mostrarActualizarCategoria){
+            setMostrarActualizarCategoria(false)
         }
     }
+
+    const handleCambioEstadoExitoso = (resultado) => {
+        console.log('Cambio de estado exitoso:', resultado);
+        setMensajeExito('Cambio de estado masivo realizado con éxito.');
+        // Recargar los productos para reflejar los cambios
+        axios.get(`http://localhost:5000/api/contenedorProducto/contenedor/${id}`)
+            .then(res => {
+                setProductos(res.data);
+                // Limpiar el mensaje después de 3 segundos
+                setTimeout(() => setMensajeExito(''), 3000);
+            })
+            .catch(err => console.error('Error al recargar productos:', err));
+    };
+
     useEffect(()=>{
         console.log(id)
         axios.get(`http://localhost:5000/api/contenedores/contenedor-detalle/${id}`).then((response)=>{
@@ -259,6 +282,12 @@ function ContendorDetalle({user}){
                                     Guardar cambios ({Object.keys(productosEditados).length})
                                 </button>
                             )}
+                            <button 
+                                onClick={toggleCambioEstadoMasivo} 
+                                className="btn-cambio-estado-masivo"
+                            >
+                                Enviar a Pedido
+                            </button>
                         </>
                     )}
                     <button onClick={()=>setAgregarProducto(true)}> Agregar producto</button>
@@ -282,6 +311,15 @@ function ContendorDetalle({user}){
             {
                 agregarProducto ? <AgregarProducto contenedor={id} setAgregarProducto={setAgregarProducto } actualizarLista={setProductos}/> : <></>
             }
+            {mostrarCambioEstadoMasivo && (
+                <EnvioPedidoMasivo
+                    isOpen={mostrarCambioEstadoMasivo}
+                    onRequestClose={toggleCambioEstadoMasivo}
+                    productos={productos}
+                    contenedor={id}
+                    onSuccess={handleCambioEstadoExitoso}
+                />
+            )}
             </div>
             <button onClick={openModal}>Ver historial de cambios</button>          
             <VerHistorial isOpen={isModalOpen} onRequestClose={closeModal} contenedor={id}></VerHistorial>  

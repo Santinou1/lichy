@@ -106,55 +106,162 @@ async function obtenerCantidadTotal(req,res){
         return res.status(500).send('Error en el servidor.');
     }
 }
-async function obtenerCantidadPorFiltro(req,res){
-    try{
+async function obtenerCantidadPorFiltro(req, res) {
+    try {
         const id = req.params.id;
-        const filtro = req.headers['x-filtro'];
-        const estadoOUicacion = req.headers['x-estado-o-ubicacion']
-        let condicion = ''
+        const filtroTipo = req.headers['x-filtro']; // 'estado' o 'ubicacion'
+        const filtroValor = req.headers['x-estado-o-ubicacion']; // Valor del filtro
         
-        if (filtro === 'estado' || filtro === 'ubicacion') {
-            const valorFiltro = req.headers['x-filtro']; // Asume que el valor del filtro se envía en otro header
-            if (!valorFiltro) {
-                return res.status(400).send('Falta el valor del filtro.');
-            }
-            condicion = `AND ce.${filtro} LIKE ?`;
+        let query;
+        let params = [id];
         
-        }
-
-        const query = `
-        SELECT 
-            cp.producto,
-            cp.color,
-            cp.unidad,
-            ce.estado,
-            ce.ubicacion,
-            SUM(COALESCE(cp.cantidad, 0)) AS total_cantidad
-        FROM 
-            contenedorproductos cp
-        JOIN 
-            contenedorestado ce ON cp.contenedor = ce.contenedor
-        JOIN (
+        if (filtroTipo === 'ambos' && filtroValor) {
+            // Si se están filtrando por ambos (estado y ubicacion específicos)
+            // Formato del valor: "estado:ubicacion" (ej: "DEPOSITO NACIONAL:Altitud")
+            const [estado, ubicacion] = filtroValor.split(':');
+            
+            query = `
             SELECT 
-                contenedor, 
-                MAX(fechaHora) AS max_fechaHora
+                cp.producto,
+                cp.color,
+                cp.unidad,
+                ce.estado,
+                ce.ubicacion,
+                SUM(COALESCE(cp.cantidad, 0)) AS total_cantidad,
+                cp.precioPorUnidad
             FROM 
-                contenedorestado
+                contenedorproductos cp
+            JOIN 
+                contenedorestado ce ON cp.contenedor = ce.contenedor
+            JOIN (
+                SELECT 
+                    contenedor, 
+                    MAX(fechaHora) AS max_fechaHora
+                FROM 
+                    contenedorestado
+                GROUP BY 
+                    contenedor
+            ) ultimo_estado ON ce.contenedor = ultimo_estado.contenedor AND ce.fechaHora = ultimo_estado.max_fechaHora
+            WHERE 
+                cp.producto = ? AND ce.estado = ? AND ce.ubicacion = ?
             GROUP BY 
-                contenedor
-        ) ultimo_estado ON ce.contenedor = ultimo_estado.contenedor AND ce.fechaHora = ultimo_estado.max_fechaHora
-        WHERE 
-            cp.producto = ? ${condicion}
-        GROUP BY 
-            cp.producto, 
-            cp.color, 
-            cp.unidad, 
-            ce.estado, 
-            ce.ubicacion;`;
+                cp.producto, 
+                cp.color, 
+                cp.unidad, 
+                ce.estado, 
+                ce.ubicacion,
+                cp.precioPorUnidad;
+            `;
+            params.push(estado, ubicacion);
+        } else if (filtroTipo === 'estado' && filtroValor) {
+            // Si se está filtrando solo por estado
+            query = `
+            SELECT 
+                cp.producto,
+                cp.color,
+                cp.unidad,
+                ce.estado,
+                NULL as ubicacion, -- No agrupamos por ubicación
+                SUM(COALESCE(cp.cantidad, 0)) AS total_cantidad,
+                cp.precioPorUnidad
+            FROM 
+                contenedorproductos cp
+            JOIN 
+                contenedorestado ce ON cp.contenedor = ce.contenedor
+            JOIN (
+                SELECT 
+                    contenedor, 
+                    MAX(fechaHora) AS max_fechaHora
+                FROM 
+                    contenedorestado
+                GROUP BY 
+                    contenedor
+            ) ultimo_estado ON ce.contenedor = ultimo_estado.contenedor AND ce.fechaHora = ultimo_estado.max_fechaHora
+            WHERE 
+                cp.producto = ? AND ce.estado = ?
+            GROUP BY 
+                cp.producto, 
+                cp.color, 
+                cp.unidad, 
+                ce.estado,
+                cp.precioPorUnidad;
+            `;
+            params.push(filtroValor);
+        } else if (filtroTipo === 'ubicacion' && filtroValor) {
+            // Si se está filtrando solo por ubicación
+            query = `
+            SELECT 
+                cp.producto,
+                cp.color,
+                cp.unidad,
+                ce.estado,
+                ce.ubicacion,
+                SUM(COALESCE(cp.cantidad, 0)) AS total_cantidad,
+                cp.precioPorUnidad
+            FROM 
+                contenedorproductos cp
+            JOIN 
+                contenedorestado ce ON cp.contenedor = ce.contenedor
+            JOIN (
+                SELECT 
+                    contenedor, 
+                    MAX(fechaHora) AS max_fechaHora
+                FROM 
+                    contenedorestado
+                GROUP BY 
+                    contenedor
+            ) ultimo_estado ON ce.contenedor = ultimo_estado.contenedor AND ce.fechaHora = ultimo_estado.max_fechaHora
+            WHERE 
+                cp.producto = ? AND ce.ubicacion = ?
+            GROUP BY 
+                cp.producto, 
+                cp.color, 
+                cp.unidad, 
+                ce.estado, 
+                ce.ubicacion,
+                cp.precioPorUnidad;
+            `;
+            params.push(filtroValor);
+        } else {
+            // Sin filtro, mostrar todo agrupado por color, estado y ubicación
+            query = `
+            SELECT 
+                cp.producto,
+                cp.color,
+                cp.unidad,
+                ce.estado,
+                ce.ubicacion,
+                SUM(COALESCE(cp.cantidad, 0)) AS total_cantidad,
+                cp.precioPorUnidad
+            FROM 
+                contenedorproductos cp
+            JOIN 
+                contenedorestado ce ON cp.contenedor = ce.contenedor
+            JOIN (
+                SELECT 
+                    contenedor, 
+                    MAX(fechaHora) AS max_fechaHora
+                FROM 
+                    contenedorestado
+                GROUP BY 
+                    contenedor
+            ) ultimo_estado ON ce.contenedor = ultimo_estado.contenedor AND ce.fechaHora = ultimo_estado.max_fechaHora
+            WHERE 
+                cp.producto = ?
+            GROUP BY 
+                cp.producto, 
+                cp.color, 
+                cp.unidad, 
+                ce.estado, 
+                ce.ubicacion,
+                cp.precioPorUnidad;
+            `;
+        }
         
-        const [results] = await pool.promise().query(query, [id,estadoOUicacion]);
+        console.log('Ejecutando consulta con parámetros:', params);
+        const [results] = await pool.promise().query(query, params);
         res.json(results);
-    }catch(error){
+    } catch(error) {
         console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
     }

@@ -32,6 +32,13 @@ function PedidoDetalle() {
   const [filtroCodigoInterno, setFiltroCodigoInterno] = useState('');
   const [filtroColor, setFiltroColor] = useState('');
 
+  // Mapeo de contenedores
+  const contenedores = {
+    '1': 'MITRE',
+    '2': 'LICHY',
+    '3': 'FACTURACION'
+  };
+
   useEffect(() => {
     cargarDatosPedido();
     cargarProductosDisponibles();
@@ -561,8 +568,8 @@ function PedidoDetalle() {
                     required
                   >
                     <option value="">Seleccione una ubicación</option>
-                    <option value="Mitre">Mitre</option>
-                    <option value="Lichy">Lichy</option>
+                    <option value="1">Mitre</option>
+                    <option value="2">Lichy</option>
                   </select>
                 </div>
               </>
@@ -609,7 +616,7 @@ function PedidoDetalle() {
                       ? `${parseFloat(producto.cantidadAlternativa).toFixed(2)} ${producto.unidadAlternativa}` 
                       : '-'}
                   </td>
-                  <td>{producto.ubicacionDestino}</td>
+                  <td>{contenedores[producto.ubicacionDestino] || producto.ubicacionDestino}</td>
                   <td>
                     {pedido && pedido.estado === 'Pendiente' && (
                       <button 

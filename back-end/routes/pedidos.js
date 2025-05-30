@@ -233,7 +233,7 @@ router.post('/:id/productos', (req, res) => {
             cantidadAlternativaTransferir || null,
             unidad || producto.unidad,
             unidadAlternativa || producto.unidadAlternativa,
-            ubicacionDestino,
+            ubicacionDestino || 'Pedido',  // Usar 'Pedido' como valor predeterminado
             usuarioCreacion,
             codigoInterno || producto.codigoInterno,
             color,
@@ -340,7 +340,7 @@ router.delete('/:idPedido/productos/:idProductoPedido', (req, res) => {
         return res.status(500).send('Error al iniciar transacción');
       }
       
-      // Verificar que el producto existe en el pedido
+      // Verificar que el producto existe en el pedido y obtener sus cantidades
       connection.query(
         'SELECT * FROM ProductosPedido WHERE idProductoPedido = ? AND idPedido = ?',
         [req.params.idProductoPedido, req.params.idPedido],
@@ -352,26 +352,78 @@ router.delete('/:idPedido/productos/:idProductoPedido', (req, res) => {
           if (productos.length === 0) {
             return rollbackAndRelease(connection, null, 'Producto no encontrado en el pedido', res, 404);
           }
+
+          const producto = productos[0];
           
-          // Eliminar producto del pedido
+          // Restaurar las cantidades al contenedor original
           connection.query(
-            'DELETE FROM ProductosPedido WHERE idProductoPedido = ?',
-            [req.params.idProductoPedido],
-            (err, result) => {
+            `UPDATE ContenedorProductos
+             SET cantidad = cantidad + ?,
+                 cantidadAlternativa = CASE 
+                   WHEN cantidadAlternativa IS NOT NULL THEN cantidadAlternativa + ?
+                   ELSE NULL
+                 END
+             WHERE idContenedorProductos = ?`,
+            [
+              producto.cantidad,
+              producto.cantidadAlternativa || 0,
+              producto.idContenedorProducto
+            ],
+            (err) => {
               if (err) {
-                return rollbackAndRelease(connection, err, 'Error al eliminar producto del pedido', res);
+                return rollbackAndRelease(connection, err, 'Error al restaurar cantidades al contenedor original', res);
               }
-              
-              connection.commit(err => {
-                if (err) {
-                  return rollbackAndRelease(connection, err, 'Error al confirmar transacción', res);
+
+              // Eliminar producto del pedido
+              connection.query(
+                'DELETE FROM ProductosPedido WHERE idProductoPedido = ?',
+                [req.params.idProductoPedido],
+                (err, result) => {
+                  if (err) {
+                    return rollbackAndRelease(connection, err, 'Error al eliminar producto del pedido', res);
+                  }
+
+                  // Registrar en el historial
+                  const cambiosJSON = JSON.stringify({
+                    cantidad: producto.cantidad,
+                    cantidadAlternativa: producto.cantidadAlternativa,
+                    motivo: 'Eliminado del pedido'
+                  });
+
+                  connection.query(
+                    `INSERT INTO ContenedorProductosHistorial 
+                     (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) 
+                     SELECT ?, c.idContenedor, ?, ?, ?, ?
+                     FROM ContenedorProductos cp
+                     JOIN Contenedor c ON cp.contenedor = c.idContenedor
+                     WHERE cp.idContenedorProductos = ?`,
+                    [
+                      producto.idContenedorProducto,
+                      'Restaurado',
+                      cambiosJSON,
+                      producto.usuarioCreacion,
+                      `Cantidades restauradas por eliminación del Pedido #${req.params.idPedido}`,
+                      producto.idContenedorProducto
+                    ],
+                    (err) => {
+                      if (err) {
+                        return rollbackAndRelease(connection, err, 'Error al registrar historial', res);
+                      }
+                      
+                      connection.commit(err => {
+                        if (err) {
+                          return rollbackAndRelease(connection, err, 'Error al confirmar transacción', res);
+                        }
+                        
+                        connection.release(); // Liberar la conexión al finalizar la transacción
+                        res.json({
+                          mensaje: 'Producto eliminado del pedido y cantidades restauradas correctamente'
+                        });
+                      });
+                    }
+                  );
                 }
-                
-                connection.release(); // Liberar la conexión al finalizar la transacción
-                res.json({
-                  mensaje: 'Producto eliminado del pedido correctamente'
-                });
-              });
+              );
             }
           );
         }
@@ -503,6 +555,7 @@ router.put('/:id/completar', (req, res) => {
                         });
                         
                         // Si es Facturación (valor 3), no creamos productos en ningún contenedor físico
+                        // Contenedor ID 1 es para Mitre, ID 2 es para Lichy, ID 3 es para Facturación
                         if (contenedorDestino === '3') {
                           // Registrar en el historial para Facturación
                           connection.query(

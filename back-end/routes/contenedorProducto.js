@@ -3,11 +3,13 @@ const router = express.Router();
 const pool = require('../db/dbconfig');
 
 router.get('/producto/:id',obtenerProductoContenedor);
+router.get('/contenedor/:id',obtenerProductosDeContenedor);
 router.get('/:id',obtenerProductosDeContenedor);
 router.put('/:id',editarProductoDeContenedor);
 router.delete('/:id',eliminarProductoDeContenedor);
 router.post('/', agregarProductoDeContenedor);
 router.put('/estado/:id', cambiarEstadoProducto);
+router.post('/cambio-estado-masivo', cambioEstadoMasivo);
 router.get('/predeterminados', obtenerContenedoresPredeterminados);
 
 async function obtenerProductoContenedor(req,res){
@@ -615,6 +617,109 @@ async function obtenerContenedoresPredeterminados(req, res) {
     } catch (error) {
         console.error('Error obteniendo contenedores predeterminados:', error);
         res.status(500).send('Error en el servidor.');
+    }
+}
+
+/**
+ * Cambia el estado de múltiples productos en un contenedor a la vez
+ */
+async function cambioEstadoMasivo(req, res) {
+    const connection = await pool.promise().getConnection();
+    
+    try {
+        // Obtener los datos del request
+        const { contenedor, destino, comentario, productos } = req.body;
+        
+        // Validar que hay productos para procesar
+        if (!productos || !Array.isArray(productos) || productos.length === 0) {
+            return res.status(400).send('Debe proporcionar productos para cambiar de estado');
+        }
+        
+        // Validar que se ha proporcionado un comentario
+        if (!comentario || comentario.trim() === '') {
+            return res.status(400).send('Debe proporcionar un comentario para el cambio de estado');
+        }
+        
+        // Iniciar la transacción
+        await connection.beginTransaction();
+        
+        // Resultados para devolver
+        const resultados = [];
+        
+        // Procesar cada producto
+        for (const producto of productos) {
+            const { idContenedorProductos, cantidadAMover, cantidadOriginal, unidad, cantidadAlternativa, unidadAlternativa, precioPorUnidad, producto: productoId, color, nombreProducto } = producto;
+            
+            // Validar que la cantidad a mover no exceda la cantidad disponible
+            if (cantidadAMover > cantidadOriginal) {
+                await connection.rollback();
+                return res.status(400).send(`La cantidad a mover (${cantidadAMover}) no puede exceder la cantidad disponible (${cantidadOriginal}) para el producto ${nombreProducto}`);
+            }
+            
+            // 1. Actualizar la cantidad del producto original
+            const cantidadRestante = cantidadOriginal - cantidadAMover;
+            
+            // Si se moverá todo el producto, cambiamos su estado
+            if (cantidadRestante === 0) {
+                await connection.query(
+                    'UPDATE ContenedorProductos SET cantidad = 0, estado = ? WHERE idContenedorProductos = ?',
+                    [destino, idContenedorProductos]
+                );
+            } else {
+                // Si queda cantidad, solo actualizamos la cantidad
+                await connection.query(
+                    'UPDATE ContenedorProductos SET cantidad = ? WHERE idContenedorProductos = ?',
+                    [cantidadRestante, idContenedorProductos]
+                );
+                
+                // 2. Crear un nuevo registro para la cantidad que cambió de estado
+                await connection.query(
+                    `INSERT INTO ContenedorProductos 
+                     (contenedor, producto, cantidad, unidad, color, precioPorUnidad, cantidadAlternativa, unidadAlternativa, estado) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [contenedor, productoId, cantidadAMover, unidad, color, precioPorUnidad, cantidadAlternativa, unidadAlternativa, destino]
+                );
+            }
+            
+            // 3. Registrar el cambio en el historial
+            const cambios = {
+                cantidadOriginal,
+                cantidadMovida: cantidadAMover,
+                cantidadRestante,
+                estadoDestino: destino
+            };
+            
+            await connection.query(
+                'INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?)',
+                [idContenedorProductos, contenedor, 'CAMBIO_ESTADO_MASIVO', JSON.stringify(cambios), 'sistema', comentario]
+            );
+            
+            resultados.push({
+                idContenedorProductos,
+                nombreProducto,
+                cantidadMovida: cantidadAMover,
+                cantidadRestante,
+                estadoDestino: destino
+            });
+        }
+        
+        // Confirmar la transacción
+        await connection.commit();
+        
+        // Devolver los resultados
+        res.json({
+            mensaje: 'Cambio de estado masivo realizado con éxito',
+            resultados
+        });
+        
+    } catch (error) {
+        // Revertir la transacción en caso de error
+        await connection.rollback();
+        console.error('Error en cambio de estado masivo:', error);
+        res.status(500).send('Error en el servidor.');
+    } finally {
+        // Liberar la conexión
+        connection.release();
     }
 }
 
