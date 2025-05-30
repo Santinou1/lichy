@@ -12,6 +12,7 @@ function ActualizarEstado({setHistorial, contenedor, actualizarEstado,estad,ubic
     
     const [fechaManual, setFechaManual] = useState(fechaActual);
     const [ubicaciones, setUbicaciones] = useState(null);
+    const [autoSeleccionarUbicacion, setAutoSeleccionarUbicacion] = useState(false);
     useEffect(()=>{
         axios.get('http://localhost:5000/api/items/categorias').then((response)=>{
             console.log(response.data);
@@ -23,7 +24,19 @@ function ActualizarEstado({setHistorial, contenedor, actualizarEstado,estad,ubic
         axios.post('http://localhost:5000/api/items/ubicaciones',{estado: estado}).then((response)=>{
             console.log(response.data);
             setUbicaciones(response.data);
-
+            
+            // Si el estado es "Completo Pedido", activar la auto-selección de ubicación
+            if (estado === "Completo Pedido") {
+                setAutoSeleccionarUbicacion(true);
+                // Buscar la ubicación "Mitre" en los datos recibidos
+                const ubicacionMitre = response.data.find((ubicacion) => ubicacion.nombreUbicacion === "Mitre");
+                if (ubicacionMitre) {
+                    setUbicacion(ubicacionMitre.nombreUbicacion);
+                }
+            } else {
+                setAutoSeleccionarUbicacion(false);
+                setUbicacion(''); // Resetear la ubicación cuando cambia el estado
+            }
         })
     },[estado]);
     const onSubmit = (e) =>{
@@ -39,6 +52,12 @@ function ActualizarEstado({setHistorial, contenedor, actualizarEstado,estad,ubic
             console.error('Error actualizando la categoria:', error);
         });
     }
+    
+    // Manejador para cuando se selecciona una ubicación
+    const handleUbicacionChange = (e) => {
+        const selectedUbicacion = e.target.value;
+        setUbicacion(selectedUbicacion);
+    }
     return(
         <form onSubmit={onSubmit}>
             <label>Nuevo estado:</label>
@@ -52,7 +71,12 @@ function ActualizarEstado({setHistorial, contenedor, actualizarEstado,estad,ubic
                 }
             </select>
             <label>Nueva ubicacion:</label>
-            <select value={ubicacion} onChange={(e)=>{setUbicacion(e.target.value)}} required>
+            <select 
+                value={ubicacion} 
+                onChange={handleUbicacionChange} 
+                required
+                className={autoSeleccionarUbicacion ? 'auto-select-ubicacion' : ''}
+            >
                 <option value='' disabled>Seleccione una opcion</option>
             {
                     ubicaciones && ubicaciones.map((ubicacion,index)=>(
@@ -62,6 +86,9 @@ function ActualizarEstado({setHistorial, contenedor, actualizarEstado,estad,ubic
                     ))
                 }
             </select>
+            {autoSeleccionarUbicacion && (
+                <p className="auto-select-hint">Al seleccionar una ubicación, se establecerá automáticamente para el estado "Completo Pedido"</p>
+            )}
             <label>Fecha: </label>
             <input 
                 type='date' 

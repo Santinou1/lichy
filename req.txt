@@ -4,34 +4,37 @@ Tambien en cantidad asignar a la hora de disponer colores en la seccion de medid
 
 Que no se reinicie la pagina CUANDO dispones todos los colores.  (Realizado)
 
-Si se edita productos SIEMPRE SIEMPRE tiene que tener una descripcion.
-
 A la hora de crear un nuevo contenedor se tiene que escribir la Unidad alternativa tambien. (Realizado)
 
 Los pedidos completados que no se muestren ni en la seccion de pedidos i en la seccion de agregar pedido existente. (Realizado)
-
-A la hora de Completar pedido el los detalles de un pedido , que tengas la posibilidad de confirmar cantidades y/o editar y que tengas que escribir un comentario.
 
 Eliminar el boton de Agregar producto. (Realizado)
 
 A la hora de confirmar un pedido que este la opcion de enviarlo a facturacion. (Realizado)
 
 Cuando se envia un pedido que de asigne automaticamente la ubicacion del contenedor adonde se envio.
-Y Arreglar el Agregar el nuevo estado de los detalles predeterminados.
+Y Arreglar el Agregar el nuevo estado de los detalles predeterminados. (Realizado)
 
-Que puedas filtrar todos los productos que estan en lichy o mitre. En la seccion de Lista de productos.
+Que puedas filtrar todos los productos que estan en lichy o mitre. En la seccion de Lista de productos. (Realizado)
 
-Cuando dispones colores que no aparezca todos los campos del producto para editar solamente disponer color.
+En la seccion de productos que se pueda modificar las cantidades.   (Realizado)
 
-En la seccion de productos que se pueda modificar las cantidades.
-
-Y SI SE ELIMINA que vuelva a la cantidad original.
+Y SI SE ELIMINA que vuelva a la cantidad original. (Realizado) 
 
 
+A la hora de Completar pedido el los detalles de un pedido , que tengas la posibilidad de confirmar cantidades y/o editar y que tengas que escribir un comentario. (Realizado)
 
 Cuando filtras por estado por ejemplo , si esta en Deposito nacional y ubicacion altitud 
 Que te traiga todos los detalles de ese producto (Corderito simple) con color rojo que esta en deposito nacional (estado) altitud (ubicacion).
 pero si tenes tambien tenes el mismo producto de color rojo en otro contenedor que esta en deposito nacional (estado) pero en open cargo (ubicacion) y vos filtras por deposito nacional (estado) no por ubicacion, que ahi te traiga el total.
 Pero si elegis open cargo solo los de open cargo
-Que si filtras por estado te traiga el total de todos los que tiene ese estado discriminando la ubicacion y si traes por ubicacion solamente esos
-QUE SE PUEDA CAMBIAR ESTADO MASIVAMENTE
+Que si filtras por estado te traiga el total de todos los que tiene ese estado discriminando la ubicacion y si traes por ubicacion solamente esos (Realizado)
+
+Si se edita productos SIEMPRE SIEMPRE tiene que tener una descripcion.
+
+
+Cuando dispones colores que no aparezca todos los campos del producto para editar solamente disponer color.
+
+En los detalles de producto en la parte de producto en contenedores que aparezca tambien el estado.
+
+QUE SE PUEDA CAMBIAR ESTADO MASIVAMENTE (LISTOOOOOO)

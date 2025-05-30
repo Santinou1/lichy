@@ -14,6 +14,8 @@ function ProductoDetalle() {
     const [cantidadTotal, setCantidadTotal] = useState(0);
     const [filtro, setFiltro] = useState('');
     const [estadoOubicacion, setEstadoOUbicacion] = useState('');
+    const [estadoSeleccionado, setEstadoSeleccionado] = useState('');
+    const [ubicacionSeleccionada, setUbicacionSeleccionada] = useState('');
     const [estados, setEstados] = useState([]);
     const [ubicaciones, setUbicaciones] = useState([]);
     const [editando, setEditando] = useState(false);
@@ -58,28 +60,44 @@ function ProductoDetalle() {
 
     const filtrar = async () => {
         try {
-            if (filtro && filtro !== 'color') {
+            let filtroTipo = filtro;
+            let filtroValor = estadoOubicacion;
+
+            // Determinar el tipo de filtro y el valor según las selecciones
+            if (filtro === 'ambos' && estadoSeleccionado && ubicacionSeleccionada) {
+                filtroValor = `${estadoSeleccionado}:${ubicacionSeleccionada}`;
+            } else if (filtro === 'estado' && estadoSeleccionado) {
+                filtroValor = estadoSeleccionado;
+            } else if (filtro === 'ubicacion' && ubicacionSeleccionada) {
+                filtroValor = ubicacionSeleccionada;
+            }
+
+            if (filtroTipo && filtroTipo !== 'color') {
                 const response = await axios.get(`http://localhost:5000/api/producto/cantidad-filtro/${producto}`, {
                     headers: {
-                        'x-filtro': filtro,
-                        'x-estado-o-ubicacion': estadoOubicacion
+                        'x-filtro': filtroTipo,
+                        'x-estado-o-ubicacion': filtroValor
                     }
                 });
-                console.log(response.data)
+                console.log('Datos filtrados:', response.data);
                 const cantidadPorColorNombre = await obtenerColoresConNombres(response.data);
-                setMostrarColumnas(true)
+                setMostrarColumnas(true);
                 setCantidadPorColor(cantidadPorColorNombre);
-                
             } else {
+                // Limpiar filtros
                 setFiltro('');
                 setEstadoOUbicacion('');
+                setEstadoSeleccionado('');
+                setUbicacionSeleccionada('');
+
+                // Obtener todos los datos sin filtrar
                 const response = await axios.get(`http://localhost:5000/api/producto/cantidad-por-color/${producto}`);
                 const cantidadPorColorNombre = await obtenerColoresConNombres(response.data);
                 setCantidadPorColor(cantidadPorColorNombre);
-               
+                setMostrarColumnas(false);
             }
         } catch (error) {
-            console.error('Error aplicando el filtro:', error);
+            console.error('Error al filtrar datos:', error);
         }
     };
 
@@ -114,35 +132,78 @@ function ProductoDetalle() {
                     <button onClick={redirigir}>Volver</button>
                 </div>
                 <hr />
-                <label>Filtrar:</label>
-                <select onChange={(e) => setFiltro(e.target.value)}>
-                    <option value='color'>Color</option>
-                    <option value='ubicacion'>Ubicación</option>
-                    <option value='estado'>Estado</option>
-                </select>
-                {filtro === 'estado' && (
-                    <select onChange={(e) => setEstadoOUbicacion(e.target.value)} required>
-                        {estados.map((item, index) => (
-                            <option key={index} value={item.nombreCategoria}>{item.nombreCategoria}</option>
-                        ))}
+                <h2>Filtros:</h2>
+                <div className="filtros-container">
+                    <select
+                        value={filtro}
+                        onChange={(e) => {
+                            setFiltro(e.target.value);
+                            // Limpiar valores si cambia el tipo de filtro
+                            if (e.target.value !== 'ambos') {
+                                if (e.target.value !== 'estado') setEstadoSeleccionado('');
+                                if (e.target.value !== 'ubicacion') setUbicacionSeleccionada('');
+                            }
+                        }}
+                    >
+                        <option value="">Seleccionar filtro</option>
+                        <option value="estado">Por Estado (total)</option>
+                        <option value="ubicacion">Por Ubicación</option>
+                        <option value="ambos">Por Estado y Ubicación</option>
                     </select>
-                )}
-                {filtro === 'ubicacion' && (
-                    <select onChange={(e) => setEstadoOUbicacion(e.target.value)} required>
-                        {ubicaciones.map((item, index) => (
-                            <option key={index} value={item.nombreUbicacion}>{item.nombreUbicacion}</option>
-                        ))}
-                    </select>
-                )}
-                <button onClick={filtrar}>Filtrar</button>
+
+                    {(filtro === 'estado' || filtro === 'ambos') && (
+                        <select
+                            value={estadoSeleccionado}
+                            onChange={(e) => setEstadoSeleccionado(e.target.value)}
+                        >
+                            <option value="">Seleccionar estado</option>
+                            {estados.map((estado, index) => (
+                                <option key={index} value={estado.nombreCategoria}>{estado.nombreCategoria}</option>
+                            ))}
+                        </select>
+                    )}
+
+                    {(filtro === 'ubicacion' || filtro === 'ambos') && (
+                        <select
+                            value={ubicacionSeleccionada}
+                            onChange={(e) => setUbicacionSeleccionada(e.target.value)}
+                        >
+                            <option value="">Seleccionar ubicación</option>
+                            {ubicaciones.map((ubicacion, index) => (
+                                <option key={index} value={ubicacion.nombreUbicacion}>{ubicacion.nombreUbicacion}</option>
+                            ))}
+                        </select>
+                    )}
+
+                    <button
+                        onClick={filtrar}
+                        disabled={!filtro ||
+                            (filtro === 'estado' && !estadoSeleccionado) ||
+                            (filtro === 'ubicacion' && !ubicacionSeleccionada) ||
+                            (filtro === 'ambos' && (!estadoSeleccionado || !ubicacionSeleccionada))
+                        }
+                    >
+                        Aplicar Filtros
+                    </button>
+
+                    <button onClick={() => {
+                        setFiltro('');
+                        setEstadoOUbicacion('');
+                        setEstadoSeleccionado('');
+                        setUbicacionSeleccionada('');
+                        filtrar();
+                    }}>
+                        Limpiar Filtros
+                    </button>
+                </div>
 
                 <h2 className='titulo'>Cantidad por {filtro || 'color'}:</h2>
-                <table className='tabla-detalle' >
-                    <thead style={{width:'40%', background:'gray'}}>
-                        <tr >
+                <table className='tabla-detalle'>
+                    <thead style={{ width: '40%', background: 'gray' }}>
+                        <tr>
                             <th>Color</th>
                             <th>Cantidad</th>
-                            {filtro && estadoOubicacion && mostrarColumnas &&(
+                            {filtro && estadoOubicacion && mostrarColumnas && (
                                 <>
                                     <th>Estado</th>
                                     <th>Ubicación</th>

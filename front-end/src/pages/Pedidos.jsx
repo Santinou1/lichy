@@ -60,22 +60,7 @@ function Pedidos() {
     setMostrarCompletados(!mostrarCompletados);
   };
 
-  const crearNuevoPedido = async () => {
-    try {
-      // Esta llamada API necesitará implementarse en el backend
-      const response = await axios.post('http://localhost:5000/api/pedidos', {
-        usuarioCreacion: user.idUsuario,
-        estado: 'Pendiente',
-        fechaCreacion: new Date()
-      });
-      
-      // Redirigir al detalle del nuevo pedido
-      navigate(`/pedido-detalle/${response.data.idPedido}`);
-    } catch (error) {
-      console.error('Error al crear nuevo pedido:', error);
-      setError('Error al crear nuevo pedido. Por favor, intente de nuevo.');
-    }
-  };
+
 
   console.log('Renderizando componente Pedidos', { pedidos, filteredPedidos, loading, error, mostrarCompletados });
 
@@ -84,9 +69,7 @@ function Pedidos() {
       <h1>Gestión de Pedidos</h1>
       
       <div className="pedidos-actions">
-        <button className="btn-crear-pedido" onClick={crearNuevoPedido}>
-          Crear Nuevo Pedido
-        </button>
+
         <div className="filter-controls">
           <label className="toggle-label">
             <input 
@@ -139,7 +122,7 @@ function Pedidos() {
             <div className="no-pedidos">
               {pedidos.length > 0 ? 
                 "No hay pedidos disponibles con los filtros actuales. Active 'Mostrar pedidos completados' para ver todos los pedidos." :
-                "No hay pedidos disponibles. Cree un nuevo pedido haciendo clic en \"Crear Nuevo Pedido\"."}
+                "No hay pedidos disponibles."}
             </div>
           )}
         </div>

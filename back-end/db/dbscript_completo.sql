@@ -121,8 +121,7 @@ INSERT INTO Categorias (nombreCategoria) VALUES
 ('DEPOSITO NACIONAL'),
 ('EN STOCK'),
 ('ENTREGADO'),
-('ANULADO'),
-('Predeterminado'); -- Nueva categoría para contenedores predeterminados
+('ANULADO');
 
 -- Inserción de ubicaciones base
 INSERT INTO Ubicacion (nombreUbicacion, estado) VALUES
@@ -156,6 +155,7 @@ INSERT INTO Ubicacion (nombreUbicacion, estado) VALUES
 -- Estado EN STOCK
 ('MITRE', 'EN STOCK'),
 ('LAVALLE', 'EN STOCK'),
+('LICHY', 'EN STOCK'),
 
 -- Estado ENTREGADO
 ('ENTREGADO', 'ENTREGADO'),
@@ -163,22 +163,17 @@ INSERT INTO Ubicacion (nombreUbicacion, estado) VALUES
 -- Estado ANULADO
 ('ANULADO', 'ANULADO');
 
--- Creación de contenedores predeterminados
--- Contenedor Mitre (si no existe un contenedor con este comentario)
-INSERT INTO Contenedor (categoria, comentario, codigoContenedor) 
-SELECT 'Predeterminado', 'Mitre', 'MITRE-PREDET'
-FROM dual
-WHERE NOT EXISTS (
-    SELECT 1 FROM Contenedor WHERE comentario = 'Mitre' AND categoria = 'Predeterminado'
-);
+-- Creación de contenedores fijos para Mitre y Lichy
+INSERT INTO Contenedor (idContenedor, categoria, comentario, codigoContenedor, ubicacion) 
+VALUES 
+(1, 'EN STOCK', 'Mitre', 'MITRE-001', 'MITRE'),
+(2, 'EN STOCK', 'Lichy', 'LICHY-001', 'LICHY');
 
--- Contenedor Lichy (si no existe un contenedor con este comentario)
-INSERT INTO Contenedor (categoria, comentario, codigoContenedor) 
-SELECT 'Predeterminado', 'Lichy', 'LICHY-PREDET'
-FROM dual
-WHERE NOT EXISTS (
-    SELECT 1 FROM Contenedor WHERE comentario = 'Lichy' AND categoria = 'Predeterminado'
-);
+-- Crear los estados iniciales para los contenedores
+INSERT INTO ContenedorEstado (contenedor, estado, ubicacion)
+VALUES 
+(1, 'EN STOCK', 'MITRE'),
+(2, 'EN STOCK', 'LICHY');
 
 -- Índices para mejorar rendimiento
 CREATE INDEX IF NOT EXISTS idx_contenedor_categoria ON Contenedor(categoria);
