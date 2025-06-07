@@ -301,15 +301,9 @@ function PedidoDetalle() {
         </div>
       )}
       
-      <div className="pedido-actions">
-        {pedido && pedido.estado === 'Pendiente' && !mostrarFormulario && !mostrarSeleccionContenedor && (
-          <button className="btn-agregar-producto" onClick={() => setMostrarFormulario(true)}>
-            Agregar Producto
-          </button>
-        )}
-        
-        {pedido && pedido.estado === 'Pendiente' && !mostrarSeleccionContenedor && (
-          <div className="pedido-acciones">
+    
+
+      <div className="pedido-acciones">
             <button 
               className="btn-completar-pedido" 
               onClick={iniciarCompletarPedido}
@@ -318,8 +312,6 @@ function PedidoDetalle() {
               Completar Pedido
             </button>
           </div>
-        )}
-      </div>
       
       {/* Modal de completar pedido */}
       {mostrarSeleccionContenedor && (

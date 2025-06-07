@@ -198,7 +198,7 @@ function CambioEstadoMasivo({ isOpen, onRequestClose, productos, contenedor, onS
               onClick={onRequestClose}
               disabled={loading}
             >
-              Cancelar
+              Atrás
             </button>
             <button 
               type="submit"

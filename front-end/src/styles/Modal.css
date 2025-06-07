@@ -91,7 +91,13 @@
 }
 
 .form-actions button[type="button"] {
-  background-color: #f2f2f2;
+  background-color: #6c757d;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.form-actions button[type="button"]:hover {
+  background-color: #5a6268;
 }
 
 .form-actions button[type="submit"] {
