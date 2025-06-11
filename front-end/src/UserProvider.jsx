@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
 
+
 const UserContext = React.createContext();
 const UserToggleContext = React.createContext();
 
@@ -17,26 +18,27 @@ export const useUserToggleContext = () => {
 const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [error, setError] = useState(null);
+    
     const login = async (email, contrasena) => {
         try {
-            const response = await axios.post('http://192.168.0.131:5000/api/usuarios/login', { email, contrasena });
-            if(response.status === 20) {
-                const userData = response.data;
-                if (typeof userData.permisos === "string") {
-                    userData.permisos = JSON.parse(userData.permisos);
-                }
-                setUser(userData);
-                
+            const response = await axios.post(`http://192.168.0.131:5000/api/usuarios/login`, { email, contrasena });
+            // La respuesta fue exitosa, procesamos los datos
+            const userData = response.data;
+            if (typeof userData.permisos === "string") {
+                userData.permisos = JSON.parse(userData.permisos);
             }
+            setUser(userData);
+            setError(null);
         } catch (error) {
             if(error.response) {
                 setError(error.response.data || 'Credenciales incorrectas');
-            }else{
+            } else {
                 setError('Error en el servidor');
             }
             setUser(null);
         }
     };  
+
     const logout = () => {
         setUser(null);
         setError(null);
