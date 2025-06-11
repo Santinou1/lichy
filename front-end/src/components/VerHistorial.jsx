@@ -7,7 +7,7 @@ ReactModal.setAppElement('#root');
 function VerHistorial({isOpen,onRequestClose,contenedor}){
     const [historial, setHistorial] = useState([]);
     useEffect(()=>{
-        axios.get(`http://localhost:5000/api/historial/${contenedor}`).then((response)=>{
+        axios.get(`http://192.168.0.131:5000/api/historial/${contenedor}`).then((response)=>{
             setHistorial(response.data)
         })
     },[]);

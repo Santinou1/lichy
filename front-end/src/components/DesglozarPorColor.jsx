@@ -192,7 +192,7 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
             };
             
             // Enviar solicitud al servidor para actualizar el producto
-            const response = await axios.put(`http://localhost:5000/api/contenedorProducto/${producto.idContenedorProductos}`, dataToSend);
+            const response = await axios.put(`http://192.168.0.131:5000/api/contenedorProducto/${producto.idContenedorProductos}`, dataToSend);
             
             alert("Distribución por colores guardada correctamente.");
             

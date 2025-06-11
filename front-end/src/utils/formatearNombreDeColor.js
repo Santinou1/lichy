@@ -3,7 +3,7 @@ import axios from "axios";
 export const obtenerColoresConNombres = async(productos) =>{
     try {
         // Obtener la lista de colores desde la API
-        const response = await axios.get('http://localhost:5000/api/items/color');
+        const response = await axios.get('http://192.168.0.131:5000/api/items/color');
         const colores = response.data;
     
         console.log(productos)
