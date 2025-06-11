@@ -30,11 +30,11 @@ pero si tenes tambien tenes el mismo producto de color rojo en otro contenedor q
 Pero si elegis open cargo solo los de open cargo
 Que si filtras por estado te traiga el total de todos los que tiene ese estado discriminando la ubicacion y si traes por ubicacion solamente esos (Realizado)
 
-Si se edita productos SIEMPRE SIEMPRE tiene que tener una descripcion.
+Si se edita productos SIEMPRE SIEMPRE tiene que tener una descripcion. (FALTANTE)
 
 
-Cuando dispones colores que no aparezca todos los campos del producto para editar solamente disponer color.
+Cuando dispones colores que no aparezca todos los campos del producto para editar solamente disponer color. (FALTANTE)
 
-En los detalles de producto en la parte de producto en contenedores que aparezca tambien el estado.
+En los detalles de producto en la parte de producto en contenedores que aparezca tambien el estado. (FALTANTE)
 
-QUE SE PUEDA CAMBIAR ESTADO MASIVAMENTE (LISTOOOOOO)
+QUE SE PUEDA CAMBIAR ESTADO MASIVAMENTE (LISTOOOOOO)
