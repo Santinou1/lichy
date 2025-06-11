@@ -19,7 +19,12 @@ const facturas = require('./routes/facturas.js');
 
 // Configuración de CORS
 const corsOptions = {
-    origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://192.168.0.131:5173'],
+    origin: [
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'http://192.168.0.131:5173',
+        'http://gestion.lichy.local:5173'
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
