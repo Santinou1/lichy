@@ -12,13 +12,15 @@ export const useUserToggleContext = () => {
     return useContext(UserToggleContext);
 };
 
+// Llamado para obtener el token de autenticación.
+
 const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [error, setError] = useState(null);
     const login = async (email, contrasena) => {
         try {
             const response = await axios.post('http://192.168.0.131:5000/api/usuarios/login', { email, contrasena });
-            if(response.status === 200) {
+            if(response.status === 20) {
                 const userData = response.data;
                 if (typeof userData.permisos === "string") {
                     userData.permisos = JSON.parse(userData.permisos);
