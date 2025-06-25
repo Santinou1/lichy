@@ -9,7 +9,7 @@ router.post('/',agregarContenedorEstado);
 async function obtenerContenedorEstado(req,res){
     try{
         const idContenedor = req.params.id;
-        const [results] = await pool.promise().query(`SELECT * FROM ContenedorEstado WHERE contenedor = ?  ORDER BY idEstado Desc;`,[idContenedor]);
+        const [results] = await pool.promise().query(`SELECT * FROM contenedorestado WHERE contenedor = ?  ORDER BY idestado Desc;`,[idContenedor]);
         res.json(results);
     }catch(error){
         console.error('Error ejecutando la consulta:', error);
@@ -20,19 +20,19 @@ async function agregarContenedorEstado(req,res){
     try{
         const {contenedor, estado, ubicacion, fechaManual} = req.body;
         const connection = pool;
-        const query = 'INSERT INTO ContenedorEstado (contenedor, estado, ubicacion, fechaManual) VALUES (?,?,?,?)';
+        const query = 'INSERT INTO contenedorestado (contenedor, estado, ubicacion, fechaManual) VALUES (?,?,?,?)';
         connection.query(query,[contenedor, estado, ubicacion, fechaManual],(err,results)=>{
             if(err){
                 console.error('Error ejecutando la consulta:', err);
                 return res.status(500).send('Error en el servidor.');
             }
-            connection.query('UPDATE contenedor SET categoria = ? WHERE idContenedor = ?',[estado,contenedor],(err,results)=>{
+            connection.query('UPDATE contenedor SET categoria = ? WHERE idcontenedor = ?',[estado,contenedor],(err,results)=>{
                 if(err){
                     console.error('Error ejecutando la consulta:', err);
                     return res.status(500).send('Error en el servidor.');
                 }
             })
-            connection.query('SELECT * FROM ContenedorEstado WHERE contenedor = ? ORDER BY idEstado Desc',[contenedor],(err,results)=>{
+            connection.query('SELECT * FROM contenedorestado WHERE contenedor = ? ORDER BY idestado Desc',[contenedor],(err,results)=>{
                 if(err){
                     console.error('Error ejecutando la consulta:', err);
                     return res.status(500).send('Error en el servidor.');
