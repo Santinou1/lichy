@@ -46,16 +46,16 @@ async function actualizarProducto(req,res){
         if (!tipoBultoValue && unidadPredeterminadaValue) {
             const unidadLower = unidadPredeterminadaValue.toLowerCase();
             if (unidadLower === 'm' || unidadLower === 'kg') {
-                tipoBultoValue = 'rollo'; // Usar 'rollo' para coincidir con el enum
+                tipoBultoValue = 'rollos'; // Usar 'rollos' para coincidir con el enum
             } else if (unidadLower === 'uni') {
-                tipoBultoValue = 'caja'; // Usar 'caja' para coincidir con el enum
+                tipoBultoValue = 'cajas'; // Usar 'cajas' para coincidir con el enum
             }
         }
         
         // Validar que el valor de tipoBulto sea uno de los permitidos en el enum
-        if (tipoBultoValue && !['rollo', 'caja', 'rollos', 'cajas'].includes(tipoBultoValue)) {
+        if (tipoBultoValue && !['rollos', 'cajas'].includes(tipoBultoValue)) {
             console.log(`Valor de tipoBulto '${tipoBultoValue}' no válido, usando valor por defecto`);
-            tipoBultoValue = unidadPredeterminadaValue.toLowerCase() === 'uni' ? 'caja' : 'rollo';
+            tipoBultoValue = unidadPredeterminadaValue.toLowerCase() === 'uni' ? 'cajas' : 'rollos';
         }
         
         // Permitir que codigoInterno sea null, undefined o cadena vacía
@@ -252,16 +252,16 @@ async function agregarProducto(req,res){
         if (!tipoBultoValue && unidadPredeterminadaValue) {
             const unidadLower = unidadPredeterminadaValue.toLowerCase();
             if (unidadLower === 'm' || unidadLower === 'kg') {
-                tipoBultoValue = 'rollo'; // Usar 'rollo' para coincidir con el enum
+                tipoBultoValue = 'rollos'; // Usar 'rollos' para coincidir con el enum
             } else if (unidadLower === 'uni') {
-                tipoBultoValue = 'caja'; // Usar 'caja' para coincidir con el enum
+                tipoBultoValue = 'cajas'; // Usar 'cajas' para coincidir con el enum
             }
         }
         
         // Validar que el valor de tipoBulto sea uno de los permitidos en el enum
-        if (tipoBultoValue && !['rollo', 'caja', 'rollos', 'cajas'].includes(tipoBultoValue)) {
+        if (tipoBultoValue && !['rollos', 'cajas'].includes(tipoBultoValue)) {
             console.log(`Valor de tipoBulto '${tipoBultoValue}' no válido, usando valor por defecto`);
-            tipoBultoValue = unidadPredeterminadaValue.toLowerCase() === 'uni' ? 'caja' : 'rollo';
+            tipoBultoValue = unidadPredeterminadaValue.toLowerCase() === 'uni' ? 'cajas' : 'rollos';
         }
         
         // Permitir que codigoInterno sea null, undefined o cadena vacía
