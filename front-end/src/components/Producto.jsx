@@ -603,7 +603,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                                 type='text'
                                 name='codigoInterno'
                                 placeholder='Código Interno'
-                                value={productoActualizado.codigoInterno || ''}
+                                value={productoActualizado.codigointerno || productoActualizado.codigoInterno || 'Sin código'}
                                 onChange={handleInputChange}
                             />
 
@@ -818,7 +818,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                 ) : (
                     <div className='datos-actuales-producto'>
                         <label style={{ fontSize: '1.1em', fontWeight: 'bold', marginBottom: '5px' }}>{productoActualizado.nombre}</label>
-                        <label>Código Interno: <b>{productoActualizado.codigoInterno || 'Sin código'}</b></label>
+                        <label>Código Interno: <b>{productoActualizado.codigointerno || productoActualizado.codigoInterno || 'Sin código'}</b></label>
                         <button className="btn-disponer-codigo" onClick={() => setEditandoCodigoInterno(true)} style={{marginLeft: '10px'}}>Disponer código interno</button>
                         {editandoCodigoInterno && (
                             <form onSubmit={handleCodigoInternoSubmit} style={{display: 'inline', marginLeft: '10px'}}>
