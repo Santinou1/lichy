@@ -94,7 +94,7 @@ function PedidoDetalle() {
     }
     
     // Encontrar el producto seleccionado para validar cantidad
-    const producto = productosDisponibles.find(p => p.idContenedorProductos === parseInt(productoSeleccionado));
+    const producto = productosDisponibles.find(p => p.idContenedorProducto === parseInt(productoSeleccionado));
     
     if (cantidadTransferir > producto.cantidad) {
       setError('La cantidad a transferir no puede ser mayor que la cantidad disponible');
@@ -242,7 +242,7 @@ function PedidoDetalle() {
     try {
       // Llamada API con el contenedor destino, comentario y productos editados
       await axios.put(`http://192.168.0.131:5000/api/pedidos/${id}/completar`, {
-        usuarioModificacion: user.idUsuario,
+        usuariocreacion: user.idusuario || user.idUsuario || 1,
         contenedorDestino: contenedorDestino,
         comentario: comentarioCompletado,
         productosEditados: productosEditados
@@ -515,7 +515,7 @@ function PedidoDetalle() {
               >
                 <option value="">Seleccione un producto</option>
                 {productosFiltrados.map(producto => (
-                  <option key={producto.idContenedorProductos} value={producto.idContenedorProductos}>
+                  <option key={producto.idContenedorProducto} value={producto.idContenedorProducto}>
                     {producto.codigoInterno} - {producto.nombreProducto} - {producto.color || 'Sin color'} - Disponible: {parseFloat(producto.cantidad).toFixed(2)} {producto.unidad}
                   </option>
                 ))}
@@ -525,28 +525,28 @@ function PedidoDetalle() {
             {productoSeleccionado && (
               <>
                 <div className="form-group">
-                  <label>Cantidad ({productosDisponibles.find(p => p.idContenedorProductos === parseInt(productoSeleccionado))?.unidad}):</label>
+                  <label>Cantidad ({productosDisponibles.find(p => p.idContenedorProducto === parseInt(productoSeleccionado))?.unidad}):</label>
                   <input 
                     type="number" 
                     value={cantidadTransferir} 
                     onChange={(e) => setCantidadTransferir(Number(e.target.value))}
                     min="0.01"
-                    max={productosDisponibles.find(p => p.idContenedorProductos === parseInt(productoSeleccionado))?.cantidad}
+                    max={productosDisponibles.find(p => p.idContenedorProducto === parseInt(productoSeleccionado))?.cantidad}
                     step="0.01"
                     required
                   />
                 </div>
                 
                 {/* Mostrar campo de cantidad alternativa solo si el producto tiene */}
-                {productosDisponibles.find(p => p.idContenedorProductos === parseInt(productoSeleccionado))?.cantidadAlternativa > 0 && (
+                {productosDisponibles.find(p => p.idContenedorProducto === parseInt(productoSeleccionado))?.cantidadAlternativa > 0 && (
                   <div className="form-group">
-                    <label>Cantidad Alternativa ({productosDisponibles.find(p => p.idContenedorProductos === parseInt(productoSeleccionado))?.unidadAlternativa}):</label>
+                    <label>Cantidad Alternativa ({productosDisponibles.find(p => p.idContenedorProducto === parseInt(productoSeleccionado))?.unidadAlternativa}):</label>
                     <input 
                       type="number" 
                       value={cantidadAlternativaTransferir} 
                       onChange={(e) => setCantidadAlternativaTransferir(Number(e.target.value))}
                       min="0"
-                      max={productosDisponibles.find(p => p.idContenedorProductos === parseInt(productoSeleccionado))?.cantidadAlternativa}
+                      max={productosDisponibles.find(p => p.idContenedorProducto === parseInt(productoSeleccionado))?.cantidadAlternativa}
                       step="0.01"
                     />
                   </div>

@@ -79,7 +79,7 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
       if (destino === 'nuevo_pedido') {
         // Crear un nuevo pedido
         const nuevoPedidoResponse = await axios.post('http://192.168.0.131:5000/api/pedidos', {
-          usuarioCreacion: user.idUsuario,
+          usuarioCreacion: user.idusuario || user.idUsuario || 1,
           observaciones: `Pedido creado desde cambio de estado de producto: ${producto.nombre}`
         });
         
@@ -96,11 +96,11 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
       
       // Agregar el producto al pedido
       await axios.post(`http://192.168.0.131:5000/api/pedidos/${idPedido}/productos`, {
-        idContenedorProducto: producto.idContenedorProductos,
+        idContenedorProducto: producto.idContenedorProducto,
         cantidadTransferir: cantidadTransferir,
         cantidadAlternativaTransferir: cantidadAlternativaTransferir || 0,
-        ubicacionDestino: 'Pendiente', // Estado inicial pendiente, se asignará ubicación en el pedido
-        usuarioCreacion: user.idUsuario,
+        ubicacionDestino: 'Pendiente',
+        usuariocreacion: user.idusuario || user.idUsuario || 1,
         motivo: motivo,
         unidad: producto.unidad,
         unidadAlternativa: producto.unidadAlternativa || null,
@@ -109,13 +109,6 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
         color: producto.color,
         nombreProducto: producto.nombre
       });
-      
-      // Mostrar mensaje de éxito y cerrar el modal
-      alert(`Producto agregado al Pedido #${idPedido}. Puede gestionar este pedido en la sección de Pedidos.`);
-      
-      if (onClose) {
-        onClose();
-      }
       
       // Redirigir al usuario a la página de detalles del pedido utilizando React Router
       navigate(`/pedido-detalle/${idPedido}`);

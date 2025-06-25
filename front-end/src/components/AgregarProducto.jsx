@@ -14,23 +14,20 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
     const [unidadAlternativa, setUnidadAlternativa] = useState('');
     const [unidadDeshabilitada, setUnidadDeshabilitada] = useState(false);
     const [itemProveedor, setItemProveedor] = useState('');
-    const [codigoInterno, setCodigoInterno] = useState('');
     
     // Estados para el modal de selección de unidad
     const [mostrarModalUnidad, setMostrarModalUnidad] = useState(false);
     const [nuevoProductoNombre, setNuevoProductoNombre] = useState('');
     const [nuevoProductoUnidad, setNuevoProductoUnidad] = useState('m');
-    const [nuevoProductoCodigo, setNuevoProductoCodigo] = useState('');
 
     useEffect(() => {
         axios.get('http://192.168.0.131:5000/api/items/producto').then((response) => {
             // Formatear los productos para react-select
             const formattedProducts = response.data.map((item) => ({
-                value: item.idProducto.toString(),
+                value: item.idproducto.toString(),
                 label: item.nombre,
-                unidadPredeterminada: item.unidadPredeterminada,
-                tipoBultoPredeterminado: item.tipoBultoPredeterminado || 'rollos',
-                codigoInterno: item.codigoInterno
+                unidadPredeterminada: item.unidadpredeterminada,
+                tipoBultoPredeterminado: item.tipobultopredeterminado || 'rollos',
             }));
             setProductosOptions(formattedProducts);
         });
@@ -45,13 +42,6 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
             setUnidad(selectedOption.unidadPredeterminada);
             setUnidadDeshabilitada(true);
             
-            // Si el producto tiene código interno, establecerlo
-            if (selectedOption.codigoInterno) {
-                setCodigoInterno(selectedOption.codigoInterno);
-            } else {
-                setCodigoInterno('');
-            }
-            
             // Establecer la unidad alternativa según la unidad principal
             if (selectedOption.unidadPredeterminada === 'm' || selectedOption.unidadPredeterminada === 'kg') {
                 setUnidadAlternativa('rollos');
@@ -63,7 +53,6 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
         } else {
             // Si es un producto nuevo o no seleccionado, resetear campos
             setUnidadDeshabilitada(false);
-            setCodigoInterno('');
         }
     };
     
@@ -74,16 +63,10 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
         return false; // Evitamos que react-select intente crear una opción directamente
     };
     
-    // Confirma la creación del producto con la unidad seleccionada y código interno
+    // Confirma la creación del producto con la unidad seleccionada
     const confirmarCreacionProducto = async () => {
         const inputValue = nuevoProductoNombre;
         const unidadValue = nuevoProductoUnidad;
-        const codigoValue = nuevoProductoCodigo;
-        
-        if (!codigoValue.trim()) {
-            alert('El código interno es obligatorio');
-            return;
-        }
         
         // Establecer tipo de bulto según unidad
         const tipoBulto = (unidadValue === 'm' || unidadValue === 'kg') ? 'rollos' : 'cajas';
@@ -93,17 +76,15 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
             const response = await axios.post('http://192.168.0.131:5000/api/items/producto', {
                 nombre: inputValue,
                 unidadPredeterminada: unidadValue,
-                tipoBultoPredeterminado: tipoBulto,
-                codigoInterno: codigoValue
+                tipoBultoPredeterminado: tipoBulto
             });
             
             if (response.status === 200 && response.data.length > 0) {
                 const nuevoProducto = {
-                    value: response.data[0].idProducto.toString(),
+                    value: response.data[0].idproducto.toString(),
                     label: response.data[0].nombre,
-                    unidadPredeterminada: response.data[0].unidadPredeterminada,
-                    tipoBultoPredeterminado: tipoBulto,
-                    codigoInterno: codigoValue
+                    unidadPredeterminada: response.data[0].unidadpredeterminada,
+                    tipoBultoPredeterminado: tipoBulto
                 };
                 
                 // Actualizar la lista de productos
@@ -112,7 +93,9 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
                 // Establecer valores
                 setUnidad(nuevoProducto.unidadPredeterminada);
                 setUnidadDeshabilitada(true);
-                setCodigoInterno(codigoValue);
+                
+                // Establecer el producto seleccionado
+                setProductoSeleccionado(nuevoProducto);
                 
                 // Establecer la unidad alternativa según la unidad principal
                 if (nuevoProducto.unidadPredeterminada === 'm' || nuevoProducto.unidadPredeterminada === 'kg') {
@@ -121,13 +104,9 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
                     setUnidadAlternativa('cajas');
                 }
                 
-                // Establecer el producto seleccionado
-                setProductoSeleccionado(nuevoProducto);
-                
                 // Ocultar el modal
                 setMostrarModalUnidad(false);
                 setNuevoProductoNombre('');
-                setNuevoProductoCodigo('');
             }
         } catch (error) {
             console.error('Error al crear el producto:', error);
@@ -138,14 +117,12 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
                 value: `temp-${uuidv4()}`, 
                 label: inputValue,
                 unidadPredeterminada: unidadValue,
-                tipoBultoPredeterminado: tipoBulto,
-                codigoInterno: codigoValue
+                tipoBultoPredeterminado: tipoBulto
             };
             
             setProductosOptions(prev => [...prev, newOption]);
             setUnidad(unidadValue);
             setProductoSeleccionado(newOption);
-            setCodigoInterno(codigoValue);
             
             // Establecer la unidad alternativa según la unidad principal
             if (unidadValue === 'm' || unidadValue === 'kg') {
@@ -157,7 +134,6 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
             // Ocultar el modal
             setMostrarModalUnidad(false);
             setNuevoProductoNombre('');
-            setNuevoProductoCodigo('');
         }
     };
     
@@ -165,7 +141,6 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
     const cancelarCreacionProducto = () => {
         setMostrarModalUnidad(false);
         setNuevoProductoNombre('');
-        setNuevoProductoCodigo('');
     };
 
     // Actualiza automáticamente la unidad alternativa cuando cambia la unidad principal
@@ -184,8 +159,8 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
     };
 
     const onSubmit = async () => {
-        if (!productoSeleccionado || !cantidad || !precioPorUnidad || !unidad || !codigoInterno) {
-            alert('Por favor complete todos los campos obligatorios (incluido el código interno)');
+        if (!productoSeleccionado || !cantidad || !precioPorUnidad || !unidad) {
+            alert('Por favor complete todos los campos obligatorios');
             return;
         }
         
@@ -199,7 +174,6 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
             cantidadAlternativa: cantidadAlternativa,
             unidadAlternativa: unidadAlternativa,
             item_proveedor: itemProveedor,
-            codigoInterno: codigoInterno,
             tipoBulto: productoSeleccionado.tipoBultoPredeterminado || ((unidad === 'm' || unidad === 'kg') ? 'rollos' : 'cajas'),
             cantidadBulto: 1
         };
@@ -217,7 +191,6 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
                 setPrecioPorUnidad('');
                 setCantidadAlternativa('');
                 setItemProveedor('');
-                setCodigoInterno('');
                 
                 // Re-aplicar el mismo producto seleccionado después de un breve retraso
                 // para asegurar que la actualización de estados se complete correctamente
@@ -242,19 +215,6 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
                     <div className="modal-unidad-content">
                         <h3>Configura el producto "{nuevoProductoNombre}"</h3>
                         <div className="form-group">
-                            <label>Código Interno: <span style={{ color: 'red' }}>*</span></label>
-                            <input 
-                                type="text" 
-                                value={nuevoProductoCodigo} 
-                                onChange={(e) => setNuevoProductoCodigo(e.target.value)}
-                                placeholder="Ingrese el código interno"
-                                required
-                            />
-                            <p className="form-help-text">
-                                El código interno es obligatorio y debe ser único para cada producto.
-                            </p>
-                        </div>
-                        <div className="form-group">
                             <label>Unidad Predeterminada: <span style={{ color: 'red' }}>*</span></label>
                             <select 
                                 value={nuevoProductoUnidad} 
@@ -276,7 +236,6 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
                                 onClick={confirmarCreacionProducto} 
                                 type="button" 
                                 className="btn-crear-producto"
-                                disabled={!nuevoProductoCodigo.trim()}
                             >
                                 Crear Producto
                             </button>
@@ -296,15 +255,6 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
                     placeholder="Buscar o crear producto..."
                     formatCreateLabel={(inputValue) => `Crear "${inputValue}"`}
                     className="producto-select"
-                />
-                
-                <label>Código Interno: <span style={{ color: 'red' }}>*</span></label>
-                <input 
-                    type="text" 
-                    value={codigoInterno} 
-                    onChange={(e) => setCodigoInterno(e.target.value)}
-                    placeholder="Ingrese el código interno"
-                    required
                 />
                 
                 <label>Cantidad: <span style={{ color: 'red' }}>*</span></label>

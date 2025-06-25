@@ -26,11 +26,11 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
         axios.get('http://192.168.0.131:5000/api/items/producto').then((response) => {
             // Formatear los productos para react-select
             const formattedProducts = response.data.map((item) => ({
-                value: item.idProducto.toString(),
+                value: item.idproducto.toString(),
                 label: item.nombre,
-                unidadPredeterminada: item.unidadPredeterminada,
-                tipoBultoPredeterminado: item.tipoBultoPredeterminado || 'rollos',
-                codigoInterno: item.codigoInterno
+                unidadPredeterminada: item.unidadpredeterminada,
+                tipoBultoPredeterminado: item.tipobultopredeterminado || 'rollos',
+                codigoInterno: item.codigointerno
             }));
             setProductosOptions(formattedProducts);
         });
@@ -99,9 +99,9 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
             
             if (response.status === 200 && response.data.length > 0) {
                 const nuevoProducto = {
-                    value: response.data[0].idProducto.toString(),
+                    value: response.data[0].idproducto.toString(),
                     label: response.data[0].nombre,
-                    unidadPredeterminada: response.data[0].unidadPredeterminada,
+                    unidadPredeterminada: response.data[0].unidadpredeterminada,
                     tipoBultoPredeterminado: tipoBulto,
                     codigoInterno: codigoValue
                 };

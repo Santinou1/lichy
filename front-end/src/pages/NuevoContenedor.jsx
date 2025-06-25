@@ -24,7 +24,7 @@ function NuevoContenedor() {
                 setProveedores(response.data);
                 // Formatear los proveedores para react-select
                 const formattedProveedores = response.data.map((item) => ({
-                    value: item.idProveedor.toString(),
+                    value: item.idproveedor.toString(),
                     label: item.nombre
                 }));
                 setProveedoresOptions(formattedProveedores);
@@ -38,11 +38,11 @@ function NuevoContenedor() {
                 console.log('Productos cargados del servidor:', response.data);
                 const formattedProducts = response.data.map((item) => {
                     const formattedProduct = {
-                        value: item.idProducto.toString(),
+                        value: item.idproducto.toString(),
                         label: item.nombre,
-                        unidadPredeterminada: item.unidadPredeterminada || ''
+                        unidadpredeterminada: item.unidadpredeterminada || item.unidadPredeterminada || ''
                     };
-                    console.log(`Producto formateado: ${item.nombre}, unidad: ${formattedProduct.unidadPredeterminada}`);
+                    console.log(`Producto formateado: ${item.nombre}, unidad: ${formattedProduct.unidadpredeterminada}`);
                     return formattedProduct;
                 });
                 setProductos(formattedProducts);
@@ -62,7 +62,7 @@ function NuevoContenedor() {
             
             if (response.status === 200 && response.data.length > 0) {
                 const nuevoProveedor = {
-                    value: response.data[0].idProveedor.toString(),
+                    value: response.data[0].idproveedor.toString(),
                     label: response.data[0].nombre
                 };
                 
@@ -88,16 +88,25 @@ function NuevoContenedor() {
     // Manejar la creación de nuevos productos
     const handleCreateProduct = async (inputValue) => {
         // Mostrar un diálogo para seleccionar la unidad predeterminada
-        const unidad = prompt("Selecciona la unidad predeterminada para el nuevo producto (m, kg, uni):");
+        let unidad = prompt("Selecciona la unidad predeterminada para el nuevo producto (m, kg, uni):");
         
         if (!unidad) {
             alert("Debes seleccionar una unidad predeterminada para crear un producto");
             return null;
         }
         
+        unidad = unidad.toLowerCase(); // Convertir a minúsculas
         if (!['m', 'kg', 'uni'].includes(unidad)) {
             alert("La unidad debe ser 'm', 'kg' o 'uni'");
             return null;
+        }
+
+        // Asignar automáticamente la unidad alternativa
+        let unidadAlternativa = '';
+        if (unidad === 'm' || unidad === 'kg') {
+            unidadAlternativa = 'rollos';
+        } else if (unidad === 'uni') {
+            unidadAlternativa = 'cajas';
         }
         
         try {
@@ -109,28 +118,27 @@ function NuevoContenedor() {
             
             if (response.status === 200 && response.data.length > 0) {
                 const nuevoProducto = {
-                    value: response.data[0].idProducto.toString(),
+                    value: response.data[0].idproducto.toString(),
                     label: response.data[0].nombre,
-                    unidadPredeterminada: response.data[0].unidadPredeterminada
+                    unidadpredeterminada: response.data[0].unidadpredeterminada || response.data[0].unidadPredeterminada || ''
                 };
-                
                 // Actualizar la lista de productos
                 setProductos((prev) => [...prev, nuevoProducto]);
                 setValue('producto', nuevoProducto);
-                setValue('unidad', nuevoProducto.unidadPredeterminada);
+                setValue('unidad', nuevoProducto.unidadpredeterminada);
+                setValue('unidadAlternativa', unidadAlternativa);
                 setUnidadDeshabilitada(true);
-                
                 return nuevoProducto;
             }
         } catch (error) {
             console.error('Error al crear el producto:', error);
             alert('No se pudo crear el producto. Inténtalo de nuevo.');
         }
-        
         // Si falla la creación, agregar temporalmente
         const newOption = { value: `temp-${uuidv4()}`, label: inputValue };
         setProductos((prev) => [...prev, newOption]);
         setValue('producto', newOption);
+        setValue('unidadAlternativa', unidadAlternativa);
         setUnidadDeshabilitada(false);
         return newOption;
     };
@@ -176,7 +184,7 @@ function NuevoContenedor() {
             cantidadBulto: cantidadBulto,
             tipoBulto: tipoBulto,
             precioPorUnidad: precioPorUnidadActual,
-            item_proveedor: itemProveedor
+            itemProveedor: itemProveedor
         };
 
         setProductosSeleccionados((prev) => [...prev, nuevoProducto]);
@@ -194,17 +202,14 @@ function NuevoContenedor() {
 
     const handleProductChange = (selectedOption) => {
         console.log('Producto seleccionado:', selectedOption);
-        
         if (selectedOption && !selectedOption.value.startsWith('temp-')) {
             // Si el producto es existente, establecer la unidad predeterminada y deshabilitar el campo
             const productoSeleccionado = productos.find(p => p.value === selectedOption.value);
             console.log('Producto encontrado en la lista:', productoSeleccionado);
-            
-            if (productoSeleccionado && productoSeleccionado.unidadPredeterminada) {
-                console.log(`Estableciendo unidad: ${productoSeleccionado.unidadPredeterminada}`);
-                const unidad = productoSeleccionado.unidadPredeterminada;
+            if (productoSeleccionado && productoSeleccionado.unidadpredeterminada) {
+                console.log(`Estableciendo unidad: ${productoSeleccionado.unidadpredeterminada}`);
+                const unidad = productoSeleccionado.unidadpredeterminada;
                 setValue('unidad', unidad);
-                
                 // Establecer automáticamente la unidad alternativa según la unidad principal
                 let unidadAlternativa = '';
                 if (unidad === 'm' || unidad === 'kg') {
@@ -213,7 +218,6 @@ function NuevoContenedor() {
                     unidadAlternativa = 'cajas';
                 }
                 setValue('unidadAlternativa', unidadAlternativa);
-                
                 setUnidadDeshabilitada(true);
             } else {
                 console.log('Producto sin unidad predeterminada o no encontrado');
@@ -254,7 +258,7 @@ function NuevoContenedor() {
                             // Actualizar el ID del producto con el ID real de la base de datos
                             productosActualizados[i] = {
                                 ...producto,
-                                idProducto: response.data[0].idProducto
+                                idProducto: response.data[0].idproducto
                             };
                         }
                     } catch (error) {
@@ -274,7 +278,7 @@ function NuevoContenedor() {
                     });
                     
                     if (response.status === 200 && response.data.length > 0) {
-                        proveedorId = response.data[0].idProveedor;
+                        proveedorId = response.data[0].idproveedor;
                     } else {
                         alert('No se pudo crear el proveedor. Verifica los datos e intenta nuevamente.');
                         return;
@@ -286,13 +290,18 @@ function NuevoContenedor() {
                 }
             }
             
+            // Log para depuración del usuario
+            console.log('Usuario en contexto:', user);
+            // Limpiar el objeto data para enviar solo los campos relevantes
+            const { factura, comentario } = data;
             const dataConUser = {
-                ...data,
+                factura,
+                comentario,
                 proveedor: proveedorId,
-                usuario: user.idUsuario,
+                usuario: user.idusuario || user.idUsuario,
                 productos: productosActualizados,
             };
-            
+            console.log('Payload enviado a /api/contenedores:', dataConUser);
             await axios.post('http://192.168.0.131:5000/api/contenedores', dataConUser);
             setRedirigir(true);
         } catch (error) {
@@ -391,17 +400,17 @@ function NuevoContenedor() {
                 
                 <div className='input-container'>
                     <label htmlFor='cantidad'>Cantidad <span id="unidadLabel">{watch('unidad') || ''}</span>:</label>
-                    <input type='number' step="0.01" min="0.01" className='input-nuevoContenedor' {...register('cantidad')} />
+                    <input type='number' step="0.01" min="0.01" className='input-nuevoContenedor' {...register('cantidad')} onWheel={e => e.target.blur()} />
                 </div>
                 
                 <div className='input-container'>
                     <label htmlFor='cantidadAlternativa'>Cantidad <span id="unidadAltLabel">{watch('unidadAlternativa') || ''}</span>:</label>
-                    <input type='number' step="0.01" min="0.01" className='input-nuevoContenedor' {...register('cantidadAlternativa')} />
+                    <input type='number' step="0.01" min="0.01" className='input-nuevoContenedor' {...register('cantidadAlternativa')} onWheel={e => e.target.blur()} />
                 </div>
                 
                 <div className='input-container'>
                     <label htmlFor='fob'>FOB:</label>
-                    <input type='number' step='any' className='input-nuevoContenedor' {...register('precioPorUnidad')} /> 
+                    <input type='number' step='any' className='input-nuevoContenedor' {...register('precioPorUnidad')} onWheel={e => e.target.blur()} /> 
                 </div>
                 
                 <div className='input-container'>

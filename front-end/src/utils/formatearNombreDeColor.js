@@ -10,7 +10,7 @@ export const obtenerColoresConNombres = async(productos) =>{
         console.log(colores)
         // Crear un mapa de ID a nombre para búsqueda rápida
         const mapaColores = colores.reduce((map, color) => {
-          map[color.idColor] = color.nombre;
+          map[color.idcolor] = color.nombre;
           return map;
         }, {});
     

@@ -19,7 +19,7 @@ function EnvioPedidoMasivo({ isOpen, onRequestClose, productos, contenedor, onSu
     // Inicializar los productos con cantidades a transferir
     if (isOpen && productos) {
       const productosConCantidad = productos
-        .filter(p => p.cantidad > 0 && p.idColor) // Solo incluir productos con color asignado y cantidad > 0
+        .filter(p => p.cantidad > 0 && p.idcolor) // Solo incluir productos con color asignado y cantidad > 0
         .map(producto => ({
           ...producto,
           cantidadTransferir: 0,
@@ -34,7 +34,7 @@ function EnvioPedidoMasivo({ isOpen, onRequestClose, productos, contenedor, onSu
   const actualizarCantidad = (idProducto, campo, valor) => {
     setProductosSeleccionados(prev => 
       prev.map(prod => {
-        if (prod.idContenedorProductos === idProducto) {
+        if (prod.idcontenedorproducto === idProducto) {
           // Asegurarse de que la cantidad a transferir no supere la disponible
           let cantidadActualizada = parseFloat(valor);
           const esCantidadPrincipal = campo === 'cantidadTransferir';
@@ -99,16 +99,15 @@ function EnvioPedidoMasivo({ isOpen, onRequestClose, productos, contenedor, onSu
       const productosParaAgregar = productosSeleccionados
         .filter(p => p.seleccionado)
         .map(p => ({
-          idContenedorProducto: p.idContenedorProductos,
+          idContenedorProducto: p.idcontenedorproducto,
           cantidadTransferir: parseFloat(p.cantidadTransferir),
           cantidadAlternativaTransferir: parseFloat(p.cantidadAlternativaTransferir || 0),
           motivo: comentario,
-          // El valor predeterminado 'Pedido' se usará en el backend
-          colorId: p.idColor,
+          colorId: p.idcolor,
           nombreProducto: p.nombre,
           unidad: p.unidad,
           unidadAlternativa: p.unidadAlternativa || '',
-          usuarioCreacion: user.idUsuario // Asegurarse de incluir el ID del usuario
+          usuariocreacion: user.idusuario || user.idUsuario || 1
         }));
 
       const resultados = await Promise.all(
@@ -209,7 +208,7 @@ function EnvioPedidoMasivo({ isOpen, onRequestClose, productos, contenedor, onSu
               <tbody>
                 {productosSeleccionados.length > 0 ? (
                   productosSeleccionados.map((producto) => (
-                    <tr key={producto.idContenedorProductos} style={{ 
+                    <tr key={producto.idcontenedorproducto} style={{ 
                       backgroundColor: producto.seleccionado ? '#e6f7ff' : 'transparent',
                       border: '1px solid #ddd'
                     }}>
@@ -226,7 +225,7 @@ function EnvioPedidoMasivo({ isOpen, onRequestClose, productos, contenedor, onSu
                           max={producto.cantidad}
                           value={producto.cantidadTransferir}
                           onChange={(e) => actualizarCantidad(
-                            producto.idContenedorProductos, 
+                            producto.idcontenedorproducto, 
                             'cantidadTransferir', 
                             e.target.value
                           )}
@@ -252,7 +251,7 @@ function EnvioPedidoMasivo({ isOpen, onRequestClose, productos, contenedor, onSu
                                   max={producto.cantidadAlternativa}
                                   value={producto.cantidadAlternativaTransferir}
                                   onChange={(e) => actualizarCantidad(
-                                    producto.idContenedorProductos, 
+                                    producto.idcontenedorproducto, 
                                     'cantidadAlternativaTransferir', 
                                     e.target.value
                                   )}

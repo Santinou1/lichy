@@ -24,15 +24,13 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
             setLocalColoresOptions(coloresOptions);
         } else if (colores && colores.length > 0) {
             const options = colores.map(color => ({
-                value: color.idColor.toString(),
-                label: color.nombre + (color.codigoInterno ? ` (${color.codigoInterno})` : ''),
+                value: color.idcolor.toString(),
+                label: color.nombre + (color.codigointerno ? ` (${color.codigointerno})` : ''),
                 data: color
             }));
             setLocalColoresOptions(options);
         }
     }, []);  // Dependencias vacías para que solo se ejecute una vez
-
-
 
     const agregarColor = () => {
         if (!colorSeleccionado) {
@@ -93,30 +91,22 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
     // Manejar la creación de un nuevo color
     const handleColorCreated = (nuevoColor) => {
         console.log('Color creado recibido:', nuevoColor);
-        
-        // Verificar que el color tenga la estructura correcta
-        if (!nuevoColor || !nuevoColor.idColor) {
+        if (!nuevoColor || !nuevoColor.idcolor) {
             console.error('El color recibido no tiene el formato correcto:', nuevoColor);
             return;
         }
-        
-        // Crear una nueva opción para el Select
         const newOption = {
-            value: nuevoColor.idColor.toString(),
-            label: nuevoColor.nombre + (nuevoColor.codigoInterno ? ` (${nuevoColor.codigoInterno})` : ''),
+            value: nuevoColor.idcolor.toString(),
+            label: nuevoColor.nombre + (nuevoColor.codigointerno ? ` (${nuevoColor.codigointerno})` : ''),
             data: nuevoColor
         };
-        
-        // Actualizar las opciones locales de forma segura
         setLocalColoresOptions(prev => {
-            // Verificar si el color ya existe para evitar duplicados
             const colorExists = prev.some(opt => opt.value === newOption.value);
             if (colorExists) return prev;
             return [...prev, newOption];
         });
-        
-        // Seleccionar automáticamente el nuevo color
         setColorSeleccionado(newOption);
+        console.log('Opciones locales de color tras crear:', [...localColoresOptions, newOption]);
     };
 
     // Personalizar los estilos del Select
@@ -153,21 +143,27 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
                 alert("Debes asignar al menos un color.");
                 return;
             }
-            
             if (cantidadRestante > 0) {
                 const confirmar = window.confirm(`Aún hay ${cantidadRestante} ${producto.unidad} sin asignar. ¿Deseas continuar de todas formas?`);
                 if (!confirmar) return;
             }
-            
+            // Normalizar ids para compatibilidad
+            const idProducto = producto.idproducto || producto.idProducto;
+            const idContenedor = producto.idcontenedor || producto.idContenedor;
+            const idContenedorProducto = producto.idcontenedorproducto || producto.idContenedorProducto;
+            if (!idContenedorProducto) {
+                alert("Error: No se encontró el ID del producto principal para actualizar.");
+                return;
+            }
             // Crear la estructura de datos para enviar al servidor
             const dataToSend = {
-                producto: producto.idProducto,
+                producto: Number(idProducto),
                 cantidad: producto.cantidad,
                 unidad: producto.unidad,
-                contenedor: producto.idContenedor,
+                contenedor: Number(idContenedor),
                 precioPorUnidad: producto.precioPorUnidad,
                 coloresAsignados: coloresAsignados.map(item => ({
-                    color: item.color,
+                    color: Number(item.color),
                     cantidad: item.cantidad,
                     cantidadAlternativa: item.cantidadAlternativa || null,
                     rollos: [{ cantidad: item.cantidad, numero: 1 }]
@@ -175,28 +171,24 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
                 cantidadAlternativa: producto.cantidadAlternativa,
                 unidadAlternativa: producto.unidadAlternativa,
                 item_proveedor: producto.item_proveedor,
-                codigoInterno: producto.codigoInterno,
+                codigoInterno: producto.codigointerno || producto.codigoInterno,
                 tipoBulto: tipoBulto,
-                // Agregar dataAnterior con la información del producto original
                 dataAnterior: {
-                    idContenedorProductos: producto.idContenedorProductos,
+                    idcontenedorproducto: idContenedorProducto,
                     nombre: producto.nombre,
-                    codigoInterno: producto.codigoInterno || '',
+                    codigoInterno: producto.codigointerno || producto.codigoInterno || '',
                     cantidad: producto.cantidad || 0,
                     unidad: producto.unidad || '',
-                    color: producto.idColor || null
+                    color: producto.idcolor || producto.idColor || null
                 },
-                // Agregar usuario que realiza el cambio (puede tomarse del localStorage si está disponible)
                 usuarioCambio: localStorage.getItem('userId') || 1,
                 motivo: 'Distribución de colores'
             };
-            
+            console.log("ID del producto principal a actualizar:", idContenedorProducto);
+            console.log("Payload enviado al backend:", dataToSend);
             // Enviar solicitud al servidor para actualizar el producto
-            const response = await axios.put(`http://192.168.0.131:5000/api/contenedorProducto/${producto.idContenedorProductos}`, dataToSend);
-            
+            const response = await axios.put(`http://192.168.0.131:5000/api/contenedorProducto/${idContenedorProducto}`, dataToSend);
             alert("Distribución por colores guardada correctamente.");
-            
-            // En lugar de recargar la página, notificar al componente padre que la distribución se guardó
             if (typeof onDistribucionGuardada === 'function') {
                 onDistribucionGuardada(response.data);
             }
@@ -291,8 +283,6 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
                     </div>
                 )}
                 
-
-                
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <button 
                         style={{ 
@@ -332,7 +322,8 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
                 <div style={{ marginTop: '20px', borderTop: '1px dashed #ccc', paddingTop: '10px' }}>
                     <h4 style={{ marginBottom: '10px' }}>Colores asignados:</h4>
                     {coloresAsignados.map((item, index) => {
-                        const colorInfo = colores.find((c) => c.idColor === item.color);
+                        const colorObj = localColoresOptions.find(opt => parseInt(opt.value) === item.color);
+                        const colorLabel = colorObj ? colorObj.label : `ID: ${item.color}`;
                         return (
                             <div key={index} style={{ 
                                 padding: '8px', 
@@ -346,10 +337,7 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
                                     marginBottom: '5px'
                                 }}>
                                     <span style={{ fontWeight: 'bold' }}>
-                                        {colorInfo?.nombre || 'Sin color'} 
-                                        {colorInfo?.codigoInterno && <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '5px' }}>
-                                            ({colorInfo.codigoInterno})
-                                        </span>}
+                                        {colorLabel}
                                     </span>
                                     <div>
                                     <span>Cantidad: {item.cantidad} {producto.unidad}</span>

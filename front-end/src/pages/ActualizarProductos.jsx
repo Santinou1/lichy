@@ -11,37 +11,37 @@ function ActualizarProductos() {
 
     const { user } = useUserContext();
     const { id } = useParams();
-    const [contenedorProducto, setContendorProducto] = useState(null);
+    const [contenedorproducto, setContendorproducto] = useState(null);
     const [colores, setColores] = useState([]);
-    const [coloresOptions, setColoresOptions] = useState([]);
+    const [coloresoptions, setColoresoptions] = useState([]);
     const [color, setColor] = useState(false);
     const [producto, setProducto] = useState(null);
     const [productos, setProductos] = useState([]);
     const [motivo, setMotivo] = useState('');
-    const [codigoInterno, setCodigoInterno] = useState('');
-    const [cantidadRestante, setCantidadRestante] = useState(0);
-    const [coloresAsignados, setColoresAsignados] = useState([]);
-    const [dataAnterior, setDataAnterior] = useState(null);
+    const [codigointerno, setCodigointerno] = useState('');
+    const [cantidadrestante, setCantidadrestante] = useState(0);
+    const [coloresasignados, setColoresasignados] = useState([]);
+    const [dataanterior, setDataanterior] = useState(null);
     const nav = useNavigate();
 
     const volver = () => {
-        nav(`/contenedor-detalle/${contenedorProducto.contenedor}`);
+        nav(`/contenedor-detalle/${contenedorproducto.contenedor}`);
     }
 
-    const handleColoresAsignadosChange = (nuevosColoresAsignados) => {
-        setColoresAsignados(nuevosColoresAsignados);
+    const handleColoresasignadosChange = (nuevosColoresasignados) => {
+        setColoresasignados(nuevosColoresasignados);
 
         // Si no hay cantidad restante, actualiza la cantidad original a 0
-        if (cantidadRestante === 0) {
-            setContendorProducto((prev) => ({
+        if (cantidadrestante === 0) {
+            setContendorproducto((prev) => ({
                 ...prev,
                 cantidad: 0, // Actualiza la cantidad original a 0
             }));
         }
     };
 
-    const handleCantidadRestanteChange = (nuevaCantidadRestante) => {
-        setCantidadRestante(nuevaCantidadRestante);
+    const handleCantidadrestanteChange = (nuevaCantidadrestante) => {
+        setCantidadrestante(nuevaCantidadrestante);
     };
 
     // Manejar la creación de un nuevo color
@@ -51,28 +51,28 @@ function ActualizarProductos() {
         
         // Actualizar las opciones de colores para el Select
         const newOption = {
-            value: nuevoColor.idColor.toString(),
-            label: nuevoColor.nombre + (nuevoColor.codigoInterno ? ` (${nuevoColor.codigoInterno})` : ''),
+            value: nuevoColor.idcolor.toString(),
+            label: nuevoColor.nombre + (nuevoColor.codigointerno ? ` (${nuevoColor.codigointerno})` : ''),
             data: nuevoColor
         };
-        setColoresOptions((prev) => [...prev, newOption]);
+        setColoresoptions((prev) => [...prev, newOption]);
         
         // Si estamos en modo de color único, seleccionamos automáticamente el nuevo color
         if (color) {
-            setContendorProducto((prev) => ({
+            setContendorproducto((prev) => ({
                 ...prev,
-                idColor: nuevoColor.idColor
+                idcolor: nuevoColor.idcolor
             }));
         }
     };
 
     useEffect(() => {
-        axios.get(`http://192.168.0.131:5000/api/contenedorProducto/producto/${id}`).then((response) => {
+        axios.get(`http://192.168.0.131:5000/api/contenedorproducto/producto/${id}`).then((response) => {
             console.log(response.data);
-            setContendorProducto(response.data[0]);
-            setDataAnterior(response.data[0]);
-            setCantidadRestante(response.data[0]?.cantidad || 0);
-            setCodigoInterno(response.data[0]?.codigoInterno || '');
+            setContendorproducto(response.data[0]);
+            setDataanterior(response.data[0]);
+            setCantidadrestante(response.data[0]?.cantidad || 0);
+            setCodigointerno(response.data[0]?.codigointerno || '');
         }).catch((error) => {
             console.error('Error obteniendo los datos:', error);
         });
@@ -82,11 +82,11 @@ function ActualizarProductos() {
             
             // Formatear los colores para react-select
             const options = response.data.map(color => ({
-                value: color.idColor.toString(),
-                label: color.nombre + (color.codigoInterno ? ` (${color.codigoInterno})` : ''),
+                value: color.idcolor.toString(),
+                label: color.nombre + (color.codigointerno ? ` (${color.codigointerno})` : ''),
                 data: color
             }));
-            setColoresOptions(options);
+            setColoresoptions(options);
         }).catch((error) => {
             console.error("Error trayendo colores:", error);
         });
@@ -97,7 +97,7 @@ function ActualizarProductos() {
     }, []);
 
     useEffect(() => {
-        setProducto(productos.find((prod) => prod.idProducto === contenedorProducto?.idProducto));
+        setProducto(productos.find((prod) => prod.idproducto === contenedorproducto?.idproducto));
     }, [productos]);
 
     const handleInputChange = (e) => {
@@ -105,22 +105,22 @@ function ActualizarProductos() {
         
         // Si se está cambiando la unidad, actualizar también la unidad alternativa
         if (name === 'unidad') {
-            let unidadAlternativa = '';
+            let unidadalternativa = '';
             
             // Determinar la unidad alternativa según la nueva unidad principal
             if (value === 'm' || value === 'kg') {
-                unidadAlternativa = 'rollos';
+                unidadalternativa = 'rollos';
             } else if (value === 'uni') {
-                unidadAlternativa = 'cajas';
+                unidadalternativa = 'cajas';
             }
             
-            setContendorProducto(prev => ({
+            setContendorproducto(prev => ({
                 ...prev,
                 [name]: value,
-                unidadAlternativa: unidadAlternativa
+                unidadalternativa: unidadalternativa
             }));
         } else {
-            setContendorProducto(prev => ({
+            setContendorproducto(prev => ({
                 ...prev,
                 [name]: value,
             }));
@@ -129,14 +129,14 @@ function ActualizarProductos() {
 
     const handleColorSelectChange = (selectedOption) => {
         if (selectedOption) {
-            setContendorProducto(prev => ({
+            setContendorproducto(prev => ({
                 ...prev,
-                idColor: parseInt(selectedOption.value)
+                idcolor: parseInt(selectedOption.value)
             }));
         } else {
-            setContendorProducto(prev => ({
+            setContendorproducto(prev => ({
                 ...prev,
-                idColor: null
+                idcolor: null
             }));
         }
     };
@@ -144,8 +144,8 @@ function ActualizarProductos() {
     const onSubmit = async (e) => {
         e.preventDefault();
 
-        if (!contenedorProducto) {
-            console.error('No se puede actualizar: contenedorProducto es null');
+        if (!contenedorproducto) {
+            console.error('No se puede actualizar: contenedorproducto es null');
             return;
         }
         
@@ -158,50 +158,53 @@ function ActualizarProductos() {
         // Validar que el código interno sea obligatorio (si existe)
         // Comentamos esta validación para que no sea obligatorio
         /*
-        if (!codigoInterno || (typeof codigoInterno === 'string' && !codigoInterno.trim())) {
+        if (!codigointerno || (typeof codigointerno === 'string' && !codigointerno.trim())) {
             alert('Debe ingresar un código interno para el producto');
             return;
         }
         */
         
         // Verificar si la unidad ha cambiado con respecto a los datos originales
-        const unidadCambiada = dataAnterior?.unidad !== contenedorProducto?.unidad;
+        const unidadcambiada = dataanterior?.unidad !== contenedorproducto?.unidad;
         
-        const datosActualizados = {
-            producto: contenedorProducto?.idProducto, // ID del producto
-            cantidad: cantidadRestante === 0 ? cantidadRestante : contenedorProducto?.cantidad,
-            unidad: contenedorProducto?.unidad,
-            color: contenedorProducto?.idColor,
-            precioPorUnidad: contenedorProducto?.precioPorUnidad,
-            cantidadAlternativa: contenedorProducto?.cantidadAlternativa,
-            unidadAlternativa: contenedorProducto?.unidadAlternativa,
-            coloresAsignados: coloresAsignados,
-            contenedor: contenedorProducto?.contenedor,
-            item_proveedor: contenedorProducto?.item_proveedor,
-            codigoInterno: codigoInterno,
+        // Normalizar ids para compatibilidad
+        const idproducto = contenedorproducto?.idproducto || contenedorproducto?.idproducto;
+        const idcontenedor = contenedorproducto?.contenedor || contenedorproducto?.idcontenedor;
+        const idcontenedorproducto = contenedorproducto?.idcontenedorproducto || contenedorproducto?.idContenedorproducto;
+        const datosactualizados = {
+            producto: Number(idproducto),
+            cantidad: cantidadrestante === 0 ? cantidadrestante : contenedorproducto?.cantidad,
+            unidad: contenedorproducto?.unidad,
+            color: contenedorproducto?.idcolor || contenedorproducto?.idcolor,
+            precioPorUnidad: contenedorproducto?.precioPorUnidad,
+            cantidadalternativa: contenedorproducto?.cantidadalternativa,
+            unidadalternativa: contenedorproducto?.unidadalternativa,
+            coloresasignados: coloresasignados,
+            contenedor: Number(idcontenedor),
+            item_proveedor: contenedorproducto?.item_proveedor,
+            codigointerno: codigointerno || contenedorproducto?.codigointerno,
             motivo: motivo,
-            dataAnterior: dataAnterior,
-            usuarioCambio: user.idUsuario,
-            // Agregar flag para indicar si se debe actualizar la unidad en todos los productos relacionados
-            actualizarUnidadEnTodosLosProductos: unidadCambiada
+            dataanterior: dataanterior,
+            usuariocambio: user.idusuario,
+            actualizarUnidadEnTodosLosProductos: unidadcambiada
         };
         
         try {
             // Mostrar confirmación si la unidad ha cambiado
-            if (unidadCambiada) {
+            if (unidadcambiada) {
                 const confirmar = window.confirm(
-                    `Has cambiado la unidad de medida de ${dataAnterior?.unidad} a ${contenedorProducto?.unidad}. \n\n` +
+                    `Has cambiado la unidad de medida de ${dataanterior?.unidad} a ${contenedorproducto?.unidad}. \n\n` +
                     `¿Deseas aplicar este cambio a todos los productos "${producto?.nombre}" en todos los contenedores?\n\n` +
                     `- Si cambias de m/kg a uni: se cambiará la unidad alternativa de rollos a cajas.\n` +
                     `- Si cambias entre m y kg: se mantendrá la unidad alternativa como rollos.`
                 );
                 
                 if (!confirmar) {
-                    datosActualizados.actualizarUnidadEnTodosLosProductos = false;
+                    datosactualizados.actualizarUnidadEnTodosLosProductos = false;
                 }
             }
             
-            const response = await axios.put(`http://192.168.0.131:5000/api/contenedorProducto/${contenedorProducto?.idContenedorProductos}`, datosActualizados);
+            const response = await axios.put(`http://192.168.0.131:5000/api/contenedorproducto/${idcontenedorproducto}`, datosactualizados);
             if (response.status === 200) {
                 console.log(response.data);
                 volver();
@@ -213,8 +216,8 @@ function ActualizarProductos() {
     }
 
     // Encontrar la opción de color seleccionada actualmente
-    const selectedColorOption = coloresOptions.find(
-        option => option.value === (contenedorProducto?.idColor?.toString() || '')
+    const selectedColorOption = coloresoptions.find(
+        option => option.value === (contenedorproducto?.idcolor?.toString() || '')
     );
 
     // Personalizar los estilos del Select
@@ -249,14 +252,14 @@ function ActualizarProductos() {
         <div className='nuevo-contenedor-container'>
             <button onClick={volver}>Volver</button>
             {
-                !contenedorProducto ? <p>Cargando...</p> : <>
+                !contenedorproducto ? <p>Cargando...</p> : <>
                     <h1 className='titulo'> Actualizar {producto?.nombre} de contendor {id}</h1>
                     <div className='input-container'>
                         <label>Producto:</label>
-                        <select name='idProducto' value={contenedorProducto?.idProducto || ''} onChange={handleInputChange}>
+                        <select name='idproducto' value={contenedorproducto?.idproducto || ''} onChange={handleInputChange}>
                             <option value=''>Seleccionar producto</option>
                             {productos.map((prod) => (
-                                <option key={prod.idProducto} value={prod.idProducto}>
+                                <option key={prod.idproducto} value={prod.idproducto}>
                                     {prod.nombre}
                                 </option>
                             ))}
@@ -269,7 +272,7 @@ function ActualizarProductos() {
                                 <div style={{ display: 'flex', alignItems: 'center' }}>
                                     <div style={{ flex: 1 }}>
                                         <Select
-                                            options={coloresOptions}
+                                            options={coloresoptions}
                                             value={selectedColorOption}
                                             onChange={handleColorSelectChange}
                                             placeholder="Buscar o seleccionar color..."
@@ -282,24 +285,24 @@ function ActualizarProductos() {
                                     <CrearColor onColorCreated={handleColorCreated} />
                                 </div> : 
                                 <DesglozarPorcolor
-                                    producto={contenedorProducto}
+                                    producto={contenedorproducto}
                                     colores={colores}
-                                    coloresOptions={coloresOptions}
-                                    onColoresAsignadosChange={handleColoresAsignadosChange}
-                                    onCantidadRestanteChange={handleCantidadRestanteChange}
+                                    coloresoptions={coloresoptions}
+                                    onColoresasignadosChange={handleColoresasignadosChange}
+                                    onCantidadrestanteChange={handleCantidadrestanteChange}
                                     onColorCreated={handleColorCreated}
                                     onDistribucionGuardada={(data) => {
                                         // Fetch updated data before redirecting
-                                        axios.get(`http://192.168.0.131:5000/api/contenedorProducto/${contenedorProducto.contenedor}`)
+                                        axios.get(`http://192.168.0.131:5000/api/contenedorproducto/${contenedorproducto.contenedor}`)
                                             .then(response => {
                                                 // Ensure data is refreshed in the parent component
                                                 // Then redirect to the container detail page
-                                                nav(`/contenedor-detalle/${contenedorProducto.contenedor}`);
+                                                nav(`/contenedor-detalle/${contenedorproducto.contenedor}`);
                                             })
                                             .catch(error => {
                                                 console.error('Error fetching updated products:', error);
                                                 // Still redirect even if there's an error
-                                                nav(`/contenedor-detalle/${contenedorProducto.contenedor}`);
+                                                nav(`/contenedor-detalle/${contenedorproducto.contenedor}`);
                                             });
                                     }}
                                 />
@@ -309,9 +312,9 @@ function ActualizarProductos() {
                         <label>Código Interno: <span style={{ color: 'red' }}>*</span></label>
                         <input
                             type='text'
-                            name='codigoInterno'
-                            value={codigoInterno}
-                            onChange={(e) => setCodigoInterno(e.target.value)}
+                            name='codigointerno'
+                            value={codigointerno}
+                            onChange={(e) => setCodigointerno(e.target.value)}
                             placeholder="Ingrese el código interno"
                             required
                         />
@@ -321,7 +324,7 @@ function ActualizarProductos() {
                         <input
                             type='number'
                             name='cantidad'
-                            value={contenedorProducto?.cantidad || ''}
+                            value={contenedorproducto?.cantidad || ''}
                             onChange={handleInputChange} />
                     </div>
                     <div className='input-container'>
@@ -329,7 +332,7 @@ function ActualizarProductos() {
                         <select
                             type='text'
                             name='unidad'
-                            value={contenedorProducto?.unidad || ''}
+                            value={contenedorproducto?.unidad || ''}
                             onChange={handleInputChange}
                         >
                             <option value='' disabled>Seleccionar unidad</option>
@@ -344,13 +347,13 @@ function ActualizarProductos() {
                             type='number'
                             name='precioPorUnidad'
                             placeholder='Precio por unidad'
-                            value={contenedorProducto?.precioPorUnidad || ''}
+                            value={contenedorproducto?.precioPorUnidad || ''}
                             onChange={handleInputChange}
                         />
                     </div>
                     <div className='input-container'>
                         <label htmlFor='fob'>Item Proveedor:</label>
-                        <input type='text' name='item_proveedor' value={contenedorProducto?.item_proveedor || ''} onChange={handleInputChange} />
+                        <input type='text' name='item_proveedor' value={contenedorproducto?.item_proveedor || ''} onChange={handleInputChange} />
                     </div>
 
                     <div style={{ marginTop: '10px', borderTop: '1px dashed #ccc', paddingTop: '10px' }}>
@@ -359,17 +362,17 @@ function ActualizarProductos() {
                             <label>Cantidad Alternativa:</label>
                             <input
                                 type='number'
-                                name='cantidadAlternativa'
+                                name='cantidadalternativa'
                                 placeholder='Cantidad alternativa'
-                                value={contenedorProducto?.cantidadAlternativa || ''}
+                                value={contenedorproducto?.cantidadalternativa || ''}
                                 onChange={handleInputChange}
                             />
                         </div>
                         <div className='input-container'>
                             <label>Unidad Alternativa:</label>
                             <select
-                                name='unidadAlternativa'
-                                value={contenedorProducto?.unidadAlternativa || ''}
+                                name='unidadalternativa'
+                                value={contenedorproducto?.unidadalternativa || ''}
                                 disabled={true} // Siempre deshabilitado, se selecciona automáticamente
                                 onChange={handleInputChange}
                             >
@@ -378,11 +381,11 @@ function ActualizarProductos() {
                                 <option value='cajas'>Cajas</option>
                             </select>
                             <p style={{ fontSize: '0.8em', color: '#666' }}>
-                                {contenedorProducto?.unidad === 'm' || contenedorProducto?.unidad === 'kg' ? 'Para productos medidos en m o kg, se usa automáticamente rollos' :
-                                    contenedorProducto?.unidad === 'uni' ? 'Para productos medidos en unidades, se usa automáticamente cajas' :
+                                {contenedorproducto?.unidad === 'm' || contenedorproducto?.unidad === 'kg' ? 'Para productos medidos en m o kg, se usa automáticamente rollos' :
+                                    contenedorproducto?.unidad === 'uni' ? 'Para productos medidos en unidades, se usa automáticamente cajas' :
                                         'Seleccione una unidad principal primero'}
                             </p>
-                            {dataAnterior && dataAnterior.unidad !== contenedorProducto?.unidad && (
+                            {dataanterior && dataanterior.unidad !== contenedorproducto?.unidad && (
                                 <div style={{ marginTop: '5px', padding: '8px', backgroundColor: '#fff3cd', borderRadius: '4px', border: '1px solid #ffeeba' }}>
                                     <p style={{ fontSize: '0.9em', color: '#856404', margin: 0 }}>
                                         <strong>Nota:</strong> Has cambiado la unidad de medida. Al guardar, podrás elegir si aplicar este cambio a todos los productos "{producto?.nombre}" en todos los contenedores.
@@ -399,13 +402,13 @@ function ActualizarProductos() {
                 </>
 
             }
-            {contenedorProducto && (
+            {contenedorproducto && (
                 <ConfirmarEliminar 
                     id={id} 
-                    tipo={'ContenedorProducto'} 
+                    tipo={'Contenedorproducto'} 
                     motivo={motivo} 
-                    usuario={user.idUsuario} 
-                    contenedor={contenedorProducto.contenedor} 
+                    usuario={user.idusuario} 
+                    contenedor={contenedorproducto.contenedor} 
                 />
             )}
             <button onClick={onSubmit}>Actualizar</button>

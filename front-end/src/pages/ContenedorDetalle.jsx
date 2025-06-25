@@ -59,6 +59,7 @@ function ContendorDetalle({user}){
     
     // Función para registrar los cambios de un producto en el modo de edición por lotes
     const registrarCambioProducto = (idProducto, cambios) => {
+        console.log('[REGISTRO CAMBIO PRODUCTO] idProducto:', idProducto, 'cambios:', cambios);
         setProductosEditados(prev => ({
             ...prev,
             [idProducto]: {
@@ -66,13 +67,16 @@ function ContendorDetalle({user}){
                 ...cambios
             }
         }));
+        console.log('[PRODUCTOS EDITADOS] Estado actual:', productosEditados);
     };
     
     // Función para guardar todos los cambios de productos en lote
     const guardarCambiosLote = async () => {
+        console.log('[GUARDAR CAMBIOS LOTE] Productos editados a enviar:', productosEditados);
         try {
             // Crear un array de promesas para todas las actualizaciones
             const promesas = Object.entries(productosEditados).map(([idProducto, cambios]) => {
+                console.log('[ACTUALIZANDO PRODUCTO] idProducto:', idProducto, 'payload:', cambios);
                 return axios.put(`http://192.168.0.131:5000/api/contenedorProducto/${idProducto}`, {
                     ...cambios,
                     contenedor: id,
@@ -95,11 +99,11 @@ function ContendorDetalle({user}){
             
             // Ejecutar todas las actualizaciones en paralelo
             await Promise.all(promesas);
-            
+            console.log('[GUARDAR CAMBIOS LOTE] Actualización completada, recargando productos...');
             // Actualizar la lista de productos
             const response = await axios.get(`http://192.168.0.131:5000/api/contenedorProducto/${id}`);
             setProductos(response.data);
-            
+            console.log('[GUARDAR CAMBIOS LOTE] Productos actualizados:', response.data);
             // Salir del modo edición por lotes
             setModoEdicionLotes(false);
             setProductosEditados({});
