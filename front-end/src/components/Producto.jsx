@@ -175,10 +175,10 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
         // Si el usuario confirma, proceder con la eliminación
         if (result.isConfirmed) {
             try {
-                console.log('Eliminando producto:', productoActualizado.idContenedorProducto);
+                console.log('Eliminando producto:', productoActualizado.idcontenedorproducto);
                 
                 // Realizar la solicitud de eliminación
-                const response = await fetch(`http://192.168.0.131:5000/api/ContenedorProducto/${productoActualizado.idContenedorProducto}`, {
+                const response = await fetch(`http://192.168.0.131:5000/api/ContenedorProducto/${productoActualizado.idcontenedorproducto}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -228,7 +228,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
     }
     
     const refirigir = () => {
-        nav(`/actualizar-producto-contenedor/${producto.idContenedorProducto}`);
+        nav(`/actualizar-producto-contenedor/${producto.idcontenedorproducto}`);
     }
     
     const handleColoresAsignadosChange = (nuevosColoresAsignados) => {
@@ -265,7 +265,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
         console.log('coloresAsignados:', coloresAsignados)
 
         try {
-            const response = await axios.put(`http://192.168.0.131:5000/api/contenedorProducto/${producto.idContenedorProducto}`, datosActualizados);
+            const response = await axios.put(`http://192.168.0.131:5000/api/contenedorProducto/${producto.idcontenedorproducto}`, datosActualizados);
             console.log('Respuesta del backend:', response.data);
             
             // Si hay una función para actualizar la lista principal, la llamamos
@@ -336,7 +336,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                 }));
                 
                 // Registrar el cambio para guardarlo posteriormente
-                registrarCambioProducto(producto.idContenedorProducto, {
+                registrarCambioProducto(producto.idcontenedorproducto, {
                     color: newValue.value,
                     producto: producto.idProducto,
                     cantidad: producto.cantidad,
@@ -365,7 +365,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                 }));
                 
                 // Registrar el cambio
-                registrarCambioProducto(producto.idContenedorProducto, {
+                registrarCambioProducto(producto.idcontenedorproducto, {
                     color: null,
                     producto: producto.idProducto,
                     cantidad: producto.cantidad,
@@ -404,7 +404,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
             }));
             
             // Registrar el cambio para guardarlo posteriormente
-            registrarCambioProducto(producto.idContenedorProducto, {
+            registrarCambioProducto(producto.idcontenedorproducto, {
                 [name]: processedValue,
                 producto: producto.idProducto,
                 unidad: producto.unidad,
@@ -462,7 +462,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
             codigoInterno: editForm.codigoInterno,
             // Incluir los datos anteriores para el historial
             dataAnterior: {
-                idContenedorProducto: producto.idContenedorProducto,
+                idcontenedorproducto: producto.idcontenedorproducto,
                 nombre: producto.nombre,
                 codigoInterno: producto.codigoInterno,
                 cantidad: producto.cantidad,
@@ -480,7 +480,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
         console.log('Enviando datos actualizados:', datosActualizados);
         
         try {
-            await axios.put(`http://192.168.0.131:5000/api/contenedorProducto/${producto.idContenedorProducto}`, datosActualizados);
+            await axios.put(`http://192.168.0.131:5000/api/contenedorProducto/${producto.idcontenedorproducto}`, datosActualizados);
             
             // Actualizar la lista de productos
             if (onActualizar) {
@@ -569,7 +569,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
     const handleCodigoInternoSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.put(`http://192.168.0.131:5000/api/contenedorProducto/codigo-interno/${producto.idContenedorProducto}`, {
+            await axios.put(`http://192.168.0.131:5000/api/contenedorProducto/codigo-interno/${producto.idcontenedorproducto}`, {
                 codigoInterno: nuevoCodigoInterno
             });
             setProductoActualizado(prev => ({ ...prev, codigoInterno: nuevoCodigoInterno }));
@@ -668,7 +668,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
 
                             <button type='submit'>Actualizar</button>
                         </form>
-                        <ConfirmarEliminar id={producto.idContenedorProducto} tipo={'ContenedorProducto'} />
+                        <ConfirmarEliminar id={producto.idcontenedorproducto} tipo={'ContenedorProducto'} />
                     </>
                 ) : editando || modoEdicionLotes ? (
                     <div className='datos-actuales-producto edicion-inline-container'>
@@ -915,7 +915,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                 {/* Confirmación de eliminación */}
                 {mostrarConfirmacionEliminar && (
                     <ConfirmarEliminar
-                        id={productoActualizado.idContenedorProducto}
+                        id={productoActualizado.idcontenedorproducto}
                         tipo="ContenedorProducto"
                         actualizarLista={() => {
                             // Actualizar la lista de productos después de eliminar
@@ -959,7 +959,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                                     onActualizar(response.data);
                                     
                                     // Update the local product state with the new data
-                                    const updatedProduct = response.data.find(p => p.idContenedorProducto === producto.idContenedorProducto);
+                                    const updatedProduct = response.data.find(p => p.idcontenedorproducto === producto.idcontenedorproducto);
                                     if (updatedProduct) {
                                         setProductoActualizado(updatedProduct);
                                     }
