@@ -51,21 +51,21 @@ async function agregarContenedor(req,res){
             let productoId;
 
             if(idProducto){
-                const [productoExistente] = await connection.promise().query('SELECT idProducto FROM Producto WHERE idProducto = ?',[idProducto]);
+                const [productoExistente] = await connection.promise().query('SELECT idProducto FROM producto WHERE idProducto = ?',[idProducto]);
                 if(productoExistente.length > 0){
                     productoId = productoExistente[0].idProducto;
                 } else {
                     console.warn('Producto no encontrado:', producto);
                 }
             }else{ 
-                const [nuevoProducto] = await connection.promise().query('INSERT INTO Producto (nombre, unidadPredeterminada, tipoBultoPredeterminado) VALUES (?,?,?)',[nombre,unidad,tipoBulto]);
+                const [nuevoProducto] = await connection.promise().query('INSERT INTO producto (nombre, unidadPredeterminada, tipoBultoPredeterminado) VALUES (?,?,?)',[nombre,unidad,tipoBulto]);
                 productoId = nuevoProducto.insertId;
             }
 
             await connection.promise().query('INSERT INTO contenedorproducto (contenedor,producto,unidad,cantidad,unidadAlternativa,cantidadAlternativa,precioPorUnidad,tipoBulto,cantidadBulto,itemProveedor) VALUES (?,?,?,?,?,?,?,?,?,?)',[idContenedor, productoId, unidad, cantidad, unidadAlternativa, cantidadAlternativa, precioPorUnidad, tipoBulto, cantidadBulto, item_proveedor]);
         }
         // Insertar solo el estado 'Contenedor Creado' sin ubicación específica
-        await connection.promise().query('INSERT INTO ContenedorEstado (contenedor,estado,ubicacion) VALUES (?,?,?)',[idContenedor,'Contenedor Creado','-']);
+        await connection.promise().query('INSERT INTO contenedorestado (contenedor,estado,ubicacion) VALUES (?,?,?)',[idContenedor,'Contenedor Creado','-']);
         res.json({success:true, idContenedor: idContenedor});
        
     }catch(error){
@@ -84,9 +84,9 @@ async function obtenerContenedores(req,res) {
             ce.idEstado,
             ce.estado,
             ce.ubicacion
-        FROM Contenedor c LEFT JOIN 
-        (SELECT ce1.* FROM ContenedorEstado ce1 INNER JOIN 
-            (SELECT contenedor, MAX(idEstado) AS maxIdEstado FROM ContenedorEstado
+        FROM contenedor c LEFT JOIN 
+        (SELECT ce1.* FROM contenedorestado ce1 INNER JOIN 
+            (SELECT contenedor, MAX(idEstado) AS maxIdEstado FROM contenedorestado
             GROUP BY contenedor) ce2 ON ce1.contenedor = ce2.contenedor 
             AND ce1.idEstado = ce2.maxIdEstado) ce ON c.idContenedor = ce.contenedor
         GROUP BY c.idContenedor;`;
@@ -103,8 +103,8 @@ async function obtenerContenedorDetalle(req,res){
         const id = req.params.id;
         const query = `
         SELECT  *
-        FROM Contenedor c 
-        INNER JOIN Proveedor p ON p.idProveedor = c.proveedor
+        FROM contenedor c 
+        INNER JOIN proveedor p ON p.idProveedor = c.proveedor
         WHERE idContenedor = ?;  `;
         const [results] = await pool.promise().query(query, [id]);
         res.json(results);
@@ -121,9 +121,9 @@ async function actualizarContenedorCategoria(req,res){
         if(!categoria){
             return res.status(400).send('Faltan campos obligatorios');
         }
-        const query = 'UPDATE Contenedor SET categoria = ? WHERE idContenedor = ?';
+        const query = 'UPDATE contenedor SET categoria = ? WHERE idContenedor = ?';
         const [results] = await pool.promise().query(query, [categoria, id]);
-        const [results2] = await pool.promise().query('SELECT categoria FROM Contenedor WHERE idContenedor = ?',[id]);
+        const [results2] = await pool.promise().query('SELECT categoria FROM contenedor WHERE idContenedor = ?',[id]);
         res.json(results2);
     }catch(error){
         console.error('Error ejecutando la consulta:', error);
@@ -135,7 +135,7 @@ async function actualizarDetalleContenedor(req,res){
         const id = req.params.id;
         const {proveedor,factura,forwarder,comentario,sira,vep,codigoContenedor} = req.body;
         const connection = pool;
-        const query = `UPDATE Contenedor SET 
+        const query = `UPDATE contenedor SET 
         proveedor = ?,
         factura = ?,
         forwarder = ?,
@@ -149,7 +149,7 @@ async function actualizarDetalleContenedor(req,res){
                 console.error('Error ejecutando la consulta:', err);
                 return res.status(500).send('Error en el servidor.');
             }
-            connection.query('SELECT  * FROM Contenedor c INNER JOIN Proveedor p ON p.idProveedor = c.proveedor WHERE idContenedor = ?; ',[id],(err,results)=>{
+            connection.query('SELECT  * FROM contenedor c INNER JOIN proveedor p ON p.idProveedor = c.proveedor WHERE idContenedor = ?; ',[id],(err,results)=>{
                 if(err){
                     console.error('Error ejecutando la consulta:', err);
                     return res.status(500).send('Error en el servidor.');
@@ -168,7 +168,7 @@ async function eliminarContenedor(req,res){
     try {
         const id = req.params.id;
         const connection = pool;
-        connection.query('DELETE FROM Contenedor WHERE idContenedor = ?',[id],(err,results)=>{
+        connection.query('DELETE FROM contenedor WHERE idContenedor = ?',[id],(err,results)=>{
             if(err){
                 console.error('Error ejecutando la consulta:', err);
                 return res.status(500).send('Error en el servidor.');
