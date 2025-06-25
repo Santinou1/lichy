@@ -12,6 +12,7 @@ router.post('/producto',agregarProducto);
 router.get('/producto/:id',buscarProducto);
 router.put('/producto/:id',actualizarProducto);
 router.get('/categoria',obtenerCategorias);
+router.get('/categorias',obtenerCategorias);
 router.post('/ubicaciones', obtenerUbicacionesPorEstado);
 router.get('/ubicaciones', obtenerUbicaciones);
 router.get('/:item', obtenerItemsPorTipo);
