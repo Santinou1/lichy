@@ -12,7 +12,7 @@ router.get('/cantidad-filtro/:id',obtenerCantidadPorFiltro);
 
 async function obtenerProductosSinContenedor(req,res){
     try {
-        const [results] = await pool.promise().query('SELECT * FROM producto p LEFT JOIN contenedorproductos ON p.idProducto = producto WHERE producto IS NULL;');
+        const [results] = await pool.promise().query('SELECT * FROM producto p LEFT JOIN contenedorproducto ON p.idproducto = producto WHERE producto IS NULL;');
         res.json(results);
     } catch (error) {
         console.error('Error ejecutando la consulta:', error);
@@ -21,7 +21,7 @@ async function obtenerProductosSinContenedor(req,res){
 }
 async function obtenerProductosConContenedor(req,res){
     try {
-        const [results] = await pool.promise().query('SELECT * FROM producto p JOIN contenedorproductos ON p.idProducto = producto GROUP BY idProducto;');
+        const [results] = await pool.promise().query('SELECT * FROM producto p JOIN contenedorproducto ON p.idproducto = producto GROUP BY idproducto;');
         res.json(results);
     } catch (error) {
         console.error('Error ejecutando la consulta:', error);
@@ -34,7 +34,7 @@ async function obtenerCantidadPorContenedor(req,res){
         const {id} = req.params;        
         const [results] = await pool.promise().query(`
             SELECT cp.*, cp.precioPorUnidad, c.nombre, ce.ubicacion, con.idContenedor
-            FROM contenedorProductos cp 
+            FROM contenedorproducto cp 
             LEFT JOIN color c ON c.idColor = cp.color 
             LEFT JOIN contenedor con ON cp.contenedor = con.idContenedor
             LEFT JOIN (
@@ -59,17 +59,17 @@ async function obtenerCantidadPorColor(req,res){
         const {id} = req.params;
         const query = 
         `SELECT 
-            p.idProducto, 
+            p.idproducto, 
             p.nombre, 
             cp.color, 
             SUM(COALESCE(cp.cantidad, 0)) AS total_cantidad,
             cp.unidad,
             c.nombre AS nombreColor
         FROM producto p
-        JOIN contenedorproductos cp ON p.idProducto = cp.producto
+        JOIN contenedorproducto cp ON p.idproducto = cp.producto
         JOIN color c ON  cp.color = idColor
-        WHERE p.idProducto = ?
-        GROUP BY p.idProducto, p.nombre, cp.color, cp.unidad;`;
+        WHERE p.idproducto = ?
+        GROUP BY p.idproducto, p.nombre, cp.color, cp.unidad;`;
         const [results] = await pool.promise().query(query,[id]);
         res.json(results);
     }catch(error){
@@ -81,7 +81,7 @@ async function eliminarProducto(req,res){
     try{
         const {id} = req.params;
         const connection = pool;
-        connection.query('DELETE FROM Producto WHERE idProducto = ?',[id],(err,results)=>{
+        connection.query('DELETE FROM Producto WHERE idproducto = ?',[id],(err,results)=>{
             if(err){
                 console.error('Error ejecutando la consulta:', err);
                 return res.status(500).send('Error en el servidor.');
@@ -97,7 +97,7 @@ async function obtenerCantidadTotal(req,res){
     try{
         const id = req.params.id;
         const query = `
-        SELECT sum(cantidad) as cantidad_total FROM contenedorproductos WHERE producto =?; `;
+        SELECT sum(cantidad) as cantidad_total FROM contenedorproducto WHERE producto =?; `;
         const [results] = await pool.promise().query(query, [id]);
         console.log(results);
         res.json(results);
@@ -130,7 +130,7 @@ async function obtenerCantidadPorFiltro(req, res) {
                 SUM(COALESCE(cp.cantidad, 0)) AS total_cantidad,
                 cp.precioPorUnidad
             FROM 
-                contenedorproductos cp
+                contenedorproducto cp
             JOIN 
                 contenedorestado ce ON cp.contenedor = ce.contenedor
             JOIN (
@@ -165,7 +165,7 @@ async function obtenerCantidadPorFiltro(req, res) {
                 SUM(COALESCE(cp.cantidad, 0)) AS total_cantidad,
                 cp.precioPorUnidad
             FROM 
-                contenedorproductos cp
+                contenedorproducto cp
             JOIN 
                 contenedorestado ce ON cp.contenedor = ce.contenedor
             JOIN (
@@ -199,7 +199,7 @@ async function obtenerCantidadPorFiltro(req, res) {
                 SUM(COALESCE(cp.cantidad, 0)) AS total_cantidad,
                 cp.precioPorUnidad
             FROM 
-                contenedorproductos cp
+                contenedorproducto cp
             JOIN 
                 contenedorestado ce ON cp.contenedor = ce.contenedor
             JOIN (
@@ -234,7 +234,7 @@ async function obtenerCantidadPorFiltro(req, res) {
                 SUM(COALESCE(cp.cantidad, 0)) AS total_cantidad,
                 cp.precioPorUnidad
             FROM 
-                contenedorproductos cp
+                contenedorproducto cp
             JOIN 
                 contenedorestado ce ON cp.contenedor = ce.contenedor
             JOIN (

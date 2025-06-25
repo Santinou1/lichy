@@ -11,7 +11,7 @@ router.get('/producto',obtenerProductos);
 router.post('/producto',agregarProducto);
 router.get('/producto/:id',buscarProducto);
 router.put('/producto/:id',actualizarProducto);
-router.get('/categorias',obtenerCategorias);
+router.get('/categoria',obtenerCategorias);
 router.post('/ubicaciones', obtenerUbicacionesPorEstado);
 router.get('/ubicaciones', obtenerUbicaciones);
 router.get('/:item', obtenerItemsPorTipo);
@@ -357,7 +357,7 @@ async function agregarProducto(req,res){
 async function obtenerCategorias(req,res) {
     try {
         const query = `
-        SELECT * FROM categorias;`;
+        SELECT * FROM categoria;`;
         const [results] = await pool.promise().query(query);
         res.json(results);
     } catch (error) {

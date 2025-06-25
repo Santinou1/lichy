@@ -2,133 +2,141 @@
 -- Incluye la estructura original y las modificaciones para estados de productos
 -- Mayo 2025
 
-CREATE DATABASE IF NOT EXISTS LichyDB;
-USE LichyDB;
+CREATE DATABASE IF NOT EXISTS lichydb;
+USE lichydb;
 
+-- ==========================================
 -- Tablas base del sistema
-CREATE TABLE IF NOT EXISTS Usuario(
-	idUsuario INT AUTO_INCREMENT,
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS usuario (
+    idusuario INT AUTO_INCREMENT,
     nombre VARCHAR(200),
     email VARCHAR(200) UNIQUE,
     contrasena VARCHAR(200),
-    tipoUsuario VARCHAR(100),
+    tipousuario VARCHAR(100),
     permisos VARCHAR(500),
-    PRIMARY KEY(idUsuario)
+    PRIMARY KEY(idusuario)
 );
 
-CREATE TABLE IF NOT EXISTS Proveedor(
-	idProveedor INT AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS proveedor (
+    idproveedor INT AUTO_INCREMENT,
     nombre VARCHAR(100),
-    PRIMARY KEY(idProveedor)
+    PRIMARY KEY(idproveedor)
 );
 
-CREATE TABLE IF NOT EXISTS Producto(
-	idProducto INT AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS producto (
+    idproducto INT AUTO_INCREMENT,
     nombre VARCHAR(200),
-    unidadPredeterminada ENUM('m','kg'),
-    codigoInterno INT UNIQUE,
-    tipoBultoPredeterminado ENUM('rollos','cajas'),
-    PRIMARY KEY(idProducto)
+    unidadpredeterminada ENUM('m','kg'),
+    codigointerno INT UNIQUE,
+    tipobultopredeterminado ENUM('rollos','cajas'),
+    PRIMARY KEY(idproducto)
 );
 
-CREATE TABLE IF NOT EXISTS Color(
-	idColor INT AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS color (
+    idcolor INT AUTO_INCREMENT,
     nombre VARCHAR(100),
-    codigoInterno INT UNIQUE,
-    PRIMARY KEY(idColor)
+    codigointerno INT UNIQUE,
+    PRIMARY KEY(idcolor)
 );
 
-CREATE TABLE IF NOT EXISTS categorias(
-	nombreCategoria VARCHAR(100),
-    PRIMARY KEY(nombreCategoria)
+CREATE TABLE IF NOT EXISTS categoria (
+    nombrecategoria VARCHAR(100),
+    PRIMARY KEY(nombrecategoria)
 );
 
-CREATE TABLE IF NOT EXISTS ubicacion(
-	nombreUbicacion VARCHAR(100),
+CREATE TABLE IF NOT EXISTS ubicacion (
+    nombreubicacion VARCHAR(100),
     estado VARCHAR(100),
-    FOREIGN KEY(estado) REFERENCES categorias(nombreCategoria) ON DELETE CASCADE,
-    PRIMARY KEY(nombreUbicacion)
+    FOREIGN KEY(estado) REFERENCES categoria(nombrecategoria) ON DELETE CASCADE,
+    PRIMARY KEY(nombreubicacion)
 );
 
-CREATE TABLE IF NOT EXISTS Contenedor(
-	idContenedor INT AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS contenedor (
+    idcontenedor INT AUTO_INCREMENT,
     categoria VARCHAR(100),
     usuario INT,
     proveedor INT,
     comentario VARCHAR(300),
     ubicacion VARCHAR(100),
-    codigoContenedor VARCHAR(100),
+    codigocontenedor VARCHAR(100),
     forwarder VARCHAR(100),
     sira VARCHAR(100),
-    factura varchar(100),
+    factura VARCHAR(100),
     vep VARCHAR(100),
-    PRIMARY KEY(idContenedor),
-    FOREIGN KEY(proveedor) REFERENCES Proveedor(idProveedor) ON DELETE SET NULL,
-    FOREIGN KEY(categoria) REFERENCES categorias(nombreCategoria) ON DELETE SET NULL
+    PRIMARY KEY(idcontenedor),
+    FOREIGN KEY(proveedor) REFERENCES proveedor(idproveedor) ON DELETE SET NULL,
+    FOREIGN KEY(categoria) REFERENCES categoria(nombrecategoria) ON DELETE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS ContenedorEstado(
-	idEstado INT AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS contenedorestado (
+    idestado INT AUTO_INCREMENT,
     contenedor INT,
     estado VARCHAR(100),
     ubicacion VARCHAR(200),
-    fechaHora DATETIME DEFAULT CURRENT_TIMESTAMP,
-    fechaManual DATE DEFAULT (CURRENT_DATE()),
-    PRIMARY KEY(idEstado),
-    FOREIGN KEY(contenedor) REFERENCES Contenedor(idContenedor) ON DELETE CASCADE
+    fechahora DATETIME DEFAULT CURRENT_TIMESTAMP,
+    fechamanual DATE DEFAULT (CURRENT_DATE()),
+    PRIMARY KEY(idestado),
+    FOREIGN KEY(contenedor) REFERENCES contenedor(idcontenedor) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS ContenedorProductos(
-	idContenedorProductos INT AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS contenedorproducto (
+    idcontenedorproducto INT AUTO_INCREMENT,
     contenedor INT, 
     producto INT,
     cantidad INT,
     unidad VARCHAR(100),
-    precioPorUnidad FLOAT,
-    item_proveedor VARCHAR(200),
+    precioporunidad FLOAT,
+    itemproveedor VARCHAR(200),
     color INT,
-    cantidadBulto INT,
-    cantidadAlternativa INT,
-    unidadAlternativa ENUM ('rollos', 'cajas'),
-    tipoBulto ENUM ('rollos','cajas'),
-    -- Nuevos campos para manejo de estados
+    cantidadbulto INT,
+    cantidadalternativa INT,
+    unidadalternativa ENUM ('rollos', 'cajas'),
+    tipobulto ENUM ('rollos','cajas'),
     estado VARCHAR(50) DEFAULT 'En stock' COMMENT 'Estado del producto: En stock, Entregado',
-    contenedorDestino INT NULL COMMENT 'ID del contenedor destino cuando el estado es En stock',
-    PRIMARY KEY(idContenedorProductos),
-    FOREIGN KEY(contenedor) REFERENCES Contenedor(idContenedor) ON DELETE CASCADE,
-    FOREIGN KEY(producto) REFERENCES Producto(idProducto) ON DELETE CASCADE,
-    FOREIGN KEY(color) REFERENCES Color(idColor) ON DELETE SET NULL
+    contenedordestino INT NULL COMMENT 'ID del contenedor destino cuando el estado es En stock',
+    PRIMARY KEY(idcontenedorproducto),
+    FOREIGN KEY(contenedor) REFERENCES contenedor(idcontenedor) ON DELETE CASCADE,
+    FOREIGN KEY(producto) REFERENCES producto(idproducto) ON DELETE CASCADE,
+    FOREIGN KEY(color) REFERENCES color(idcolor) ON DELETE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS ContenedorProductosHistorial (
-	idHistorial INT AUTO_INCREMENT,
-    idContenedorProductos INT,
+CREATE TABLE IF NOT EXISTS contenedorproductohistorial (
+    idhistorial INT AUTO_INCREMENT,
+    idcontenedorproducto INT,
     contenedor INT,
-    tipoCambio ENUM('UPDATE','DELETE','INSERT'),
+    tipocambio ENUM('UPDATE','DELETE','INSERT'),
     cambios TEXT,
-    fechaCambio DATETIME DEFAULT CURRENT_TIMESTAMP,
-    usuarioCambio INT,
+    fechacambio DATETIME DEFAULT CURRENT_TIMESTAMP,
+    usuariocambio INT,
     motivo VARCHAR(500),
-    PRIMARY KEY(idHistorial),
-    FOREIGN KEY(contenedor) REFERENCES Contenedor(idContenedor) ON DELETE CASCADE
+    PRIMARY KEY(idhistorial),
+    FOREIGN KEY(contenedor) REFERENCES contenedor(idcontenedor) ON DELETE CASCADE
 );
 
--- Inserción de categorías base
-INSERT INTO Categorias (nombreCategoria) VALUES
+-- ==========================================
+-- Datos iniciales - Categorías
+-- ==========================================
+
+INSERT INTO categoria (nombrecategoria) VALUES
 ('COMPRADO'),
 ('EMBARCADO'),
 ('ARRIBADO'),
-('DEPOSITO NACIONAL'),
-('EN STOCK'),
+('DEPOSITO_NACIONAL'),
+('EN_STOCK'),
 ('ENTREGADO'),
 ('ANULADO');
 
--- Inserción de ubicaciones base
-INSERT INTO Ubicacion (nombreUbicacion, estado) VALUES
+-- ==========================================
+-- Datos iniciales - Ubicaciones
+-- ==========================================
+
+INSERT INTO ubicacion (nombreubicacion, estado) VALUES
 -- Estado COMPRADO
-('FALTA DISPONER', 'COMPRADO'),
-('DESARROLLO LD-SOFF', 'COMPRADO'),
-('LD-SOFF LLEGARON', 'COMPRADO'),
+('FALTA_DISPONER', 'COMPRADO'),
+('DESARROLLO_LD_SOFF', 'COMPRADO'),
+('LD_SOFF_LLEGARON', 'COMPRADO'),
 ('PRODUCCION', 'COMPRADO'),
 
 -- Estado EMBARCADO
@@ -137,25 +145,25 @@ INSERT INTO Ubicacion (nombreUbicacion, estado) VALUES
 
 -- Estado ARRIBADO
 ('TERMINAL', 'ARRIBADO'),
-('DF DASSA', 'ARRIBADO'),
-('DF LOGISTICA CENTRAL', 'ARRIBADO'),
-('PARA OFICIALIZAR', 'ARRIBADO'),
-('PARA OFICIALIZAR HOY', 'ARRIBADO'),
-('POR COORDINAR', 'ARRIBADO'),
+('DF_DASSA', 'ARRIBADO'),
+('DF_LOGISTICA_CENTRAL', 'ARRIBADO'),
+('PARA_OFICIALIZAR', 'ARRIBADO'),
+('PARA_OFICIALIZAR_HOY', 'ARRIBADO'),
+('POR_COORDINAR', 'ARRIBADO'),
 ('COORDINADO', 'ARRIBADO'),
 
--- Estado DEPOSITO NACIONAL
-('ALTITUD', 'DEPOSITO NACIONAL'),
-('MOREIRO', 'DEPOSITO NACIONAL'),
-('OPEN CARGO', 'DEPOSITO NACIONAL'),
-('LOGISTICA CENTRAL', 'DEPOSITO NACIONAL'),
-('ULOG', 'DEPOSITO NACIONAL'),
-('ALA', 'DEPOSITO NACIONAL'),
+-- Estado DEPOSITO_NACIONAL
+('ALTITUD', 'DEPOSITO_NACIONAL'),
+('MOREIRO', 'DEPOSITO_NACIONAL'),
+('OPEN_CARGO', 'DEPOSITO_NACIONAL'),
+('LOGISTICA_CENTRAL', 'DEPOSITO_NACIONAL'),
+('ULOG', 'DEPOSITO_NACIONAL'),
+('ALA', 'DEPOSITO_NACIONAL'),
 
--- Estado EN STOCK
-('MITRE', 'EN STOCK'),
-('LAVALLE', 'EN STOCK'),
-('LICHY', 'EN STOCK'),
+-- Estado EN_STOCK
+('MITRE', 'EN_STOCK'),
+('LAVALLE', 'EN_STOCK'),
+('LICHY', 'EN_STOCK'),
 
 -- Estado ENTREGADO
 ('ENTREGADO', 'ENTREGADO'),
@@ -163,74 +171,73 @@ INSERT INTO Ubicacion (nombreUbicacion, estado) VALUES
 -- Estado ANULADO
 ('ANULADO', 'ANULADO');
 
--- Creación de contenedores fijos para Mitre y Lichy
-INSERT INTO Contenedor (idContenedor, categoria, comentario, codigoContenedor, ubicacion) 
+-- ==========================================
+-- Datos iniciales - Contenedores predeterminados
+-- ==========================================
+
+INSERT INTO contenedor (idcontenedor, categoria, comentario, codigocontenedor, ubicacion) 
 VALUES 
-(1, 'EN STOCK', 'Mitre', 'MITRE-001', 'MITRE'),
-(2, 'EN STOCK', 'Lichy', 'LICHY-001', 'LICHY');
+(1, 'EN_STOCK', 'Mitre', 'MITRE-001', 'MITRE'),
+(2, 'EN_STOCK', 'Lichy', 'LICHY-001', 'LICHY');
 
--- Crear los estados iniciales para los contenedores
-INSERT INTO ContenedorEstado (contenedor, estado, ubicacion)
+INSERT INTO contenedorestado (contenedor, estado, ubicacion)
 VALUES 
-(1, 'EN STOCK', 'MITRE'),
-(2, 'EN STOCK', 'LICHY');
+(1, 'EN_STOCK', 'MITRE'),
+(2, 'EN_STOCK', 'LICHY');
 
--- Índices para mejorar rendimiento
-CREATE INDEX IF NOT EXISTS idx_contenedor_categoria ON Contenedor(categoria);
-CREATE INDEX IF NOT EXISTS idx_contenedor_productos_estado ON ContenedorProductos(estado);
+-- ==========================================
+-- Tablas para Pedidos y Facturación
+-- ==========================================
 
--- Verificar contenedores predeterminados
-SELECT idContenedor, comentario, categoria, codigoContenedor 
-FROM Contenedor 
-WHERE categoria = 'Predeterminado';
-
--- Tablas para la funcionalidad de pedidos y facturación
-
--- Tabla para almacenar los pedidos
-CREATE TABLE IF NOT EXISTS Pedidos (
-  idPedido INT AUTO_INCREMENT PRIMARY KEY,
-  fechaCreacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  estado VARCHAR(50) NOT NULL DEFAULT 'Pendiente',
-  usuarioCreacion INT NOT NULL,
-  fechaCompletado DATETIME NULL,
-  usuarioCompletado INT NULL,
-  observaciones TEXT NULL,
-  FOREIGN KEY (usuarioCreacion) REFERENCES Usuario(idUsuario),
-  FOREIGN KEY (usuarioCompletado) REFERENCES Usuario(idUsuario)
+CREATE TABLE IF NOT EXISTS pedido (
+    idpedido INT AUTO_INCREMENT PRIMARY KEY,
+    fechacreacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    estado VARCHAR(50) NOT NULL DEFAULT 'Pendiente',
+    usuariocreacion INT NOT NULL,
+    fechacompletado DATETIME NULL,
+    usuariocompletado INT NULL,
+    observaciones TEXT NULL,
+    FOREIGN KEY (usuariocreacion) REFERENCES usuario(idusuario),
+    FOREIGN KEY (usuariocompletado) REFERENCES usuario(idusuario)
 );
 
--- Tabla para almacenar los productos asignados a cada pedido
-CREATE TABLE IF NOT EXISTS ProductosPedido (
-  idProductoPedido INT AUTO_INCREMENT PRIMARY KEY,
-  idPedido INT NOT NULL,
-  idContenedorProducto INT NOT NULL,
-  cantidad DECIMAL(10,2) NOT NULL,
-  cantidadAlternativa DECIMAL(10,2) NULL,
-  unidad VARCHAR(10) NOT NULL,
-  unidadAlternativa VARCHAR(10) NULL,
-  ubicacionDestino VARCHAR(50) NOT NULL,
-  fechaCreacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  usuarioCreacion INT NOT NULL,
-  estado VARCHAR(50) NOT NULL DEFAULT 'Pendiente',
-  codigoInterno VARCHAR(50) NULL,
-  color VARCHAR(50) NULL,
-  nombreProducto VARCHAR(255) NULL,
-  FOREIGN KEY (idPedido) REFERENCES Pedidos(idPedido),
-  FOREIGN KEY (idContenedorProducto) REFERENCES ContenedorProductos(idContenedorProductos),
-  FOREIGN KEY (usuarioCreacion) REFERENCES Usuario(idUsuario)
+CREATE TABLE IF NOT EXISTS pedidoproducto (
+    idpedidoproducto INT AUTO_INCREMENT PRIMARY KEY,
+    idpedido INT NOT NULL,
+    idcontenedorproducto INT NOT NULL,
+    cantidad DECIMAL(10,2) NOT NULL,
+    cantidadalternativa DECIMAL(10,2) NULL,
+    unidad VARCHAR(10) NOT NULL,
+    unidadalternativa VARCHAR(10) NULL,
+    ubicaciondestino VARCHAR(50) NOT NULL,
+    fechacreacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usuariocreacion INT NOT NULL,
+    estado VARCHAR(50) NOT NULL DEFAULT 'Pendiente',
+    codigointerno VARCHAR(50) NULL,
+    color VARCHAR(50) NULL,
+    nombreproducto VARCHAR(255) NULL,
+    FOREIGN KEY (idpedido) REFERENCES pedido(idpedido),
+    FOREIGN KEY (idcontenedorproducto) REFERENCES contenedorproducto(idcontenedorproducto),
+    FOREIGN KEY (usuariocreacion) REFERENCES usuario(idusuario)
 );
 
--- Tabla para almacenar las facturas
-CREATE TABLE IF NOT EXISTS Facturas (
-  idFactura INT AUTO_INCREMENT PRIMARY KEY,
-  idPedido INT NOT NULL,
-  numeroFactura VARCHAR(50) NOT NULL,
-  fechaFactura DATE NOT NULL,
-  fechaCreacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  usuarioCreacion INT NOT NULL,
-  observaciones TEXT NULL,
-  importeTotal DECIMAL(10,2) NULL,
-  FOREIGN KEY (idPedido) REFERENCES Pedidos(idPedido),
-  FOREIGN KEY (usuarioCreacion) REFERENCES Usuario(idUsuario),
-  UNIQUE KEY (numeroFactura)
+CREATE TABLE IF NOT EXISTS factura (
+    idfactura INT AUTO_INCREMENT PRIMARY KEY,
+    idpedido INT NOT NULL,
+    numerofactura VARCHAR(50) NOT NULL,
+    fechafactura DATE NOT NULL,
+    fechacreacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usuariocreacion INT NOT NULL,
+    observaciones TEXT NULL,
+    importetotal DECIMAL(10,2) NULL,
+    FOREIGN KEY (idpedido) REFERENCES pedido(idpedido),
+    FOREIGN KEY (usuariocreacion) REFERENCES usuario(idusuario),
+    UNIQUE KEY (numerofactura)
 );
+
+-- ==========================================
+-- Índices para optimización
+-- ==========================================
+
+CREATE INDEX IF NOT EXISTS idx_contenedor_categoria ON contenedor(categoria);
+CREATE INDEX IF NOT EXISTS idx_contenedor_producto_estado ON contenedorproducto(estado);

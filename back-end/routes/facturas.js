@@ -98,7 +98,7 @@ router.post('/', (req, res) => {
             connection.query(
               `SELECT SUM(pp.cantidad * cp.precioPorUnidad) as importeTotal
                FROM ProductosPedido pp
-               JOIN ContenedorProductos cp ON pp.idContenedorProducto = cp.idContenedorProductos
+               JOIN contenedorproducto cp ON pp.idContenedorProducto = cp.idContenedorProducto
                WHERE pp.idPedido = ?`,
               [idPedido],
               (err, productos) => {

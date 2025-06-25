@@ -6,9 +6,9 @@ const pool = require('../db/dbconfig');
 router.get('/', (req, res) => {
   const query = `
     SELECT p.*, 
-      (SELECT COUNT(*) FROM ProductosPedido WHERE idPedido = p.idPedido) as cantidadProductos,
+      (SELECT COUNT(*) FROM contenedorproducto WHERE idPedido = p.idPedido) as cantidadProductos,
       u.nombre as nombreUsuario
-    FROM Pedidos p
+    FROM pedido p
     JOIN Usuario u ON p.usuarioCreacion = u.idUsuario
     ORDER BY p.fechaCreacion DESC
   `;
@@ -29,9 +29,9 @@ router.get('/filtrar', (req, res) => {
   
   let query = `
     SELECT p.*, 
-      (SELECT COUNT(*) FROM ProductosPedido WHERE idPedido = p.idPedido) as cantidadProductos,
+      (SELECT COUNT(*) FROM contenedorproducto WHERE idPedido = p.idPedido) as cantidadProductos,
       u.nombre as nombreUsuario
-    FROM Pedidos p
+    FROM pedido p
     JOIN Usuario u ON p.usuarioCreacion = u.idUsuario
   `;
   
@@ -58,8 +58,8 @@ router.get('/filtrar', (req, res) => {
 router.get('/completados-sin-factura', (req, res) => {
   const query = `
     SELECT p.*
-    FROM Pedidos p
-    LEFT JOIN Facturas f ON p.idPedido = f.idPedido
+    FROM pedido p
+    LEFT JOIN factura f ON p.idPedido = f.idPedido
     WHERE p.estado = 'Completado' AND f.idFactura IS NULL
     ORDER BY p.fechaCompletado DESC
   `;
@@ -78,7 +78,7 @@ router.get('/:id', (req, res) => {
   const query = `
     SELECT p.*, u.nombre as nombreUsuario,
       uc.nombre as nombreUsuarioCompletado
-    FROM Pedidos p
+    FROM pedido p
     JOIN Usuario u ON p.usuarioCreacion = u.idUsuario
     LEFT JOIN Usuario uc ON p.usuarioCompletado = uc.idUsuario
     WHERE p.idPedido = ?
@@ -100,10 +100,12 @@ router.get('/:id', (req, res) => {
 
 // Crear un nuevo pedido
 router.post('/', (req, res) => {
+  console.log('POST /api/pedidos llamado');
+  console.log('Body:', req.body);
   const { usuarioCreacion, observaciones } = req.body;
   
   const query = `
-    INSERT INTO Pedidos (usuarioCreacion, observaciones)
+    INSERT INTO pedido (usuarioCreacion, observaciones)
     VALUES (?, ?)
   `;
   
@@ -122,16 +124,18 @@ router.post('/', (req, res) => {
 
 // Obtener productos de un pedido
 router.get('/:id/productos', (req, res) => {
+  console.log('GET /api/pedidos/:id/productos llamado');
+  console.log('Params:', req.params);
   const query = `
     SELECT pp.*, p.nombre as nombreProducto, c.nombre as color,
       u.nombre as nombreUsuario
-    FROM ProductosPedido pp
-    JOIN ContenedorProductos cp ON pp.idContenedorProducto = cp.idContenedorProductos
-    JOIN Producto p ON cp.producto = p.idProducto
-    LEFT JOIN Color c ON cp.color = c.idColor
-    JOIN Usuario u ON pp.usuarioCreacion = u.idUsuario
-    WHERE pp.idPedido = ?
-    ORDER BY pp.fechaCreacion DESC
+    FROM pedidoproducto pp
+    JOIN contenedorproducto cp ON pp.idcontenedorproducto = cp.idContenedorProducto
+    JOIN producto p ON cp.producto = p.idProducto
+    LEFT JOIN color c ON cp.color = c.idColor
+    JOIN usuario u ON pp.usuariocreacion = u.idUsuario
+    WHERE pp.idpedido = ?
+    ORDER BY pp.fechacreacion DESC
   `;
   
   pool.query(query, [req.params.id], (err, results) => {
@@ -157,11 +161,15 @@ function rollbackAndRelease(connection, err, message, res, statusCode = 500) {
 
 // Agregar producto a un pedido
 router.post('/:id/productos', (req, res) => {
-  const { 
-    idContenedorProducto, 
-    cantidadTransferir, 
-    cantidadAlternativaTransferir, 
-    ubicacionDestino, 
+  console.log('POST /api/pedidos/:id/productos llamado');
+  console.log('Params:', req.params);
+  console.log('Body:', req.body);
+  const {
+    idContenedorProducto,
+    cantidadTransferir,
+    cantidadAlternativaTransferir,
+    ubicacionDestino,
+    usuariocreacion,
     usuarioCreacion,
     motivo,
     unidad,
@@ -170,6 +178,9 @@ router.post('/:id/productos', (req, res) => {
     color,
     nombreProducto
   } = req.body;
+  
+  // Normalizar el usuario de creación
+  const usuarioDeCreacion = usuariocreacion || usuarioCreacion || null;
   
   // Obtener una conexión del pool
   pool.getConnection((err, connection) => {
@@ -187,7 +198,7 @@ router.post('/:id/productos', (req, res) => {
       
       // Verificar que el producto existe y tiene suficiente cantidad
       connection.query(
-        'SELECT * FROM ContenedorProductos WHERE idContenedorProductos = ?',
+        'SELECT * FROM contenedorproducto WHERE idContenedorProducto = ?',
         [idContenedorProducto],
         (err, productos) => {
           if (err) {
@@ -210,15 +221,15 @@ router.post('/:id/productos', (req, res) => {
           
           // Insertar producto en el pedido
           const query = `
-            INSERT INTO ProductosPedido (
-              idPedido, 
-              idContenedorProducto, 
+            INSERT INTO pedidoproducto (
+              idpedido, 
+              idcontenedorproducto, 
               cantidad, 
               cantidadAlternativa, 
               unidad, 
               unidadAlternativa, 
               ubicacionDestino, 
-              usuarioCreacion,
+              usuariocreacion,
               codigoInterno,
               color,
               nombreProducto
@@ -233,8 +244,8 @@ router.post('/:id/productos', (req, res) => {
             cantidadAlternativaTransferir || null,
             unidad || producto.unidad,
             unidadAlternativa || producto.unidadAlternativa,
-            ubicacionDestino || 'Pedido',  // Usar 'Pedido' como valor predeterminado
-            usuarioCreacion,
+            ubicacionDestino || 'Pedido',
+            usuarioDeCreacion,
             codigoInterno || producto.codigoInterno,
             color,
             nombreProducto
@@ -247,13 +258,13 @@ router.post('/:id/productos', (req, res) => {
             
             // Restar la cantidad del producto original inmediatamente
             connection.query(
-              `UPDATE ContenedorProductos
+              `UPDATE contenedorproducto
                SET cantidad = cantidad - ?,
                    cantidadAlternativa = CASE 
                      WHEN cantidadAlternativa IS NOT NULL THEN cantidadAlternativa - ?
                      ELSE NULL
                    END
-               WHERE idContenedorProductos = ?`,
+               WHERE idContenedorProducto = ?`,
               [
                 cantidadTransferir, 
                 cantidadAlternativaTransferir || 0, 
@@ -275,15 +286,15 @@ router.post('/:id/productos', (req, res) => {
                 });
                 
                 connection.query(
-                  `INSERT INTO ContenedorProductosHistorial 
-                   (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) 
+                  `INSERT INTO contenedorproductohistorial 
+                   (idContenedorProducto, contenedor, tipoCambio, cambios, usuarioCambio, motivo) 
                    VALUES (?, ?, ?, ?, ?, ?)`,
                   [
                     idContenedorProducto,
                     producto.contenedor,
                     'Transferencia',
                     cambiosJSON,
-                    usuarioCreacion,
+                    usuarioDeCreacion,
                     `Transferido a Pedido #${req.params.id} para ubicación ${ubicacionDestino}`
                   ],
                   (err) => {
@@ -293,7 +304,7 @@ router.post('/:id/productos', (req, res) => {
                     
                     // En lugar de eliminar, actualizamos el estado para productos con cantidad 0
                     connection.query(
-                      "UPDATE ContenedorProductos SET estado = 'En Pedido' WHERE idContenedorProductos = ? AND cantidad <= 0",
+                      "UPDATE contenedorproducto SET estado = 'En Pedido' WHERE idContenedorProducto = ? AND cantidad <= 0",
                       [idContenedorProducto],
                       (err) => {
                         if (err) {
@@ -342,7 +353,7 @@ router.delete('/:idPedido/productos/:idProductoPedido', (req, res) => {
       
       // Verificar que el producto existe en el pedido y obtener sus cantidades
       connection.query(
-        'SELECT * FROM ProductosPedido WHERE idProductoPedido = ? AND idPedido = ?',
+        'SELECT * FROM pedidoproducto WHERE idpedidoproducto = ? AND idpedido = ?',
         [req.params.idProductoPedido, req.params.idPedido],
         (err, productos) => {
           if (err) {
@@ -357,17 +368,17 @@ router.delete('/:idPedido/productos/:idProductoPedido', (req, res) => {
           
           // Restaurar las cantidades al contenedor original
           connection.query(
-            `UPDATE ContenedorProductos
+            `UPDATE contenedorproducto
              SET cantidad = cantidad + ?,
                  cantidadAlternativa = CASE 
                    WHEN cantidadAlternativa IS NOT NULL THEN cantidadAlternativa + ?
                    ELSE NULL
                  END
-             WHERE idContenedorProductos = ?`,
+             WHERE idContenedorProducto = ?`,
             [
               producto.cantidad,
               producto.cantidadAlternativa || 0,
-              producto.idContenedorProducto
+              producto.idcontenedorproducto
             ],
             (err) => {
               if (err) {
@@ -376,7 +387,7 @@ router.delete('/:idPedido/productos/:idProductoPedido', (req, res) => {
 
               // Eliminar producto del pedido
               connection.query(
-                'DELETE FROM ProductosPedido WHERE idProductoPedido = ?',
+                'DELETE FROM pedidoproducto WHERE idpedidoproducto = ?',
                 [req.params.idProductoPedido],
                 (err, result) => {
                   if (err) {
@@ -391,19 +402,19 @@ router.delete('/:idPedido/productos/:idProductoPedido', (req, res) => {
                   });
 
                   connection.query(
-                    `INSERT INTO ContenedorProductosHistorial 
-                     (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) 
+                    `INSERT INTO contenedorproductohistorial 
+                     (idContenedorProducto, contenedor, tipoCambio, cambios, usuarioCambio, motivo) 
                      SELECT ?, c.idContenedor, ?, ?, ?, ?
-                     FROM ContenedorProductos cp
-                     JOIN Contenedor c ON cp.contenedor = c.idContenedor
-                     WHERE cp.idContenedorProductos = ?`,
+                     FROM contenedorproducto cp
+                     JOIN contenedorproducto c ON cp.contenedor = c.idContenedor
+                     WHERE cp.idContenedorProducto = ?`,
                     [
-                      producto.idContenedorProducto,
+                      producto.idcontenedorproducto,
                       'Restaurado',
                       cambiosJSON,
-                      producto.usuarioCreacion,
-                      `Cantidades restauradas por eliminación del Pedido #${req.params.idPedido}`,
-                      producto.idContenedorProducto
+                      producto.usuariocreacion,
+                      `Cantidades restauradas por eliminación del Pedido #${req.params.idpedido}`,
+                      producto.idcontenedorproducto
                     ],
                     (err) => {
                       if (err) {
@@ -434,7 +445,7 @@ router.delete('/:idPedido/productos/:idProductoPedido', (req, res) => {
 
 // Completar un pedido
 router.put('/:id/completar', (req, res) => {
-  const { usuarioModificacion, contenedorDestino, comentario, productosEditados } = req.body;
+  const { usuariocreacion, usuarioModificacion, contenedorDestino, comentario, productosEditados } = req.body;
   
   if (!contenedorDestino) {
     return res.status(400).send('Debe especificar un contenedor destino');
@@ -443,6 +454,9 @@ router.put('/:id/completar', (req, res) => {
   if (!comentario || comentario.trim() === '') {
     return res.status(400).send('Debe proporcionar un comentario');
   }
+  
+  // Normalizar el usuario de modificación
+  const usuarioDeModificacion = usuariocreacion || usuarioModificacion || null;
   
   // Obtener una conexión del pool
   pool.getConnection((err, connection) => {
@@ -460,7 +474,7 @@ router.put('/:id/completar', (req, res) => {
       
       // Verificar que el pedido existe
       connection.query(
-        'SELECT * FROM Pedidos WHERE idPedido = ?',
+        'SELECT * FROM pedido WHERE idPedido = ?',
         [req.params.id],
         (err, pedidos) => {
           if (err) {
@@ -473,7 +487,7 @@ router.put('/:id/completar', (req, res) => {
           
           // Verificar que el pedido tiene productos
           connection.query(
-            'SELECT * FROM ProductosPedido WHERE idPedido = ?',
+            'SELECT * FROM pedidoproducto WHERE idpedido = ?',
             [req.params.id],
             (err, productos) => {
               if (err) {
@@ -483,16 +497,24 @@ router.put('/:id/completar', (req, res) => {
               if (productos.length === 0) {
                 return rollbackAndRelease(connection, null, 'El pedido no tiene productos', res, 400);
               }
+              // LOG: Mostrar todos los productos antes de procesar
+              console.log('[COMPLETAR PEDIDO] Productos a procesar:', productos.map(p => ({
+                idpedidoproducto: p.idpedidoproducto,
+                idcontenedorproducto: p.idcontenedorproducto,
+                cantidad: p.cantidad,
+                unidad: p.unidad,
+                nombreProducto: p.nombreProducto
+              })));
               
               // Actualizar el estado del pedido y agregar el comentario
               connection.query(
-                `UPDATE Pedidos 
+                `UPDATE pedido 
                  SET estado = 'Completado', 
                       fechaCompletado = NOW(), 
                       usuarioCompletado = ?,
                       observaciones = ?
                  WHERE idPedido = ?`,
-                [usuarioModificacion, comentario, req.params.id],
+                [usuarioDeModificacion, comentario, req.params.id],
                 (err) => {
                   if (err) {
                     return rollbackAndRelease(connection, err, 'Error al actualizar estado del pedido', res);
@@ -524,7 +546,7 @@ router.put('/:id/completar', (req, res) => {
                     let cantidadAlternativaFinal = producto.cantidadAlternativa ? parseFloat(producto.cantidadAlternativa) : null;
                     
                     if (productosEditados && productosEditados.length > 0) {
-                      const productoEditado = productosEditados.find(p => p.idProductoPedido === producto.idProductoPedido);
+                      const productoEditado = productosEditados.find(p => p.idpedidoproducto === producto.idpedidoproducto);
                       if (productoEditado) {
                         cantidadFinal = parseFloat(productoEditado.cantidad);
                         cantidadAlternativaFinal = productoEditado.cantidadAlternativa !== null ? 
@@ -534,8 +556,8 @@ router.put('/:id/completar', (req, res) => {
                     
                     // Actualizar el estado y las cantidades del producto en el pedido
                     connection.query(
-                      "UPDATE ProductosPedido SET estado = 'Completado', cantidad = ?, cantidadAlternativa = ? WHERE idProductoPedido = ?",
-                      [cantidadFinal, cantidadAlternativaFinal, producto.idProductoPedido],
+                      "UPDATE pedidoproducto SET estado = 'Completado', cantidad = ?, cantidadAlternativa = ? WHERE idpedidoproducto = ?",
+                      [cantidadFinal, cantidadAlternativaFinal, producto.idpedidoproducto],
                       
                       (err) => {
                         if (err) {
@@ -559,22 +581,21 @@ router.put('/:id/completar', (req, res) => {
                         if (contenedorDestino === '3') {
                           // Registrar en el historial para Facturación
                           connection.query(
-                            `INSERT INTO ContenedorProductosHistorial 
-                             (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) 
+                            `INSERT INTO contenedorproductohistorial 
+                             (idContenedorProducto, contenedor, tipoCambio, cambios, usuarioCambio, motivo) 
                              VALUES (?, ?, ?, ?, ?, ?)`,
                             [
-                              producto.idContenedorProducto,
+                              producto.idcontenedorproducto,
                               null, // No asignamos a ningún contenedor físico
                               'Facturación',
                               cambiosJSON,
-                              usuarioModificacion,
+                              usuarioDeModificacion,
                               `Producto de Pedido #${req.params.id} completado y marcado para Facturación`
                             ],
                             (err) => {
                               if (err) {
                                 return rollbackAndRelease(connection, err, 'Error al registrar historial', res);
                               }
-                              
                               // Si es el último producto, crear la factura automáticamente
                               if (index === productos.length - 1) {
                                 // Generar número de factura automático (basado en fecha y ID del pedido)
@@ -584,9 +605,9 @@ router.put('/:id/completar', (req, res) => {
                                 // Calcular importe total del pedido
                                 connection.query(
                                   `SELECT SUM(pp.cantidad * cp.precioPorUnidad) as importeTotal
-                                   FROM ProductosPedido pp
-                                   JOIN ContenedorProductos cp ON pp.idContenedorProducto = cp.idContenedorProductos
-                                   WHERE pp.idPedido = ?`,
+                                   FROM pedidoproducto pp
+                                   JOIN contenedorproducto cp ON pp.idcontenedorproducto = cp.idContenedorProducto
+                                   WHERE pp.idpedido = ?`,
                                   [req.params.id],
                                   (err, resultados) => {
                                     if (err) {
@@ -597,20 +618,19 @@ router.put('/:id/completar', (req, res) => {
                                     
                                     // Crear la factura automáticamente
                                     connection.query(
-                                      `INSERT INTO Facturas (
-                                        idPedido, 
+                                      `INSERT INTO factura 
+                                       (idPedido, 
                                         numeroFactura, 
                                         fechaFactura, 
                                         usuarioCreacion, 
                                         observaciones,
-                                        importeTotal
-                                      )
+                                        importeTotal)
                                       VALUES (?, ?, ?, ?, ?, ?)`,
                                       [
                                         req.params.id,
                                         numeroFactura,
                                         fechaActual.toISOString().split('T')[0], // Formato YYYY-MM-DD
-                                        usuarioModificacion,
+                                        usuarioDeModificacion,
                                         comentario || 'Factura generada automáticamente',
                                         importeTotal
                                       ],
@@ -633,46 +653,77 @@ router.put('/:id/completar', (req, res) => {
                           );
                         } else {
                           // Crear el producto en el contenedor destino para Mitre (1) o Lichy (2)
+                          console.log('[COMPLETAR PEDIDO] Intentando transferir producto al contenedor destino:', {
+                            idContenedorProducto: producto.idcontenedorproducto,
+                            cantidadFinal,
+                            cantidadAlternativaFinal,
+                            contenedorDestino
+                          });
                           connection.query(
-                            `INSERT INTO ContenedorProductos 
-                             (contenedor, producto, cantidad, cantidadAlternativa, unidad, unidadAlternativa, color, estado, precioPorUnidad) 
-                             SELECT ?, cp.producto, ?, ?, ?, ?, cp.color, ?, cp.precioPorUnidad
-                             FROM ContenedorProductos cp
-                             WHERE cp.idContenedorProductos = ?`,
-                            [
-                              contenedorDestino, 
-                              cantidadFinal,
-                              cantidadAlternativaFinal,
-                              producto.unidad,
-                              producto.unidadAlternativa,
-                              producto.ubicacionDestino, // El estado será la ubicación destino (Mitre o Lichy)
-                              producto.idContenedorProducto
-                            ],
-                            (err, insertResult) => {
+                            'SELECT * FROM contenedorproducto WHERE idContenedorProducto = ?',
+                            [producto.idcontenedorproducto],
+                            (err, productosOriginal) => {
                               if (err) {
-                                return rollbackAndRelease(connection, err, 'Error al crear producto en contenedor destino', res);
+                                console.error('[COMPLETAR PEDIDO] Error al buscar producto original:', err);
+                                return rollbackAndRelease(connection, err, 'Error al obtener producto original', res);
                               }
-                              
-                              // Registrar en el historial
+                              if (!productosOriginal || productosOriginal.length === 0) {
+                                console.error('[COMPLETAR PEDIDO] Producto original no encontrado en contenedorproducto:', producto.idcontenedorproducto);
+                                // Mensaje claro para el usuario
+                                connection.rollback(() => {
+                                  connection.release();
+                                  return res.status(400).json({
+                                    error: `No se puede transferir el producto porque el stock original (ID: ${producto.idcontenedorproducto}) ya no existe en el sistema. Puede que haya sido eliminado o transferido previamente.`
+                                  });
+                                });
+                                return;
+                              }
+                              const prodOrig = productosOriginal[0];
                               connection.query(
-                                `INSERT INTO ContenedorProductosHistorial 
-                                 (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) 
-                                 VALUES (?, ?, ?, ?, ?, ?)`,
+                                `INSERT INTO contenedorproducto 
+                                  (contenedor, producto, cantidad, unidad, color, precioPorUnidad, cantidadAlternativa, unidadAlternativa, estado, itemProveedor, tipoBulto, cantidadBulto) 
+                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                                 [
-                                  producto.idContenedorProducto,
-                                  contenedorDestino, // Usar el contenedor destino seleccionado
-                                  'Completado',
-                                  cambiosJSON,
-                                  usuarioModificacion,
-                                  `Producto de Pedido #${req.params.id} completado y enviado a ${producto.ubicacionDestino}`
+                                  contenedorDestino, // El ID del contenedor destino (Mitre o Lichy)
+                                  prodOrig.producto,
+                                  cantidadFinal,
+                                  prodOrig.unidad,
+                                  prodOrig.color,
+                                  prodOrig.precioPorUnidad,
+                                  cantidadAlternativaFinal,
+                                  prodOrig.unidadAlternativa,
+                                  'En stock',
+                                  prodOrig.itemProveedor,
+                                  prodOrig.tipoBulto,
+                                  prodOrig.cantidadBulto
                                 ],
-                                (err) => {
+                                (err, insertResult) => {
                                   if (err) {
-                                    return rollbackAndRelease(connection, err, 'Error al registrar historial', res);
+                                    console.error('[COMPLETAR PEDIDO] Error al crear producto en contenedor destino:', err);
+                                    return rollbackAndRelease(connection, err, 'Error al crear producto en contenedor destino', res);
                                   }
-                                  
-                                  // Procesar el siguiente producto
-                                  procesarProductos(index + 1);
+                                  // Registrar en el historial
+                                  connection.query(
+                                    `INSERT INTO contenedorproductohistorial 
+                                     (idContenedorProducto, contenedor, tipoCambio, cambios, usuarioCambio, motivo) 
+                                     VALUES (?, ?, ?, ?, ?, ?)`,
+                                    [
+                                      insertResult.insertId,
+                                      contenedorDestino, // Usar el contenedor destino seleccionado
+                                      'Completado',
+                                      cambiosJSON,
+                                      usuarioDeModificacion,
+                                      `Producto de Pedido #${req.params.id} completado y enviado a ${producto.ubicacionDestino}`
+                                    ],
+                                    (err) => {
+                                      if (err) {
+                                        console.error('[COMPLETAR PEDIDO] Error al registrar historial:', err);
+                                        return rollbackAndRelease(connection, err, 'Error al registrar historial', res);
+                                      }
+                                      // Procesar el siguiente producto
+                                      procesarProductos(index + 1);
+                                    }
+                                  );
                                 }
                               );
                             }

@@ -16,7 +16,7 @@ async function crearContenedoresPredeterminados() {
         
         // Verificar si ya existen contenedores con la categoría especial "Predeterminado"
         const [contenedoresExistentes] = await connection.promise().query(
-            'SELECT * FROM Contenedor WHERE categoria = ?', 
+            'SELECT * FROM contenedor WHERE categoria = ?', 
             ['Predeterminado']
         );
         
@@ -37,14 +37,14 @@ async function crearContenedoresPredeterminados() {
         
         // Asegurarse de que la categoría "Predeterminado" existe
         const [categoriaExiste] = await connection.promise().query(
-            'SELECT * FROM categorias WHERE nombreCategoria = ?', 
+            'SELECT * FROM categoria WHERE nombrecategoria = ?', 
             ['Predeterminado']
         );
         
         if (categoriaExiste.length === 0) {
             console.log('Creando categoría "Predeterminado"');
             await connection.promise().query(
-                'INSERT INTO categorias (nombreCategoria) VALUES (?)', 
+                'INSERT INTO categoria (nombrecategoria) VALUES (?)', 
                 ['Predeterminado']
             );
             console.log('Categoría "Predeterminado" creada exitosamente');
@@ -163,7 +163,7 @@ async function crearContenedoresPredeterminados() {
         
         // Obtener los contenedores creados o encontrados para devolverlos
         const [contenedoresActualizados] = await connection.promise().query(
-            'SELECT * FROM Contenedor WHERE categoria = ?',
+            'SELECT * FROM contenedor WHERE categoria = ?',
             ['Predeterminado']
         );
         

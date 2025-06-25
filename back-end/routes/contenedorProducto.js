@@ -11,17 +11,39 @@ router.post('/', agregarProductoDeContenedor);
 router.put('/estado/:id', cambiarEstadoProducto);
 router.post('/cambio-estado-masivo', cambioEstadoMasivo);
 router.get('/predeterminados', obtenerContenedoresPredeterminados);
+router.put('/codigo-interno/:id', async (req, res) => {
+    const connection = pool;
+    try {
+        const idContenedorProducto = req.params.id;
+        const { codigoInterno } = req.body;
+        if (!codigoInterno) {
+            return res.status(400).json({ error: 'Falta el código interno' });
+        }
+        // Obtener el idProducto asociado a este contenedorProducto
+        const [rows] = await connection.promise().query('SELECT producto FROM contenedorproducto WHERE idContenedorProducto = ?', [idContenedorProducto]);
+        if (!rows || rows.length === 0) {
+            return res.status(404).json({ error: 'No se encontró el producto asociado' });
+        }
+        const idProducto = rows[0].producto;
+        // Actualizar el código interno en la tabla Producto
+        await connection.promise().query('UPDATE Producto SET codigoInterno = ? WHERE idProducto = ?', [codigoInterno, idProducto]);
+        return res.json({ success: true, idProducto, codigoInterno });
+    } catch (error) {
+        console.error('Error actualizando código interno:', error);
+        return res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
 
 async function obtenerProductoContenedor(req,res){
     try{
         const id = req.params.id;
         const query = `
-        SELECT  idContenedorProductos, p.nombre, p.idProducto, p.codigoInterno, cp.cantidad, cp.unidad, cp.precioPorUnidad, c.nombre AS color, cp.contenedor, c.idColor, cp.item_proveedor, cp.cantidadAlternativa, cp.unidadAlternativa, cp.estado, cp.contenedorDestino,
+        SELECT  idContenedorProducto, p.nombre, p.idProducto, p.codigoInterno, cp.cantidad, cp.unidad, cp.precioPorUnidad, c.nombre AS color, cp.contenedor, c.idColor, cp.itemProveedor, cp.cantidadAlternativa, cp.unidadAlternativa, cp.tipoBulto, cp.estado, cp.contenedorDestino,
         (SELECT con.comentario FROM Contenedor con WHERE con.idContenedor = cp.contenedorDestino) AS nombreContenedorDestino
-        FROM ContenedorProductos cp 
+        FROM contenedorproducto cp 
         JOIN Producto p ON cp.producto = p.idProducto 
         LEFT JOIN color c ON cp.color = c.idColor
-        WHERE idContenedorProductos = ?; 
+        WHERE idContenedorProducto = ?; 
         `
         const [results] = await pool.promise().query(query, [id]);
         res.json(results);
@@ -34,9 +56,9 @@ async function obtenerProductosDeContenedor(req,res){
     try {
         const id = req.params.id;
         const query = `
-        SELECT  idContenedorProductos, p.nombre, p.idProducto, p.codigoInterno, cp.cantidad, cp.unidad, cp.precioPorUnidad, c.nombre AS color, cp.contenedor, c.idColor, cp.cantidadAlternativa, cp.unidadAlternativa, cp.estado, cp.contenedorDestino,
+        SELECT  idContenedorProducto, p.nombre, p.idProducto, p.codigoInterno, cp.cantidad, cp.unidad, cp.precioPorUnidad, c.nombre AS color, cp.contenedor, c.idColor, cp.cantidadAlternativa, cp.unidadAlternativa, cp.estado, cp.contenedorDestino,
         (SELECT con.comentario FROM Contenedor con WHERE con.idContenedor = cp.contenedorDestino) AS nombreContenedorDestino
-        FROM ContenedorProductos cp 
+        FROM contenedorproducto cp 
         JOIN Producto p ON cp.producto = p.idProducto 
         LEFT JOIN color c ON cp.color = c.idColor
         WHERE cp.contenedor = ?; `;
@@ -61,16 +83,16 @@ async function agregarProductoDeContenedor(req,res){
         }
         
         const connection = pool;
-        connection.query('INSERT INTO ContenedorProductos(contenedor,producto,cantidad,unidad,color,precioPorUnidad,cantidadAlternativa,unidadAlternativa,estado,contenedorDestino) VALUES(?,?,?,?,?,?,?,?,?,?);',
+        connection.query('INSERT INTO contenedorproducto(contenedor,producto,cantidad,unidad,color,precioPorUnidad,cantidadAlternativa,unidadAlternativa,estado,contenedorDestino) VALUES(?,?,?,?,?,?,?,?,?,?);',
         [contenedor, producto, cantidad, unidad, color, precioPorUnidad, cantidadAlternativa, unidadAltValidada, estado || 'En stock', contenedorDestino || null],(err,results)=>{
             if(err){
                 console.error('Error ejecutando la consulta:', err);
                 return res.status(500).send('Error en el servidor.');
             }
             const query = `
-                SELECT  idContenedorProductos, p.nombre, p.idProducto, p.codigoInterno, cp.cantidad, cp.unidad, cp.precioPorUnidad, c.nombre AS color, c.idColor, cp.cantidadAlternativa, cp.unidadAlternativa, cp.estado, cp.contenedorDestino,
+                SELECT  idContenedorProducto, p.nombre, p.idProducto, p.codigoInterno, cp.cantidad, cp.unidad, cp.precioPorUnidad, c.nombre AS color, c.idColor, cp.cantidadAlternativa, cp.unidadAlternativa, cp.estado, cp.contenedorDestino,
                 (SELECT con.comentario FROM Contenedor con WHERE con.idContenedor = cp.contenedorDestino) AS nombreContenedorDestino
-                FROM ContenedorProductos cp 
+                FROM contenedorproducto cp 
                 JOIN Producto p ON cp.producto = p.idProducto 
                 LEFT JOIN color c ON cp.color = c.idColor
                 WHERE cp.contenedor = ?; `;
@@ -115,18 +137,18 @@ async function editarProductoDeContenedor(req,res){
             
             console.log('Valor de color a guardar:', colorValue);
             
-            // 1. Actualizar la tabla ContenedorProductos
-            const query = `UPDATE ContenedorProductos cp
+            // 1. Actualizar la tabla contenedorproducto
+            const query = `UPDATE contenedorproducto cp
             SET 
             cp.producto = ?,
             cp.cantidad = ?,
             cp.unidad = ?,
             cp.color = ?,
             cp.precioPorUnidad = ?,
-            cp.item_proveedor = ?,
+            cp.itemProveedor = ?,
             cp.cantidadAlternativa = ?,
             cp.unidadAlternativa = ?
-            WHERE cp.idContenedorProductos = ?;
+            WHERE cp.idContenedorProducto = ?;
             `
             await connection.promise().query(query,[producto,cantidad,unidad,colorValue,precioPorUnidad,item_proveedor,cantidadAlternativa,unidadAltValidada,id]);
             
@@ -137,13 +159,13 @@ async function editarProductoDeContenedor(req,res){
                 await connection.promise().query(updateProductoQuery, [codigoInterno, producto]);
             }
             
-            let actualizado = {idContenedorProductos:parseInt(id),
+            let actualizado = {idContenedorProducto:parseInt(id),
                 idProducto:producto, 
                 cantidad:cantidad,
                 unidad:unidad,
                 color:color,
                 precioPorUnidad:precioPorUnidad,
-                item_proveedor:item_proveedor,
+                itemProveedor:item_proveedor,
                 cantidadAlternativa:cantidadAlternativa,
                 unidadAlternativa:unidadAltValidada
             };
@@ -152,7 +174,7 @@ async function editarProductoDeContenedor(req,res){
             const cambiosTexto = generarTextoCambios(dataAnterior, actualizado);
             
             const sqlInsert = `
-                INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo)
+                INSERT INTO contenedorproductohistorial (idContenedorProducto, contenedor, tipoCambio, cambios, usuarioCambio, motivo)
                 VALUES (?, ?, ?, ?, ?, ?);
             `;
             
@@ -166,7 +188,7 @@ async function editarProductoDeContenedor(req,res){
             ]);
             
             // Obtener los productos actualizados para devolver
-            const [results] = await connection.promise().query('SELECT * FROM ContenedorProductos cp JOIN Producto p ON cp.producto = p.idProducto WHERE cp.contenedor = ?', [contenedor]);
+            const [results] = await connection.promise().query('SELECT * FROM contenedorproducto cp JOIN Producto p ON cp.producto = p.idProducto WHERE cp.contenedor = ?', [contenedor]);
             return res.json(results);
         }
         // Si hay desglose de colores, crear nuevos productos y reducir el stock del producto principal
@@ -178,7 +200,7 @@ async function editarProductoDeContenedor(req,res){
             // Primero crear los nuevos productos con colores asignados
             for (const colorAsignado of coloresAsignados) {
                 const insertQuery = ` 
-                    INSERT INTO ContenedorProductos (contenedor, producto, cantidad, unidad, color, precioPorUnidad, cantidadAlternativa, unidadAlternativa)
+                    INSERT INTO contenedorproducto (contenedor, producto, cantidad, unidad, color, precioPorUnidad, cantidadAlternativa, unidadAlternativa)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?);
                 `;
                 // Validar que la unidad alternativa sea correcta según la unidad principal para cada color
@@ -227,22 +249,22 @@ if (cantidadAlternativa) {
 // Si queda stock, actualizar el producto principal con la nueva cantidad y cantidad alternativa
 if (nuevaCantidadProductoPrincipal > 0) {
     const updateQuery = `
-        UPDATE ContenedorProductos 
+        UPDATE contenedorproducto 
         SET cantidad = ?, cantidadAlternativa = ? 
-        WHERE idContenedorProductos = ?;
+        WHERE idContenedorProducto = ?;
     `;
     await connection.promise().query(updateQuery, [nuevaCantidadProductoPrincipal, nuevaCantidadAlternativaPrincipal, id]);
     cambiosTexto += `Producto principal: cantidad reducida de ${dataAnterior.cantidad} a ${nuevaCantidadProductoPrincipal}, cantidad alternativa de ${cantidadAlternativa} a ${nuevaCantidadAlternativaPrincipal}\n`;
 } else {
     // Si no queda stock, eliminar el producto principal
-    await connection.promise().query('DELETE FROM ContenedorProductos WHERE idContenedorProductos = ?', [id]);
+    await connection.promise().query('DELETE FROM contenedorproducto WHERE idContenedorProducto = ?', [id]);
     cambiosTexto += `Producto principal: eliminado (todo el stock fue asignado a colores)\n`;
 }
 
-const sqlInsert = `INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?);`;
+const sqlInsert = `INSERT INTO contenedorproductohistorial (idContenedorProducto, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?);`;
        
         await connection.promise().query(sqlInsert, [
-            id, // idContenedorProductos (usamos el ID original)
+            id, // idContenedorProducto (usamos el ID original)
             contenedor, // contenedor
             'INSERT', // tipoCambio
             cambiosTexto, // cambios (texto con el desglose de colores)
@@ -250,11 +272,11 @@ const sqlInsert = `INSERT INTO ContenedorProductosHistorial (idContenedorProduct
             motivo // motivo
         ]);
         if (cantidad === 0 && !color) {
-            await connection.promise().query('DELETE FROM ContenedorProductos WHERE idContenedorProductos = ?', [id]);
+            await connection.promise().query('DELETE FROM contenedorproducto WHERE idContenedorProducto = ?', [id]);
         }
                 
         }else if(cantidad !== 0){
-            const query = `UPDATE ContenedorProductos cp
+            const query = `UPDATE contenedorproducto cp
             JOIN Producto p ON cp.producto = p.idProducto
             SET 
             cp.producto = ?,
@@ -262,11 +284,11 @@ const sqlInsert = `INSERT INTO ContenedorProductosHistorial (idContenedorProduct
             cp.unidad = ?,
             cp.color = ?,
             cp.precioPorUnidad = ?,
-            cp.item_proveedor = ?,
+            cp.itemProveedor = ?,
             cp.cantidadAlternativa = ?,
             cp.unidadAlternativa = ?,
             p.codigoInterno = ?
-            WHERE cp.idContenedorProductos = ?;
+            WHERE cp.idContenedorProducto = ?;
         `
             await connection.promise().query(query,[producto,cantidad,unidad,color,precioPorUnidad,item_proveedor,cantidadAlternativa,unidadAltValidada,codigoInterno,id],(err,results)=>{
                 if(err){
@@ -274,19 +296,19 @@ const sqlInsert = `INSERT INTO ContenedorProductosHistorial (idContenedorProduct
                     return res.status(500).send('Error en el servidor.');
                 }        
             })
-            let actualizado = {idContenedorProductos:parseInt(id),
+            let actualizado = {idContenedorProducto:parseInt(id),
                 idProducto:producto, 
                 cantidad:cantidad,
                 unidad:unidad,
                 precioPorUnidad:precioPorUnidad,
                 idColor:color,
-                item_proveedor:item_proveedor,
+                itemProveedor:item_proveedor,
                 contenedor:contenedor,
                 cantidadAlternativa:cantidadAlternativa,
                 unidadAlternativa:unidadAltValidada,
                 codigoInterno:codigoInterno}
             let cambios = generarTextoCambios(dataAnterior, actualizado);
-            const sqlInsert = `INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?);`; 
+            const sqlInsert = `INSERT INTO contenedorproductohistorial (idContenedorProducto, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?);`; 
             await connection.promise().query(sqlInsert, [id, contenedor, 'UPDATE', cambios, usuarioCambio, motivo]);
         } 
         
@@ -304,9 +326,9 @@ const sqlInsert = `INSERT INTO ContenedorProductosHistorial (idContenedorProduct
                 
                 // Actualizar todos los productos relacionados en todos los contenedores
                 const updateQuery = `
-                    UPDATE ContenedorProductos 
+                    UPDATE contenedorproducto 
                     SET unidad = ?, unidadAlternativa = ? 
-                    WHERE producto = ? AND idContenedorProductos != ?
+                    WHERE producto = ? AND idContenedorProducto != ?
                 `;
                 
                 const [updateResult] = await connection.promise().query(
@@ -321,8 +343,8 @@ const sqlInsert = `INSERT INTO ContenedorProductosHistorial (idContenedorProduct
                     const cambioMasivo = `Cambio masivo de unidad: Se cambió la unidad de '${dataAnterior.unidad}' a '${unidad}' y la unidad alternativa de '${dataAnterior.unidadAlternativa || 'ninguna'}' a '${nuevaUnidadAlternativa}' en ${updateResult.affectedRows} productos relacionados.`;
                     
                     const sqlInsertHistorial = `
-                        INSERT INTO ContenedorProductosHistorial 
-                        (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) 
+                        INSERT INTO contenedorproductohistorial 
+                        (idContenedorProducto, contenedor, tipoCambio, cambios, usuarioCambio, motivo) 
                         VALUES (?, ?, ?, ?, ?, ?)
                     `;
                     
@@ -362,8 +384,8 @@ async function eliminarProductoDeContenedor(req,res){
             return res.status(400).send('Falta el ID del producto a eliminar.');
         }
         
-        // Asegurarnos de usar el nombre de tabla consistente: ContenedorProductos (C mayúscula)
-        const [results] = await connection.promise().query('SELECT * FROM ContenedorProductos WHERE idContenedorProductos = ?',[id]);
+        // Asegurarnos de usar el nombre de tabla consistente: contenedorproducto (C mayúscula)
+        const [results] = await connection.promise().query('SELECT * FROM contenedorproducto WHERE idContenedorProducto = ?',[id]);
         
         if (results.length === 0) {
             return res.status(404).send(`No se encontró el producto con ID ${id}`);
@@ -372,11 +394,11 @@ async function eliminarProductoDeContenedor(req,res){
         console.log('Producto encontrado:', results[0]);
         
         // Eliminar el producto usando el nombre de tabla correcto
-        await connection.promise().query('DELETE FROM ContenedorProductos WHERE idContenedorProductos = ?',[id])
+        await connection.promise().query('DELETE FROM contenedorproducto WHERE idContenedorProducto = ?',[id])
         
         const cambios = JSON.stringify(results[0]);
         
-        const sqlInsert = `INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?);`;
+        const sqlInsert = `INSERT INTO contenedorproductohistorial (idContenedorProducto, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?);`;
         
         await connection.promise().query(sqlInsert, [id, contenedor, 'DELETE', cambios, usuarioCambio, motivo]);
         console.log('MOTIVO :', motivo)
@@ -433,7 +455,7 @@ async function cambiarEstadoProducto(req, res) {
         
         // Primero obtenemos los datos actuales del producto
         const [productoActual] = await connection.promise().query(
-            'SELECT cp.*, p.nombre, p.idProducto FROM ContenedorProductos cp JOIN Producto p ON cp.producto = p.idProducto WHERE idContenedorProductos = ?', 
+            'SELECT cp.*, p.nombre, p.idProducto FROM contenedorproducto cp JOIN Producto p ON cp.producto = p.idProducto WHERE idContenedorProducto = ?', 
             [id]
         );
         
@@ -473,7 +495,7 @@ async function cambiarEstadoProducto(req, res) {
             
             // Paso 1: Verificar si ya existe el mismo producto en el contenedor destino
             const [productoExistenteEnDestino] = await connection.promise().query(
-                `SELECT * FROM ContenedorProductos 
+                `SELECT * FROM contenedorproducto 
                 WHERE contenedor = ? AND producto = ? AND color = ? AND unidad = ?`, 
                 [contenedorDestino, productoOriginal.producto, productoOriginal.color, productoOriginal.unidad]
             );
@@ -489,16 +511,16 @@ async function cambiarEstadoProducto(req, res) {
                 }
                 
                 await connection.promise().query(
-                    'UPDATE ContenedorProductos SET cantidad = ?, cantidadAlternativa = ? WHERE idContenedorProductos = ?',
-                    [nuevaCantidadDestino, nuevaCantidadAlternativaDestino, productoDestino.idContenedorProductos]
+                    'UPDATE contenedorproducto SET cantidad = ?, cantidadAlternativa = ? WHERE idContenedorProducto = ?',
+                    [nuevaCantidadDestino, nuevaCantidadAlternativaDestino, productoDestino.idContenedorProducto]
                 );
                 
-                cambios.contenedorDestinoAccion = `Actualizado producto existente en ${contenedorDestino} (ID: ${productoDestino.idContenedorProductos})`;
+                cambios.contenedorDestinoAccion = `Actualizado producto existente en ${contenedorDestino} (ID: ${productoDestino.idContenedorProducto})`;
             } 
             // Paso 2b: Si no existe, creamos un nuevo registro en el contenedor destino
             else {
                 const [nuevoProductoDestino] = await connection.promise().query(
-                    `INSERT INTO ContenedorProductos 
+                    `INSERT INTO contenedorproducto 
                     (contenedor, producto, cantidad, unidad, color, precioPorUnidad, estado, 
                     cantidadAlternativa, unidadAlternativa) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -514,7 +536,7 @@ async function cambiarEstadoProducto(req, res) {
             if (nuevaCantidadOriginal > 0) {
                 // Actualizamos la cantidad en el contenedor original
                 await connection.promise().query(
-                    'UPDATE ContenedorProductos SET cantidad = ?, cantidadAlternativa = ? WHERE idContenedorProductos = ?',
+                    'UPDATE contenedorproducto SET cantidad = ?, cantidadAlternativa = ? WHERE idContenedorProducto = ?',
                     [nuevaCantidadOriginal, 
                     productoOriginal.cantidadAlternativa ? (productoOriginal.cantidadAlternativa - cantidadAlternativaProporcional) : null, 
                     id]
@@ -524,7 +546,7 @@ async function cambiarEstadoProducto(req, res) {
             } else {
                 // Si se transfiere todo, eliminamos el registro del contenedor original
                 await connection.promise().query(
-                    'DELETE FROM ContenedorProductos WHERE idContenedorProductos = ?',
+                    'DELETE FROM contenedorproducto WHERE idContenedorProducto = ?',
                     [id]
                 );
                 
@@ -551,7 +573,7 @@ async function cambiarEstadoProducto(req, res) {
             // Si se entregó todo, cambiamos el estado a "Entregado"
             if (nuevaCantidad === 0) {
                 await connection.promise().query(
-                    'UPDATE ContenedorProductos SET cantidad = ?, estado = ? WHERE idContenedorProductos = ?',
+                    'UPDATE contenedorproducto SET cantidad = ?, estado = ? WHERE idContenedorProducto = ?',
                     [0, 'Entregado', id]
                 );
                 
@@ -562,7 +584,7 @@ async function cambiarEstadoProducto(req, res) {
             } else {
                 // Si queda cantidad, actualizamos solo la cantidad
                 await connection.promise().query(
-                    'UPDATE ContenedorProductos SET cantidad = ? WHERE idContenedorProductos = ?',
+                    'UPDATE contenedorproducto SET cantidad = ? WHERE idContenedorProducto = ?',
                     [nuevaCantidad, id]
                 );
                 
@@ -577,7 +599,7 @@ async function cambiarEstadoProducto(req, res) {
         // Registrar el cambio en el historial
         const cambiosTexto = JSON.stringify(cambios);
         await connection.promise().query(
-            'INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?)',
+            'INSERT INTO contenedorproductohistorial (idContenedorProducto, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?)',
             [id, contenedorOriginal, 'UPDATE_ESTADO', cambiosTexto, usuarioCambio, motivo]
         );
         
@@ -585,10 +607,10 @@ async function cambiarEstadoProducto(req, res) {
         const [productoActualizado] = await connection.promise().query(
             `SELECT cp.*, p.nombre, c.nombre AS color, 
             (SELECT con.comentario FROM Contenedor con WHERE con.idContenedor = cp.contenedorDestino) AS nombreContenedorDestino
-            FROM ContenedorProductos cp 
+            FROM contenedorproducto cp 
             JOIN Producto p ON cp.producto = p.idProducto 
             LEFT JOIN color c ON cp.color = c.idColor
-            WHERE cp.idContenedorProductos = ?`,
+            WHERE cp.idContenedorProducto = ?`,
             [id]
         );
         
@@ -608,7 +630,7 @@ async function obtenerContenedoresPredeterminados(req, res) {
         const connection = pool;
         
         const [contenedores] = await connection.promise().query(
-            'SELECT * FROM Contenedor WHERE categoria = ?',
+            'SELECT * FROM contenedor WHERE categoria = ?',
             ['Predeterminado']
         );
         
@@ -648,7 +670,7 @@ async function cambioEstadoMasivo(req, res) {
         
         // Procesar cada producto
         for (const producto of productos) {
-            const { idContenedorProductos, cantidadAMover, cantidadOriginal, unidad, cantidadAlternativa, unidadAlternativa, precioPorUnidad, producto: productoId, color, nombreProducto } = producto;
+            const { idContenedorProducto, cantidadAMover, cantidadOriginal, unidad, cantidadAlternativa, unidadAlternativa, precioPorUnidad, producto: productoId, color, nombreProducto } = producto;
             
             // Validar que la cantidad a mover no exceda la cantidad disponible
             if (cantidadAMover > cantidadOriginal) {
@@ -662,19 +684,19 @@ async function cambioEstadoMasivo(req, res) {
             // Si se moverá todo el producto, cambiamos su estado
             if (cantidadRestante === 0) {
                 await connection.query(
-                    'UPDATE ContenedorProductos SET cantidad = 0, estado = ? WHERE idContenedorProductos = ?',
-                    [destino, idContenedorProductos]
+                    'UPDATE contenedorproducto SET cantidad = 0, estado = ? WHERE idContenedorProducto = ?',
+                    [destino, idContenedorProducto]
                 );
             } else {
                 // Si queda cantidad, solo actualizamos la cantidad
                 await connection.query(
-                    'UPDATE ContenedorProductos SET cantidad = ? WHERE idContenedorProductos = ?',
-                    [cantidadRestante, idContenedorProductos]
+                    'UPDATE contenedorproducto SET cantidad = ? WHERE idContenedorProducto = ?',
+                    [cantidadRestante, idContenedorProducto]
                 );
                 
                 // 2. Crear un nuevo registro para la cantidad que cambió de estado
                 await connection.query(
-                    `INSERT INTO ContenedorProductos 
+                    `INSERT INTO contenedorproducto 
                      (contenedor, producto, cantidad, unidad, color, precioPorUnidad, cantidadAlternativa, unidadAlternativa, estado) 
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                     [contenedor, productoId, cantidadAMover, unidad, color, precioPorUnidad, cantidadAlternativa, unidadAlternativa, destino]
@@ -690,12 +712,12 @@ async function cambioEstadoMasivo(req, res) {
             };
             
             await connection.query(
-                'INSERT INTO ContenedorProductosHistorial (idContenedorProductos, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?)',
-                [idContenedorProductos, contenedor, 'CAMBIO_ESTADO_MASIVO', JSON.stringify(cambios), 'sistema', comentario]
+                'INSERT INTO contenedorproductohistorial (idContenedorProducto, contenedor, tipoCambio, cambios, usuarioCambio, motivo) VALUES (?, ?, ?, ?, ?, ?)',
+                [idContenedorProducto, contenedor, 'CAMBIO_ESTADO_MASIVO', JSON.stringify(cambios), 'sistema', comentario]
             );
             
             resultados.push({
-                idContenedorProductos,
+                idContenedorProducto,
                 nombreProducto,
                 cantidadMovida: cantidadAMover,
                 cantidadRestante,
