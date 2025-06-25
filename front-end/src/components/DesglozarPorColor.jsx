@@ -95,10 +95,15 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
             console.error('El color recibido no tiene el formato correcto:', nuevoColor);
             return;
         }
+        const colorNormalizado = {
+            idcolor: nuevoColor.idcolor || nuevoColor.idColor,
+            nombre: nuevoColor.nombre,
+            codigointerno: nuevoColor.codigointerno || nuevoColor.codigoInterno
+        };
         const newOption = {
-            value: nuevoColor.idcolor.toString(),
-            label: nuevoColor.nombre + (nuevoColor.codigointerno ? ` (${nuevoColor.codigointerno})` : ''),
-            data: nuevoColor
+            value: colorNormalizado.idcolor.toString(),
+            label: colorNormalizado.nombre + (colorNormalizado.codigointerno ? ` (${colorNormalizado.codigointerno})` : ''),
+            data: colorNormalizado
         };
         setLocalColoresOptions(prev => {
             const colorExists = prev.some(opt => opt.value === newOption.value);
