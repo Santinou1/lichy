@@ -275,26 +275,26 @@ async function agregarProducto(req,res){
         });
         
         // Primero intentamos actualizar la estructura de la tabla para asegurarnos de que 'uni' sea un valor válido
-        const alterTableSQL = "ALTER TABLE Producto MODIFY COLUMN unidadPredeterminada ENUM('m', 'kg', 'uni')";
+        const alterTableSQL = "ALTER TABLE producto MODIFY COLUMN unidadPredeterminada ENUM('m', 'kg', 'uni')";
         connection.query(alterTableSQL, (alterErr, alterResult) => {
             if (alterErr) {
                 console.log('No se pudo actualizar la estructura de la tabla, pero continuamos con la inserción:', alterErr);
                 // Continuamos con la inserción aunque falle la alteración de la tabla
             } else {
-                console.log('Estructura de la tabla Producto actualizada correctamente para incluir "uni"');
+                console.log('Estructura de la tabla producto actualizada correctamente para incluir "uni"');
             }
             
-            // Verificar la estructura de la tabla Producto después de intentar alterarla
-            connection.query('DESCRIBE Producto', (err, tableDesc) => {
+            // Verificar la estructura de la tabla producto después de intentar alterarla
+            connection.query('DESCRIBE producto', (err, tableDesc) => {
                 if (err) {
                     console.error('Error obteniendo estructura de tabla:', err);
                     return res.status(500).send('Error en el servidor.');
                 }
                 
-                console.log('Estructura de la tabla Producto:', tableDesc);
+                console.log('Estructura de la tabla producto:', tableDesc);
                 
                 // Verificar si ya existe un producto con el mismo nombre
-                connection.query('SELECT * FROM Producto WHERE nombre = ?', [nombre], (err, existingProducts) => {
+                connection.query('SELECT * FROM producto WHERE nombre = ?', [nombre], (err, existingProducts) => {
                     if (err) {
                         console.error('Error verificando producto existente:', err);
                         return res.status(500).send('Error en el servidor.');
@@ -310,7 +310,7 @@ async function agregarProducto(req,res){
                     }
                     
                     // Si no existe, continuar con la inserción
-                    const insertQuery = 'INSERT INTO Producto (nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado) VALUES (?,?,?,?)';
+                    const insertQuery = 'INSERT INTO producto (nombre, unidadPredeterminada, codigoInterno, tipoBultoPredeterminado) VALUES (?,?,?,?)';
                     const insertValues = [nombre, unidadPredeterminadaValue, codigoInternoValue, tipoBultoValue];
                 
                     console.log('Query de inserción:', insertQuery);
@@ -346,9 +346,9 @@ async function agregarProducto(req,res){
                             }
                         });
                     });
-                }); // Cierre del SELECT * FROM Producto WHERE nombre = ?
-            }); // Cierre del DESCRIBE Producto
-        }); // Cierre del ALTER TABLE Producto
+                }); // Cierre del SELECT * FROM producto WHERE nombre = ?
+            }); // Cierre del DESCRIBE producto
+        }); // Cierre del ALTER TABLE producto
     } catch(error) {
         console.error('Error ejecutando la consulta:', error);
         return res.status(500).send('Error en el servidor.');
