@@ -62,7 +62,14 @@ async function agregarContenedor(req,res){
                 productoId = nuevoProducto.insertId;
             }
 
-            await connection.promise().query('INSERT INTO contenedorproducto (contenedor,producto,unidad,cantidad,unidadAlternativa,cantidadAlternativa,precioPorUnidad,tipoBulto,cantidadBulto,itemProveedor) VALUES (?,?,?,?,?,?,?,?,?,?)',[idContenedor, productoId, unidad, cantidad, unidadAlternativa, cantidadAlternativa, precioPorUnidad, tipoBulto, cantidadBulto, item_proveedor]);
+            // Normalizar tipoBulto a los valores válidos del ENUM
+            let tipoBultoNormalizado = (tipoBulto || '').toLowerCase();
+            if (tipoBultoNormalizado === 'caja') tipoBultoNormalizado = 'cajas';
+            if (tipoBultoNormalizado === 'rollo') tipoBultoNormalizado = 'rollos';
+            if (!['cajas', 'rollos'].includes(tipoBultoNormalizado)) {
+                tipoBultoNormalizado = unidad === 'uni' ? 'cajas' : 'rollos';
+            }
+            await connection.promise().query('INSERT INTO contenedorproducto (contenedor,producto,unidad,cantidad,unidadAlternativa,cantidadAlternativa,precioPorUnidad,tipoBulto,cantidadBulto,itemProveedor) VALUES (?,?,?,?,?,?,?,?,?,?)',[idContenedor, productoId, unidad, cantidad, unidadAlternativa, cantidadAlternativa, precioPorUnidad, tipoBultoNormalizado, cantidadBulto, item_proveedor]);
         }
         // Insertar solo el estado 'Contenedor Creado' sin ubicación específica
         await connection.promise().query('INSERT INTO contenedorestado (contenedor,estado,ubicacion) VALUES (?,?,?)',[idContenedor,'Contenedor Creado','-']);
