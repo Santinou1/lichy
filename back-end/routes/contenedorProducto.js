@@ -116,6 +116,11 @@ async function editarProductoDeContenedor(req,res){
      
         const id =req.params.id;
         const {producto,cantidad,unidad,color,contenedor,precioPorUnidad,coloresAsignados,item_proveedor,motivo,dataAnterior,usuarioCambio,cantidadAlternativa,unidadAlternativa,actualizarUnidadEnTodosLosProductos,codigoInterno} = req.body;
+        // Validación: no permitir desglose si el producto ya tiene color
+        const [productoPrincipalRows] = await connection.promise().query('SELECT color FROM contenedorproducto WHERE idcontenedorproducto = ?', [id]);
+        if (productoPrincipalRows.length > 0 && productoPrincipalRows[0].color !== null && coloresAsignados && coloresAsignados.length > 0) {
+            return res.status(400).json({ error: 'No se puede disponer color sobre un producto que ya tiene color asignado.' });
+        }
         
         // Validar que la unidad alternativa sea correcta según la unidad principal
         let unidadAltValidada = unidadAlternativa;
