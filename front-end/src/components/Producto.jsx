@@ -857,7 +857,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                 <div className="producto-acciones">
                     {user.permisos["Editar-Contenedores"] && (
                         <>
-                            {!productoActualizado.idColor ? (
+                            {!(productoActualizado.idcolor || productoActualizado.idColor) ? (
                                 // Mostrar el botón 'Disponer colores' cuando el producto no tiene color
                                 <button 
                                     onClick={cambiarNumero} 
