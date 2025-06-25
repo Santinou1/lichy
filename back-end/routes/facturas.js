@@ -7,7 +7,7 @@ router.get('/', (req, res) => {
   const query = `
     SELECT f.*, u.nombre as nombreUsuario
     FROM Facturas f
-    JOIN Usuario u ON f.usuarioCreacion = u.idUsuario
+    JOIN usuario u ON f.usuarioCreacion = u.idUsuario
     ORDER BY f.fechaCreacion DESC
   `;
   
@@ -25,7 +25,7 @@ router.get('/:id', (req, res) => {
   const query = `
     SELECT f.*, u.nombre as nombreUsuario
     FROM Facturas f
-    JOIN Usuario u ON f.usuarioCreacion = u.idUsuario
+    JOIN usuario u ON f.usuarioCreacion = u.idUsuario
     WHERE f.idFactura = ?
   `;
   

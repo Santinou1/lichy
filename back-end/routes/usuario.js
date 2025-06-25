@@ -47,7 +47,7 @@ async function primerAdmin(req,res){
         const permisosJSON = JSON.stringify(permisos);
 
         const contraEncriptada = await encriptarContrasena(contrasena);
-        const query = 'INSERT INTO Usuario (nombre, email, contrasena, tipoUsuario,permisos) VALUES (?,?,?,?,?)';
+        const query = 'INSERT INTO usuario (nombre, email, contrasena, tipoUsuario,permisos) VALUES (?,?,?,?,?)';
         connection.query(query,[nombre,email,contraEncriptada,tipoUsuario,permisosJSON],(err,results)=>{
             if(err){
                 console.error('Error ejecutando la consulta:', err);
@@ -68,7 +68,7 @@ async function actualizarUsuario(req,res){
         if(!nombre || !email || !tipoUsuario || !permisos){
             return res.status(400).send('Faltan campos obligatorios');
         }
-        const query = 'UPDATE Usuario SET nombre = ?, email = ?, tipoUsuario = ?, permisos = ? WHERE idUsuario = ?';
+        const query = 'UPDATE usuario SET nombre = ?, email = ?, tipoUsuario = ?, permisos = ? WHERE idusuario = ?';
         connection.query(query,[nombre,email,tipoUsuario,permisos,id],(err,results)=>{
             if(err){
                 console.error('Error ejecutando la consulta:', err);
@@ -90,7 +90,7 @@ async function agregarUsuario(req,res){
         const permisosJSON = JSON.stringify(permisos);
 
         const contraEncriptada = await encriptarContrasena(contrasena);
-        const query = 'INSERT INTO Usuario (nombre, email, contrasena, tipoUsuario,permisos) VALUES (?,?,?,?,?)';
+        const query = 'INSERT INTO usuario (nombre, email, contrasena, tipoUsuario,permisos) VALUES (?,?,?,?,?)';
         connection.query(query,[nombre,email,contraEncriptada,tipoUsuario,permisosJSON],(err,results)=>{
             if(err){
                 console.error('Error ejecutando la consulta:', err);
@@ -112,7 +112,7 @@ async function actualizarContrasena(req,res){
         if(!contrasenaNueva || !contrasena){
             return res.status(400).send('Faltan campos obligatorios');
         }
-        const query = 'SELECT contrasena FROM Usuario WHERE idUsuario = ?';
+        const query = 'SELECT contrasena FROM usuario WHERE idusuario = ?';
         connection.query(query,[id], async (err,results)=>{
             if(err){
                 console.error('Error ejecutando la consulta:', err);
@@ -125,7 +125,7 @@ async function actualizarContrasena(req,res){
             const contrasenaCorrecta = await verificarContrasena(contrasena,contrasenaActual);
             if(contrasenaCorrecta){
                 const contraEncriptada = await encriptarContrasena(contrasenaNueva);
-                const query = 'UPDATE Usuario SET contrasena = ? WHERE idUsuario = ?';
+                const query = 'UPDATE usuario SET contrasena = ? WHERE idusuario = ?';
                 connection.query(query,[contraEncriptada,id],(err,results)=>{
                     if(err){
                         console.error('Error ejecutando la consulta:', err);
@@ -147,7 +147,7 @@ async function login(req,res) {
     try{
         const connection = pool;
         const {email, contrasena} = req.body;
-        const query = 'SELECT * FROM Usuario WHERE email = ?';
+        const query = 'SELECT * FROM usuario WHERE email = ?';
         connection.query(query,[email], async (err,results)=>{
             if(err){
                 console.error('Error ejecutando la consulta:', err);
@@ -175,7 +175,7 @@ async function eliminarUsuario(req,res){
     try {
         const connection = pool;
         const {id} = req.params;
-        const query = 'DELETE FROM Usuario WHERE idUsuario = ?';
+        const query = 'DELETE FROM usuario WHERE idusuario = ?';
         connection.query(query,[id],(err,results)=>{
             if(err){
                 console.error('Error ejecutando la consulta:', err);

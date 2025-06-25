@@ -9,7 +9,7 @@ router.get('/', (req, res) => {
       (SELECT COUNT(*) FROM contenedorproducto WHERE idPedido = p.idPedido) as cantidadProductos,
       u.nombre as nombreUsuario
     FROM pedido p
-    JOIN Usuario u ON p.usuarioCreacion = u.idUsuario
+    JOIN usuario u ON p.usuarioCreacion = u.idUsuario
     ORDER BY p.fechaCreacion DESC
   `;
   
@@ -32,7 +32,7 @@ router.get('/filtrar', (req, res) => {
       (SELECT COUNT(*) FROM contenedorproducto WHERE idPedido = p.idPedido) as cantidadProductos,
       u.nombre as nombreUsuario
     FROM pedido p
-    JOIN Usuario u ON p.usuarioCreacion = u.idUsuario
+    JOIN usuario u ON p.usuarioCreacion = u.idUsuario
   `;
   
   let params = [];
@@ -79,8 +79,8 @@ router.get('/:id', (req, res) => {
     SELECT p.*, u.nombre as nombreUsuario,
       uc.nombre as nombreUsuarioCompletado
     FROM pedido p
-    JOIN Usuario u ON p.usuarioCreacion = u.idUsuario
-    LEFT JOIN Usuario uc ON p.usuarioCompletado = uc.idUsuario
+    JOIN usuario u ON p.usuarioCreacion = u.idUsuario
+    LEFT JOIN usuario uc ON p.usuarioCompletado = uc.idUsuario
     WHERE p.idPedido = ?
   `;
   
