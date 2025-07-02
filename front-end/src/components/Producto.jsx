@@ -791,8 +791,8 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                             </div>
                         </div>
                         
-                        {productoActualizado.cantidadAlternativa && productoActualizado.unidadAlternativa && (
-                            <label>Cantidad Alt.: <b>{`${parseFloat(productoActualizado.cantidadAlternativa).toFixed(2)} ${productoActualizado.unidadAlternativa}`}</b></label>
+                        {(productoActualizado.cantidadAlternativa || productoActualizado.cantidadalternativa) && (productoActualizado.unidadAlternativa || productoActualizado.unidadalternativa) && (
+                            <label>Cantidad Alt.: <b>{`${parseFloat(productoActualizado.cantidadAlternativa || productoActualizado.cantidadalternativa).toFixed(2)} ${productoActualizado.unidadAlternativa || productoActualizado.unidadalternativa}`}</b></label>
                         )}
                         
                         <div className="precio-total">
@@ -839,8 +839,8 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                                 {productoActualizado.cantidad ? `${parseFloat(productoActualizado.cantidad).toFixed(2)} ${productoActualizado.unidad}` : 'Sin cantidad'}
                             </b>
                         </label>
-                        {productoActualizado.cantidadAlternativa && productoActualizado.unidadAlternativa && (
-                            <label>Cantidad Alt.: <b>{`${parseFloat(productoActualizado.cantidadAlternativa).toFixed(2)} ${productoActualizado.unidadAlternativa}`}</b></label>
+                        {(productoActualizado.cantidadAlternativa || productoActualizado.cantidadalternativa) && (productoActualizado.unidadAlternativa || productoActualizado.unidadalternativa) && (
+                            <label>Cantidad Alt.: <b>{`${parseFloat(productoActualizado.cantidadAlternativa || productoActualizado.cantidadalternativa).toFixed(2)} ${productoActualizado.unidadAlternativa || productoActualizado.unidadalternativa}`}</b></label>
                         )}
                         <div className="estado-producto">
                             Estado: <span className={`estado-badge ${productoActualizado.estado === 'Entregado' ? 'entregado' : 'en-stock'}`}>
