@@ -12,8 +12,8 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
     
     // Estados para manejo de cantidad alternativa
     const [cantidadAlternativaAsignada, setCantidadAlternativaAsignada] = useState('');
-    const [cantidadAlternativaRestante, setCantidadAlternativaRestante] = useState(producto.cantidadAlternativa || 0);
-    const [mostrarCantidadAlternativa, setMostrarCantidadAlternativa] = useState(!!producto.cantidadAlternativa);
+    const [cantidadAlternativaRestante, setCantidadAlternativaRestante] = useState(producto.cantidadAlternativa || producto.cantidadalternativa || 0);
+    const [mostrarCantidadAlternativa, setMostrarCantidadAlternativa] = useState(!!(producto.cantidadAlternativa || producto.cantidadalternativa));
     
     // Guardar el tipo de bulto basado en la unidad del producto para enviarlo al backend
     const tipoBulto = producto.unidad === 'm' || producto.unidad === 'kg' ? 'rollo' : 'caja';
@@ -173,8 +173,8 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
                     cantidadAlternativa: item.cantidadAlternativa || null,
                     rollos: [{ cantidad: item.cantidad, numero: 1 }]
                 })),
-                cantidadAlternativa: producto.cantidadAlternativa,
-                unidadAlternativa: producto.unidadAlternativa,
+                cantidadAlternativa: producto.cantidadAlternativa || producto.cantidadalternativa,
+                unidadAlternativa: producto.unidadAlternativa || producto.unidadalternativa,
                 item_proveedor: producto.item_proveedor,
                 codigoInterno: producto.codigointerno || producto.codigoInterno,
                 tipoBulto: tipoBulto,
@@ -250,7 +250,7 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
                 </div>
                 
                 {/* Mostrar campo de cantidad alternativa si el producto la tiene */}
-                {producto.cantidadAlternativa > 0 && (
+                {(producto.cantidadAlternativa || producto.cantidadalternativa) > 0 && (
                     <div style={{ marginBottom: '15px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
                             <input
@@ -261,19 +261,19 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
                                 style={{ marginRight: '8px' }}
                             />
                             <label htmlFor="mostrarCantidadAlt" style={{ cursor: 'pointer' }}>
-                                Asignar también cantidad alternativa ({producto.unidadAlternativa})
+                                Asignar también cantidad alternativa ({(producto.unidadAlternativa || producto.unidadalternativa)})
                             </label>
                         </div>
                         
                         {mostrarCantidadAlternativa && (
                             <div>
                                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                    Cantidad alternativa a asignar ({producto.unidadAlternativa}):
+                                    Cantidad alternativa a asignar ({(producto.unidadAlternativa || producto.unidadalternativa)}):
                                 </label>
                                 <input
                                     style={{ padding: '5px', width: '100%', marginBottom: '10px' }}
                                     type="number"
-                                    placeholder={`Cantidad en ${producto.unidadAlternativa}`}
+                                    placeholder={`Cantidad en ${(producto.unidadAlternativa || producto.unidadalternativa)}`}
                                     min="0.01"
                                     max={cantidadAlternativaRestante}
                                     step="0.01"
@@ -281,7 +281,7 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
                                     onChange={(e) => setCantidadAlternativaAsignada(e.target.value)}
                                 />
                                 <div style={{ marginBottom: '10px', color: '#666' }}>
-                                    Disponible: {cantidadAlternativaRestante} {producto.unidadAlternativa}
+                                    Disponible: {cantidadAlternativaRestante} {(producto.unidadAlternativa || producto.unidadalternativa)}
                                 </div>
                             </div>
                         )}
@@ -346,9 +346,9 @@ function DesglozarPorcolor({ producto, colores, coloresOptions = [], onColoresAs
                                     </span>
                                     <div>
                                     <span>Cantidad: {item.cantidad} {producto.unidad}</span>
-                                    {item.cantidadAlternativa && (
+                                    {(item.cantidadAlternativa || item.cantidadalternativa) && (
                                         <span style={{ marginLeft: '10px', color: '#666' }}>
-                                            ({item.cantidadAlternativa} {producto.unidadAlternativa})
+                                            ({(item.cantidadAlternativa || item.cantidadalternativa)} {(producto.unidadAlternativa || producto.unidadalternativa)})
                                         </span>
                                     )}
                                 </div>
