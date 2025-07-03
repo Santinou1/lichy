@@ -43,6 +43,11 @@ async function agregarContenedor(req,res){
         const idContenedor = contenedorResult.insertId;
         for(const producto of productos){
             const {idProducto, nombre, unidad, unidadAlternativa, cantidad, cantidadAlternativa, cantidadBulto, tipoBulto, precioPorUnidad, item_proveedor} = producto;
+            // Normalizar los valores alternativos
+            const cantidadAlternativaFinal = (cantidadAlternativa === "" || cantidadAlternativa === undefined) ? null : Number(cantidadAlternativa);
+            const unidadAlternativaFinal = (unidadAlternativa === "" || unidadAlternativa === undefined) ? null : unidadAlternativa;
+            console.log('Producto recibido:', producto);
+            console.log('Valores normalizados:', { cantidadAlternativaFinal, unidadAlternativaFinal });
             if(!unidad || !cantidad||!cantidadBulto||!tipoBulto || !precioPorUnidad || (!idProducto && ! nombre)){
                 console.warn('Producto invalido:',producto)
                 continue;
@@ -69,7 +74,8 @@ async function agregarContenedor(req,res){
             if (!['cajas', 'rollos'].includes(tipoBultoNormalizado)) {
                 tipoBultoNormalizado = unidad === 'uni' ? 'cajas' : 'rollos';
             }
-            await connection.promise().query('INSERT INTO contenedorproducto (contenedor,producto,unidad,cantidad,unidadAlternativa,cantidadAlternativa,precioPorUnidad,tipoBulto,cantidadBulto,itemProveedor) VALUES (?,?,?,?,?,?,?,?,?,?)',[idContenedor, productoId, unidad, cantidad, unidadAlternativa, cantidadAlternativa, precioPorUnidad, tipoBultoNormalizado, cantidadBulto, item_proveedor]);
+            console.log('Datos enviados al INSERT contenedorproducto:', [idContenedor, productoId, unidad, cantidad, unidadAlternativaFinal, cantidadAlternativaFinal, precioPorUnidad, tipoBultoNormalizado, cantidadBulto, item_proveedor]);
+            await connection.promise().query('INSERT INTO contenedorproducto (contenedor,producto,unidad,cantidad,unidadAlternativa,cantidadAlternativa,precioPorUnidad,tipoBulto,cantidadBulto,itemProveedor) VALUES (?,?,?,?,?,?,?,?,?,?)',[idContenedor, productoId, unidad, cantidad, unidadAlternativaFinal, cantidadAlternativaFinal, precioPorUnidad, tipoBultoNormalizado, cantidadBulto, item_proveedor]);
         }
         // Insertar solo el estado 'Contenedor Creado' sin ubicación específica
         await connection.promise().query('INSERT INTO contenedorestado (contenedor,estado,ubicacion) VALUES (?,?,?)',[idContenedor,'Contenedor Creado','-']);
