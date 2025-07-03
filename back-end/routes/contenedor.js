@@ -42,40 +42,41 @@ async function agregarContenedor(req,res){
         const [contenedorResult]= await connection.promise().query('INSERT INTO contenedor ( usuario, proveedor,categoria,factura,comentario) VALUES (?,?,?,?,?)',[ usuario, proveedor,'Contenedor Creado',factura,comentario]);
         const idContenedor = contenedorResult.insertId;
         for(const producto of productos){
-            const {idProducto, nombre, unidad, unidadAlternativa, cantidad, cantidadAlternativa, cantidadBulto, tipoBulto, precioPorUnidad, item_proveedor} = producto;
+            // Usar solo minúsculas en destructuring
+            const {idproducto, nombre, unidad, unidadalternativa, cantidad, cantidadalternativa, cantidadbulto, tipobulto, precioporunidad, item_proveedor} = producto;
             // Normalizar los valores alternativos
-            const cantidadAlternativaFinal = (cantidadAlternativa === "" || cantidadAlternativa === undefined) ? null : Number(cantidadAlternativa);
-            const unidadAlternativaFinal = (unidadAlternativa === "" || unidadAlternativa === undefined) ? null : unidadAlternativa;
+            const cantidadalternativaFinal = (cantidadalternativa === "" || cantidadalternativa === undefined) ? null : Number(cantidadalternativa);
+            const unidadalternativaFinal = (unidadalternativa === "" || unidadalternativa === undefined) ? null : unidadalternativa;
             console.log('Producto recibido:', producto);
-            console.log('Valores normalizados:', { cantidadAlternativaFinal, unidadAlternativaFinal });
-            if(!unidad || !cantidad||!cantidadBulto||!tipoBulto || !precioPorUnidad || (!idProducto && ! nombre)){
+            console.log('Valores normalizados:', { cantidadalternativaFinal, unidadalternativaFinal });
+            if(!unidad || !cantidad||!cantidadbulto||!tipobulto || !precioporunidad || (!idproducto && ! nombre)){
                 console.warn('Producto invalido:',producto)
                 continue;
             }
 
             let productoId;
 
-            if(idProducto){
-                const [productoExistente] = await connection.promise().query('SELECT idProducto FROM producto WHERE idProducto = ?',[idProducto]);
+            if(idproducto){
+                const [productoExistente] = await connection.promise().query('SELECT idProducto FROM producto WHERE idProducto = ?',[idproducto]);
                 if(productoExistente.length > 0){
                     productoId = productoExistente[0].idProducto;
                 } else {
                     console.warn('Producto no encontrado:', producto);
                 }
             }else{ 
-                const [nuevoProducto] = await connection.promise().query('INSERT INTO producto (nombre, unidadPredeterminada, tipoBultoPredeterminado) VALUES (?,?,?)',[nombre,unidad,tipoBulto]);
+                const [nuevoProducto] = await connection.promise().query('INSERT INTO producto (nombre, unidadPredeterminada, tipoBultoPredeterminado) VALUES (?,?,?)',[nombre,unidad,tipobulto]);
                 productoId = nuevoProducto.insertId;
             }
 
             // Normalizar tipoBulto a los valores válidos del ENUM
-            let tipoBultoNormalizado = (tipoBulto || '').toLowerCase();
+            let tipoBultoNormalizado = (tipobulto || '').toLowerCase();
             if (tipoBultoNormalizado === 'caja') tipoBultoNormalizado = 'cajas';
             if (tipoBultoNormalizado === 'rollo') tipoBultoNormalizado = 'rollos';
             if (!['cajas', 'rollos'].includes(tipoBultoNormalizado)) {
                 tipoBultoNormalizado = unidad === 'uni' ? 'cajas' : 'rollos';
             }
-            console.log('Datos enviados al INSERT contenedorproducto:', [idContenedor, productoId, unidad, cantidad, unidadAlternativaFinal, cantidadAlternativaFinal, precioPorUnidad, tipoBultoNormalizado, cantidadBulto, item_proveedor]);
-            await connection.promise().query('INSERT INTO contenedorproducto (contenedor,producto,unidad,cantidad,unidadAlternativa,cantidadAlternativa,precioPorUnidad,tipoBulto,cantidadBulto,itemProveedor) VALUES (?,?,?,?,?,?,?,?,?,?)',[idContenedor, productoId, unidad, cantidad, unidadAlternativaFinal, cantidadAlternativaFinal, precioPorUnidad, tipoBultoNormalizado, cantidadBulto, item_proveedor]);
+            console.log('Datos enviados al INSERT contenedorproducto:', [idContenedor, productoId, unidad, cantidad, unidadalternativaFinal, cantidadalternativaFinal, precioporunidad, tipoBultoNormalizado, cantidadbulto, item_proveedor]);
+            await connection.promise().query('INSERT INTO contenedorproducto (contenedor,producto,unidad,cantidad,unidadAlternativa,cantidadAlternativa,precioPorUnidad,tipoBulto,cantidadBulto,itemProveedor) VALUES (?,?,?,?,?,?,?,?,?,?)',[idContenedor, productoId, unidad, cantidad, unidadalternativaFinal, cantidadalternativaFinal, precioporunidad, tipoBultoNormalizado, cantidadbulto, item_proveedor]);
         }
         // Insertar solo el estado 'Contenedor Creado' sin ubicación específica
         await connection.promise().query('INSERT INTO contenedorestado (contenedor,estado,ubicacion) VALUES (?,?,?)',[idContenedor,'Contenedor Creado','-']);
