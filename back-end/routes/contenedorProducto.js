@@ -85,6 +85,8 @@ async function agregarProductoDeContenedor(req,res){
         const connection = pool;
         const cantidadalternativaFinal = (cantidadalternativa === "" || cantidadalternativa === undefined) ? null : Number(cantidadalternativa);
         const unidadalternativaFinal = (unidadalternativa === "" || unidadalternativa === undefined) ? null : unidadalternativa;
+        console.log('BODY recibido en agregarProductoDeContenedor:', req.body);
+        console.log('Valores normalizados:', { cantidadalternativaFinal, unidadalternativaFinal });
         connection.query('INSERT INTO contenedorproducto(contenedor,producto,cantidad,unidad,color,precioporunidad,cantidadalternativa,unidadalternativa,estado,contenedordestino) VALUES(?,?,?,?,?,?,?,?,?,?);',
         [contenedor, producto, cantidad, unidad, color, precioporunidad, cantidadalternativaFinal, unidadAltValidada, estado || 'En stock', contenedorDestino || null],(err,results)=>{
             if(err){
@@ -98,6 +100,7 @@ async function agregarProductoDeContenedor(req,res){
                 JOIN producto p ON cp.producto = p.idproducto 
                 LEFT JOIN color c ON cp.color = c.idcolor
                 WHERE cp.contenedor = ?; `;
+            console.log('Datos enviados al INSERT:', [contenedor, producto, cantidad, unidad, color, precioporunidad, cantidadalternativaFinal, unidadAltValidada, estado || 'En stock', contenedorDestino || null]);
             connection.query(query,[contenedor],(err,results)=>{
                 if(err){
                     console.error('Error ejecutando la consulta:', err);
@@ -131,8 +134,8 @@ async function editarProductoDeContenedor(req,res){
         } else if (unidad === 'uni') {
             unidadAltValidada = 'cajas';
         }
-        console.log(req.body);
-        console.log(coloresAsignados);
+        console.log('BODY recibido en editarProductoDeContenedor:', req.body);
+        console.log('Valores normalizados:', { cantidadalternativaFinal, unidadalternativaFinal });
         console.log('Datos recibidos del frontend:', req.body);
         console.log('Código interno recibido:', codigoInterno);
         
@@ -160,6 +163,7 @@ async function editarProductoDeContenedor(req,res){
             cp.unidadalternativa = ?
             WHERE cp.idcontenedorproducto = ?;
             `
+            console.log('Datos enviados al UPDATE:', [producto,cantidad,unidad,colorValue,precioporunidad,item_proveedor,cantidadalternativaFinal,unidadAltValidada,id]);
             await connection.promise().query(query,[producto,cantidad,unidad,colorValue,precioporunidad,item_proveedor,cantidadalternativaFinal,unidadAltValidada,id]);
             
             // 2. Si se proporcionó un código interno, actualizar la tabla Producto
