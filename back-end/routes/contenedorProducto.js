@@ -120,7 +120,7 @@ async function editarProductoDeContenedor(req,res){
     try{
      
         const id =req.params.id;
-        const {producto,cantidad,unidad,color,contenedor,precioporunidad,coloresAsignados,item_proveedor,motivo,dataAnterior,usuarioCambio,cantidadalternativa,unidadalternativa,actualizarUnidadEnTodosLosProductos,codigoInterno} = req.body;
+        const {producto,cantidad,unidad,color,contenedor,precioporunidad,coloresAsignados,item_proveedor,motivo,dataAnterior,usuarioCambio,cantidadalternativa,unidadalternativa,actualizarUnidadEnTodosLosProductos,codigointerno} = req.body;
         // Validación: no permitir desglose si el producto ya tiene color
         const [productoPrincipalRows] = await connection.promise().query('SELECT color FROM contenedorproducto WHERE idcontenedorproducto = ?', [id]);
         if (productoPrincipalRows.length > 0 && productoPrincipalRows[0].color !== null && coloresAsignados && coloresAsignados.length > 0) {
@@ -137,7 +137,7 @@ async function editarProductoDeContenedor(req,res){
         console.log('BODY recibido en editarProductoDeContenedor:', req.body);
         console.log('Valores normalizados:', { cantidadalternativaFinal, unidadalternativaFinal });
         console.log('Datos recibidos del frontend:', req.body);
-        console.log('Código interno recibido:', codigoInterno);
+        console.log('Código interno recibido:', codigointerno);
         
         const cantidadalternativaFinal = (cantidadalternativa === "" || cantidadalternativa === undefined) ? null : Number(cantidadalternativa);
         const unidadalternativaFinal = (unidadalternativa === "" || unidadalternativa === undefined) ? null : unidadalternativa;
@@ -167,10 +167,10 @@ async function editarProductoDeContenedor(req,res){
             await connection.promise().query(query,[producto,cantidad,unidad,colorValue,precioporunidad,item_proveedor,cantidadalternativaFinal,unidadAltValidada,id]);
             
             // 2. Si se proporcionó un código interno, actualizar la tabla Producto
-            if (codigoInterno !== undefined) {
-                console.log('Actualizando código interno del producto:', codigoInterno);
+            if (codigointerno !== undefined) {
+                console.log('Actualizando código interno del producto:', codigointerno);
                 const updateProductoQuery = `UPDATE producto SET codigointerno = ? WHERE idproducto = ?`;
-                await connection.promise().query(updateProductoQuery, [codigoInterno, producto]);
+                await connection.promise().query(updateProductoQuery, [codigointerno, producto]);
             }
             
             let actualizado = {idcontenedorproducto:parseInt(id),
@@ -245,10 +245,10 @@ async function editarProductoDeContenedor(req,res){
             }
             
             // Si se proporcionó un código interno, actualizar la tabla Producto
-            if (codigoInterno !== undefined) {
-                console.log('Actualizando código interno del producto en caso de desglose de colores:', codigoInterno);
+            if (codigointerno !== undefined) {
+                console.log('Actualizando código interno del producto en caso de desglose de colores:', codigointerno);
                 const updateProductoQuery = `UPDATE producto SET codigointerno = ? WHERE idproducto = ?`;
-                await connection.promise().query(updateProductoQuery, [codigoInterno, producto]);
+                await connection.promise().query(updateProductoQuery, [codigointerno, producto]);
             }
             
             // Luego actualizar el producto principal reduciendo su stock
@@ -304,7 +304,7 @@ const sqlInsert = `INSERT INTO contenedorproductohistorial (idcontenedorproducto
             p.codigointerno = ?
             WHERE cp.idcontenedorproducto = ?;
         `
-            await connection.promise().query(query,[producto,cantidad,unidad,color,precioporunidad,item_proveedor,cantidadalternativaFinal,unidadAltValidada,codigoInterno,id],(err,results)=>{
+            await connection.promise().query(query,[producto,cantidad,unidad,color,precioporunidad,item_proveedor,cantidadalternativaFinal,unidadAltValidada,codigointerno,id],(err,results)=>{
                 if(err){
                     console.error('Error ejecutando la consulta:', err);
                     return res.status(500).send('Error en el servidor.');
@@ -320,7 +320,7 @@ const sqlInsert = `INSERT INTO contenedorproductohistorial (idcontenedorproducto
                 contenedor:contenedor,
                 cantidadalternativa:cantidadalternativaFinal,
                 unidadalternativa:unidadAltValidada,
-                codigointerno:codigoInterno}
+                codigointerno:codigointerno}
             let cambios = generarTextoCambios(dataAnterior, actualizado);
             const sqlInsert = `INSERT INTO contenedorproductohistorial (idcontenedorproducto, contenedor, tipocambio, cambios, usuariocambio, motivo) VALUES (?, ?, ?, ?, ?, ?);`; 
             await connection.promise().query(sqlInsert, [id, contenedor, 'UPDATE', cambios, usuarioCambio, motivo]);
