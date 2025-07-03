@@ -56,6 +56,14 @@ async function agregarContenedor(req,res){
 
             let productoId;
 
+            // Normalizar tipoBulto a los valores válidos del ENUM para producto
+            let tipobultoNormalizado = (tipobulto || '').toLowerCase();
+            if (tipobultoNormalizado === 'caja') tipobultoNormalizado = 'cajas';
+            if (tipobultoNormalizado === 'rollo') tipobultoNormalizado = 'rollos';
+            if (!['cajas', 'rollos'].includes(tipobultoNormalizado)) {
+                tipobultoNormalizado = unidad === 'uni' ? 'cajas' : 'rollos';
+            }
+
             if(idproducto){
                 const [productoExistente] = await connection.promise().query('SELECT idProducto FROM producto WHERE idProducto = ?',[idproducto]);
                 if(productoExistente.length > 0){
@@ -64,11 +72,11 @@ async function agregarContenedor(req,res){
                     console.warn('Producto no encontrado:', producto);
                 }
             }else{ 
-                const [nuevoProducto] = await connection.promise().query('INSERT INTO producto (nombre, unidadPredeterminada, tipoBultoPredeterminado) VALUES (?,?,?)',[nombre,unidad,tipobulto]);
+                const [nuevoProducto] = await connection.promise().query('INSERT INTO producto (nombre, unidadPredeterminada, tipoBultoPredeterminado) VALUES (?,?,?)',[nombre,unidad,tipobultoNormalizado]);
                 productoId = nuevoProducto.insertId;
             }
 
-            // Normalizar tipoBulto a los valores válidos del ENUM
+            // Normalizar tipoBulto a los valores válidos del ENUM para contenedorproducto
             let tipoBultoNormalizado = (tipobulto || '').toLowerCase();
             if (tipoBultoNormalizado === 'caja') tipoBultoNormalizado = 'cajas';
             if (tipoBultoNormalizado === 'rollo') tipoBultoNormalizado = 'rollos';
