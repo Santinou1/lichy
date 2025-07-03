@@ -89,8 +89,8 @@ function ContendorDetalle({user}){
                         unidad: productos.find(p => p.idContenedorProductos.toString() === idProducto)?.unidad || '',
                         color: productos.find(p => p.idContenedorProductos.toString() === idProducto)?.idColor || '',
                         precioPorUnidad: productos.find(p => p.idContenedorProductos.toString() === idProducto)?.precioPorUnidad || 0,
-                        cantidadAlternativa: productos.find(p => p.idContenedorProductos.toString() === idProducto)?.cantidadAlternativa || null,
-                        unidadAlternativa: productos.find(p => p.idContenedorProductos.toString() === idProducto)?.unidadAlternativa || null
+                        cantidadalternativa: productos.find(p => p.idContenedorProductos.toString() === idProducto)?.cantidadalternativa || null,
+                        unidadalternativa: productos.find(p => p.idContenedorProductos.toString() === idProducto)?.unidadalternativa || null
                     },
                     usuarioCambio: user.username || 'sistema',
                     motivo: 'Edición en lote'

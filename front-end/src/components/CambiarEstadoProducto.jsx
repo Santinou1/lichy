@@ -11,7 +11,7 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
   const [pedidoExistente, setPedidoExistente] = useState('');
   const [pedidosPendientes, setPedidosPendientes] = useState([]);
   const [cantidadTransferir, setCantidadTransferir] = useState(producto.cantidad || 1);
-  const [cantidadAlternativaTransferir, setCantidadAlternativaTransferir] = useState(producto.cantidadAlternativa || 0);
+  const [cantidadalternativaTransferir, setCantidadalternativaTransferir] = useState(producto.cantidadalternativa || 0);
   const [motivo, setMotivo] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -53,14 +53,14 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
       }
       
       // Validar cantidad alternativa si existe
-      if (producto.cantidadAlternativa && cantidadAlternativaTransferir) {
-        if (cantidadAlternativaTransferir < 0) {
+      if (producto.cantidadalternativa && cantidadalternativaTransferir) {
+        if (cantidadalternativaTransferir < 0) {
           setError('La cantidad alternativa no puede ser negativa');
           setLoading(false);
           return;
         }
         
-        if (cantidadAlternativaTransferir > producto.cantidadAlternativa) {
+        if (cantidadalternativaTransferir > producto.cantidadalternativa) {
           setError('La cantidad alternativa a transferir no puede ser mayor que la cantidad alternativa disponible');
           setLoading(false);
           return;
@@ -98,12 +98,12 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
       await axios.post(`http://192.168.0.131:5000/api/pedidos/${idPedido}/productos`, {
         idContenedorProducto: producto.idContenedorProducto,
         cantidadTransferir: cantidadTransferir,
-        cantidadAlternativaTransferir: cantidadAlternativaTransferir || 0,
+        cantidadalternativaTransferir: cantidadalternativaTransferir || 0,
         ubicacionDestino: 'Pendiente',
         usuariocreacion: user.idusuario || user.idUsuario || 1,
         motivo: motivo,
         unidad: producto.unidad,
-        unidadAlternativa: producto.unidadAlternativa || null,
+        unidadalternativa: producto.unidadalternativa || null,
         // Guardar información adicional para mostrar en la tabla de pedidos
         codigoInterno: producto.codigoInterno,
         color: producto.color,
@@ -133,7 +133,7 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
             {producto.color && <p>Color: {producto.color}</p>}
             <p>
               Cantidad: {parseFloat(producto.cantidad).toFixed(2)} {producto.unidad}
-              {producto.cantidadAlternativa > 0 && ` / ${parseFloat(producto.cantidadAlternativa).toFixed(2)} ${producto.unidadAlternativa}`}
+              {producto.cantidadalternativa > 0 && ` / ${parseFloat(producto.cantidadalternativa).toFixed(2)} ${producto.unidadalternativa}`}
             </p>
           </div>
           
@@ -210,19 +210,19 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
             </div>
             
             {/* Campo para cantidad alternativa si el producto la tiene */}
-            {producto.cantidadAlternativa > 0 && (
+            {producto.cantidadalternativa > 0 && (
               <div className="form-group">
-                <label>Cantidad alternativa a transferir ({producto.unidadAlternativa}):</label>
+                <label>Cantidad alternativa a transferir ({producto.unidadalternativa}):</label>
                 <input 
                   type="number" 
-                  value={cantidadAlternativaTransferir} 
-                  onChange={(e) => setCantidadAlternativaTransferir(Number(e.target.value))}
+                  value={cantidadalternativaTransferir} 
+                  onChange={(e) => setCantidadalternativaTransferir(Number(e.target.value))}
                   min="0"
-                  max={producto.cantidadAlternativa}
+                  max={producto.cantidadalternativa}
                   step="0.01"
                 />
                 <span className="input-info">
-                  Cantidad alternativa disponible: {parseFloat(producto.cantidadAlternativa).toFixed(2)} {producto.unidadAlternativa}
+                  Cantidad alternativa disponible: {parseFloat(producto.cantidadalternativa).toFixed(2)} {producto.unidadalternativa}
                 </span>
               </div>
             )}

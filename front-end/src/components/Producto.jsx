@@ -252,8 +252,8 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
             unidad: productoActualizado.unidad,
             color: productoActualizado.idColor,
             precioPorUnidad: productoActualizado.precioPorUnidad,
-            cantidadAlternativa: productoActualizado.cantidadAlternativa,
-            unidadAlternativa: productoActualizado.unidadAlternativa,
+            cantidadAlternativa: productoActualizado.cantidadalternativa,
+            unidadAlternativa: productoActualizado.unidadalternativa,
             coloresAsignados: coloresAsignados,
             contenedor: contenedor,
             codigoInterno: productoActualizado.codigoInterno, // Añadido para permitir actualizar el código interno
@@ -287,12 +287,12 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
         
         // Verificar si es un campo numérico y convertir a número si es necesario
         let processedValue = value;
-        if (['cantidad', 'precioPorUnidad', 'cantidadAlternativa', 'cantidadBulto', 'codigoInterno'].includes(name)) {
+        if (['cantidad', 'precioPorUnidad', 'cantidadalternativa', 'cantidadBulto', 'codigoInterno'].includes(name)) {
             // Si es un campo numérico y el valor no está vacío, convertir a número
             processedValue = value === '' ? '' : Number(value);
         }
         
-        // Si es unidadAlternativa, establecer automáticamente según la unidad principal
+        // Si es unidadalternativa, establecer automáticamente según la unidad principal
         if (name === 'unidad') {
             let unidadAlt = '';
             if (value === 'm' || value === 'kg') {
@@ -304,7 +304,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
             setProductoActualizado(prevState => ({
                 ...prevState,
                 [name]: value,
-                unidadAlternativa: unidadAlt
+                unidadalternativa: unidadAlt
             }));
         } else {
             setProductoActualizado(prevState => ({
@@ -342,8 +342,8 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                     cantidad: producto.cantidad,
                     unidad: producto.unidad,
                     precioPorUnidad: producto.precioPorUnidad,
-                    cantidadAlternativa: producto.cantidadAlternativa,
-                    unidadAlternativa: producto.unidadAlternativa
+                    cantidadalternativa: producto.cantidadalternativa,
+                    unidadalternativa: producto.unidadalternativa
                 });
                 return;
             }
@@ -371,8 +371,8 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                     cantidad: producto.cantidad,
                     unidad: producto.unidad,
                     precioPorUnidad: producto.precioPorUnidad,
-                    cantidadAlternativa: producto.cantidadAlternativa,
-                    unidadAlternativa: producto.unidadAlternativa
+                    cantidadalternativa: producto.cantidadalternativa,
+                    unidadalternativa: producto.unidadalternativa
                 });
                 return;
             }
@@ -409,8 +409,8 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                 producto: producto.idProducto,
                 unidad: producto.unidad,
                 precioPorUnidad: producto.precioPorUnidad,
-                cantidadAlternativa: producto.cantidadAlternativa,
-                unidadAlternativa: producto.unidadAlternativa
+                cantidadalternativa: producto.cantidadalternativa,
+                unidadalternativa: producto.unidadalternativa
             });
             return;
         }
@@ -456,8 +456,8 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
             unidad: nuevoProductoActualizado.unidad,
             color: editForm.color,
             precioPorUnidad: nuevoProductoActualizado.precioPorUnidad,
-            cantidadAlternativa: nuevoProductoActualizado.cantidadAlternativa,
-            unidadAlternativa: nuevoProductoActualizado.unidadAlternativa,
+            cantidadalternativa: nuevoProductoActualizado.cantidadalternativa,
+            unidadalternativa: nuevoProductoActualizado.unidadalternativa,
             contenedor: contenedor,
             codigoInterno: editForm.codigoInterno,
             // Incluir los datos anteriores para el historial
@@ -469,8 +469,8 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                 unidad: producto.unidad,
                 color: producto.idColor,
                 precioPorUnidad: producto.precioPorUnidad,
-                cantidadAlternativa: producto.cantidadAlternativa,
-                unidadAlternativa: producto.unidadAlternativa
+                cantidadalternativa: producto.cantidadalternativa,
+                unidadalternativa: producto.unidadalternativa
             },
             // Incluir usuario para el historial
             usuarioCambio: user.username || 'sistema',
@@ -645,14 +645,14 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                                 <h4>Medición Alternativa</h4>
                                 <input
                                     type='number'
-                                    name='cantidadAlternativa'
+                                    name='cantidadalternativa'
                                     placeholder='Cantidad alternativa'
-                                    value={productoActualizado.cantidadAlternativa || ''}
+                                    value={productoActualizado.cantidadalternativa || ''}
                                     onChange={handleInputChange}
                                 />
                                 <select
-                                    name='unidadAlternativa'
-                                    value={productoActualizado.unidadAlternativa || ''}
+                                    name='unidadalternativa'
+                                    value={productoActualizado.unidadalternativa || ''}
                                     disabled={true} // Siempre deshabilitado, se selecciona automáticamente
                                 >
                                     <option value='' disabled>Seleccionar unidad alternativa</option>
@@ -791,8 +791,8 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                             </div>
                         </div>
                         
-                        {(productoActualizado.cantidadAlternativa || productoActualizado.cantidadalternativa) && (productoActualizado.unidadAlternativa || productoActualizado.unidadalternativa) && (
-                            <label>Cantidad Alt.: <b>{`${parseFloat(productoActualizado.cantidadAlternativa || productoActualizado.cantidadalternativa).toFixed(2)} ${productoActualizado.unidadAlternativa || productoActualizado.unidadalternativa}`}</b></label>
+                        {(productoActualizado.cantidadalternativa || productoActualizado.cantidadalternativa) && (productoActualizado.unidadalternativa || productoActualizado.unidadalternativa) && (
+                            <label>Cantidad Alt.: <b>{`${parseFloat(productoActualizado.cantidadalternativa || productoActualizado.cantidadalternativa).toFixed(2)} ${productoActualizado.unidadalternativa || productoActualizado.unidadalternativa}`}</b></label>
                         )}
                         
                         <div className="precio-total">
@@ -839,8 +839,8 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                                 {productoActualizado.cantidad ? `${parseFloat(productoActualizado.cantidad).toFixed(2)} ${productoActualizado.unidad}` : 'Sin cantidad'}
                             </b>
                         </label>
-                        {(productoActualizado.cantidadAlternativa || productoActualizado.cantidadalternativa) && (productoActualizado.unidadAlternativa || productoActualizado.unidadalternativa) && (
-                            <label>Cantidad Alt.: <b>{`${parseFloat(productoActualizado.cantidadAlternativa || productoActualizado.cantidadalternativa).toFixed(2)} ${productoActualizado.unidadAlternativa || productoActualizado.unidadalternativa}`}</b></label>
+                        {(productoActualizado.cantidadalternativa || productoActualizado.cantidadalternativa) && (productoActualizado.unidadalternativa || productoActualizado.unidadalternativa) && (
+                            <label>Cantidad Alt.: <b>{`${parseFloat(productoActualizado.cantidadalternativa || productoActualizado.cantidadalternativa).toFixed(2)} ${productoActualizado.unidadalternativa || productoActualizado.unidadalternativa}`}</b></label>
                         )}
                         <div className="estado-producto">
                             Estado: <span className={`estado-badge ${productoActualizado.estado === 'Entregado' ? 'entregado' : 'en-stock'}`}>

@@ -102,11 +102,11 @@ function NuevoContenedor() {
         }
 
         // Asignar automáticamente la unidad alternativa
-        let unidadAlternativa = '';
+        let unidadalternativa = '';
         if (unidad === 'm' || unidad === 'kg') {
-            unidadAlternativa = 'rollos';
+            unidadalternativa = 'rollos';
         } else if (unidad === 'uni') {
-            unidadAlternativa = 'cajas';
+            unidadalternativa = 'cajas';
         }
         
         try {
@@ -126,7 +126,7 @@ function NuevoContenedor() {
                 setProductos((prev) => [...prev, nuevoProducto]);
                 setValue('producto', nuevoProducto);
                 setValue('unidad', nuevoProducto.unidadpredeterminada);
-                setValue('unidadAlternativa', unidadAlternativa);
+                setValue('unidadalternativa', unidadalternativa);
                 setUnidadDeshabilitada(true);
                 return nuevoProducto;
             }
@@ -138,7 +138,7 @@ function NuevoContenedor() {
         const newOption = { value: `temp-${uuidv4()}`, label: inputValue };
         setProductos((prev) => [...prev, newOption]);
         setValue('producto', newOption);
-        setValue('unidadAlternativa', unidadAlternativa);
+        setValue('unidadalternativa', unidadalternativa);
         setUnidadDeshabilitada(false);
         return newOption;
     };
@@ -148,24 +148,24 @@ function NuevoContenedor() {
         const productoActual = watch('producto');
         const unidadActual = watch('unidad');
         const cantidadActual = watch('cantidad');
-        const cantidadAlternativaActual = watch('cantidadAlternativa');
+        const cantidadalternativaActual = watch('cantidadalternativa');
         const precioPorUnidadActual = watch('precioPorUnidad');
         const itemProveedor = watch('item_proveedor');
-        const unidadAlternativa = watch('unidadAlternativa');
+        const unidadalternativa = watch('unidadalternativa');
         
         // Mostrar todos los datos en la consola
         console.log('==== DATOS DEL FORMULARIO ====');
         console.log('Producto seleccionado:', productoActual);
         console.log('Unidad seleccionada:', unidadActual);
-        console.log('Unidad Alternativa:', unidadAlternativa);
+        console.log('Unidad Alternativa:', unidadalternativa);
         console.log('Cantidad:', cantidadActual);
-        console.log('Cantidad Alternativa:', cantidadAlternativaActual);
+        console.log('Cantidad Alternativa:', cantidadalternativaActual);
         console.log('Precio por unidad (FOB):', precioPorUnidadActual);
         console.log('Item proveedor:', itemProveedor);
         console.log('Todos los datos del formulario:', watch());
         console.log('============================');
         
-        if (!productoActual || !unidadActual || !cantidadActual || !precioPorUnidadActual || !unidadAlternativa || !cantidadAlternativaActual) {
+        if (!productoActual || !unidadActual || !cantidadActual || !precioPorUnidadActual || !unidadalternativa || !cantidadalternativaActual) {
             alert('Todos los campos del producto son obligatorios, incluidas las cantidades en ambas unidades');
             return;
         }
@@ -178,9 +178,9 @@ function NuevoContenedor() {
             idProducto: productoActual.value.startsWith('temp-') ? null : productoActual.value,
             nombre: productoActual.label,
             unidad: unidadActual,
-            unidadAlternativa: unidadAlternativa,
+            unidadalternativa: unidadalternativa,
             cantidad: cantidadActual,
-            cantidadAlternativa: cantidadAlternativaActual,
+            cantidadalternativa: cantidadalternativaActual,
             cantidadBulto: cantidadBulto,
             tipoBulto: tipoBulto,
             precioPorUnidad: precioPorUnidadActual,
@@ -192,9 +192,9 @@ function NuevoContenedor() {
         // Limpiar los campos del producto
         setValue('producto', null);
         setValue('unidad', '');
-        setValue('unidadAlternativa', '');
+        setValue('unidadalternativa', '');
         setValue('cantidad', '');
-        setValue('cantidadAlternativa', '');
+        setValue('cantidadalternativa', '');
         setValue('precioPorUnidad', '');
         setValue('item_proveedor', '');
         setUnidadDeshabilitada(false); 
@@ -211,13 +211,13 @@ function NuevoContenedor() {
                 const unidad = productoSeleccionado.unidadpredeterminada;
                 setValue('unidad', unidad);
                 // Establecer automáticamente la unidad alternativa según la unidad principal
-                let unidadAlternativa = '';
+                let unidadalternativa = '';
                 if (unidad === 'm' || unidad === 'kg') {
-                    unidadAlternativa = 'rollos';
+                    unidadalternativa = 'rollos';
                 } else if (unidad === 'uni') {
-                    unidadAlternativa = 'cajas';
+                    unidadalternativa = 'cajas';
                 }
-                setValue('unidadAlternativa', unidadAlternativa);
+                setValue('unidadalternativa', unidadalternativa);
                 setUnidadDeshabilitada(true);
             } else {
                 console.log('Producto sin unidad predeterminada o no encontrado');
@@ -387,11 +387,11 @@ function NuevoContenedor() {
                 </div>
                 
                 <div className='input-container'>
-                    <label htmlFor='unidadAlternativa'>Unidad Alternativa:</label>
+                    <label htmlFor='unidadalternativa'>Unidad Alternativa:</label>
                     <input 
                         type='text' 
                         className='input-nuevoContenedor' 
-                        {...register('unidadAlternativa')} 
+                        {...register('unidadalternativa')} 
                         readOnly={true}
                         style={{ backgroundColor: '#f2f2f2' }} 
                     />
@@ -404,8 +404,8 @@ function NuevoContenedor() {
                 </div>
                 
                 <div className='input-container'>
-                    <label htmlFor='cantidadAlternativa'>Cantidad <span id="unidadAltLabel">{watch('unidadAlternativa') || ''}</span>:</label>
-                    <input type='number' step="0.01" min="0.01" className='input-nuevoContenedor' {...register('cantidadAlternativa')} onWheel={e => e.target.blur()} />
+                    <label htmlFor='cantidadalternativa'>Cantidad <span id="unidadAltLabel">{watch('unidadalternativa') || ''}</span>:</label>
+                    <input type='number' step="0.01" min="0.01" className='input-nuevoContenedor' {...register('cantidadalternativa')} onWheel={e => e.target.blur()} />
                 </div>
                 
                 <div className='input-container'>
@@ -429,7 +429,7 @@ function NuevoContenedor() {
                     <ul>
                         {productosSeleccionados.map((producto, index) => (
                             <li key={index}>
-                                {producto.nombre} - {producto.cantidad} {producto.unidad} / {producto.cantidadAlternativa} {producto.unidadAlternativa} - ${producto.precioPorUnidad}
+                                {producto.nombre} - {producto.cantidad} {producto.unidad} / {producto.cantidadalternativa} {producto.unidadalternativa} - ${producto.precioPorUnidad}
                             </li>
                         ))}
                     </ul>

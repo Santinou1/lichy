@@ -109,8 +109,8 @@ function Producto({ user, producto, onActualizar, contenedor }) {
             unidad: productoActualizado.unidad,
             color: productoActualizado.idColor,
             precioPorUnidad: productoActualizado.precioPorUnidad,
-            cantidadAlternativa: productoActualizado.cantidadAlternativa,
-            unidadAlternativa: productoActualizado.unidadAlternativa,
+            cantidadalternativa: productoActualizado.cantidadalternativa,
+            unidadalternativa: productoActualizado.unidadalternativa,
             coloresAsignados: coloresAsignados,
             contenedor: contenedor,
             codigoInterno: productoActualizado.codigoInterno, // Añadido para permitir actualizar el código interno
@@ -144,12 +144,12 @@ function Producto({ user, producto, onActualizar, contenedor }) {
         
         // Verificar si es un campo numérico y convertir a número si es necesario
         let processedValue = value;
-        if (['cantidad', 'precioPorUnidad', 'cantidadAlternativa', 'cantidadBulto', 'codigoInterno'].includes(name)) {
+        if (['cantidad', 'precioPorUnidad', 'cantidadalternativa', 'cantidadBulto', 'codigoInterno'].includes(name)) {
             // Si es un campo numérico y el valor no está vacío, convertir a número
             processedValue = value === '' ? '' : Number(value);
         }
         
-        // Si es unidadAlternativa, establecer automáticamente según la unidad principal
+        // Si es unidadalternativa, establecer automáticamente según la unidad principal
         if (name === 'unidad') {
             let unidadAlt = '';
             if (value === 'm' || value === 'kg') {
@@ -161,7 +161,7 @@ function Producto({ user, producto, onActualizar, contenedor }) {
             setProductoActualizado(prevState => ({
                 ...prevState,
                 [name]: value,
-                unidadAlternativa: unidadAlt
+                unidadalternativa: unidadAlt
             }));
         } else {
             setProductoActualizado(prevState => ({
@@ -205,8 +205,8 @@ function Producto({ user, producto, onActualizar, contenedor }) {
             unidad: nuevoProductoActualizado.unidad,
             color: editForm.color,
             precioPorUnidad: nuevoProductoActualizado.precioPorUnidad,
-            cantidadAlternativa: nuevoProductoActualizado.cantidadAlternativa,
-            unidadAlternativa: nuevoProductoActualizado.unidadAlternativa,
+            cantidadalternativa: nuevoProductoActualizado.cantidadalternativa,
+            unidadalternativa: nuevoProductoActualizado.unidadalternativa,
             contenedor: contenedor,
             codigoInterno: editForm.codigoInterno
         };
@@ -323,14 +323,14 @@ function Producto({ user, producto, onActualizar, contenedor }) {
                                 <h4>Medición Alternativa</h4>
                                 <input
                                     type='number'
-                                    name='cantidadAlternativa'
+                                    name='cantidadalternativa'
                                     placeholder='Cantidad alternativa'
-                                    value={productoActualizado.cantidadAlternativa || ''}
+                                    value={productoActualizado.cantidadalternativa || ''}
                                     onChange={handleInputChange}
                                 />
                                 <select
-                                    name='unidadAlternativa'
-                                    value={productoActualizado.unidadAlternativa || ''}
+                                    name='unidadalternativa'
+                                    value={productoActualizado.unidadalternativa || ''}
                                     disabled={true} // Siempre deshabilitado, se selecciona automáticamente
                                 >
                                     <option value='' disabled>Seleccionar unidad alternativa</option>
@@ -396,8 +396,8 @@ function Producto({ user, producto, onActualizar, contenedor }) {
                             </div>
                         </div>
                         
-                        {productoActualizado.cantidadAlternativa && productoActualizado.unidadAlternativa && (
-                            <label>Cantidad Alt.: <b>{`${parseFloat(productoActualizado.cantidadAlternativa).toFixed(2)} ${productoActualizado.unidadAlternativa}`}</b></label>
+                        {productoActualizado.cantidadalternativa && productoActualizado.unidadalternativa && (
+                            <label>Cantidad Alt.: <b>{`${parseFloat(productoActualizado.cantidadalternativa).toFixed(2)} ${productoActualizado.unidadalternativa}`}</b></label>
                         )}
                         
                         <div className="precio-total">
@@ -424,8 +424,8 @@ function Producto({ user, producto, onActualizar, contenedor }) {
                         <label>Código Interno: <b>{productoActualizado.codigoInterno || 'Sin código'}</b></label>
                         <label>Color: <b>{productoActualizado.nombreColor || 'Sin color'}</b></label>
                         <label>Cantidad: <b>{productoActualizado.cantidad ? `${parseFloat(productoActualizado.cantidad).toFixed(2)} ${productoActualizado.unidad}` : 'Sin cantidad'}</b></label>
-                        {productoActualizado.cantidadAlternativa && productoActualizado.unidadAlternativa && (
-                            <label>Cantidad Alt.: <b>{`${parseFloat(productoActualizado.cantidadAlternativa).toFixed(2)} ${productoActualizado.unidadAlternativa}`}</b></label>
+                        {productoActualizado.cantidadalternativa && productoActualizado.unidadalternativa && (
+                            <label>Cantidad Alt.: <b>{`${parseFloat(productoActualizado.cantidadalternativa).toFixed(2)} ${productoActualizado.unidadalternativa}`}</b></label>
                         )}
                         <div className="precio-total">
                             ${(productoActualizado.cantidad * productoActualizado.precioPorUnidad).toFixed(2)} ({productoActualizado.cantidad} {productoActualizado.unidad} x ${productoActualizado.precioPorUnidad})

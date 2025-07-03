@@ -23,7 +23,7 @@ function EnvioPedidoMasivo({ isOpen, onRequestClose, productos, contenedor, onSu
         .map(producto => ({
           ...producto,
           cantidadTransferir: 0,
-          cantidadAlternativaTransferir: 0,
+          cantidadalternativaTransferir: 0,
           seleccionado: false
         }));
       setProductosSeleccionados(productosConCantidad);
@@ -38,14 +38,14 @@ function EnvioPedidoMasivo({ isOpen, onRequestClose, productos, contenedor, onSu
           // Asegurarse de que la cantidad a transferir no supere la disponible
           let cantidadActualizada = parseFloat(valor);
           const esCantidadPrincipal = campo === 'cantidadTransferir';
-          const cantidadMaxima = esCantidadPrincipal ? prod.cantidad : prod.cantidadAlternativa || 0;
+          const cantidadMaxima = esCantidadPrincipal ? prod.cantidad : prod.cantidadalternativa || 0;
           
           if (cantidadActualizada > cantidadMaxima) {
             cantidadActualizada = cantidadMaxima;
           }
 
           // Marcar como seleccionado si al menos una de las cantidades es mayor que 0
-          const otroCampo = esCantidadPrincipal ? 'cantidadAlternativaTransferir' : 'cantidadTransferir';
+          const otroCampo = esCantidadPrincipal ? 'cantidadalternativaTransferir' : 'cantidadTransferir';
           const seleccionado = cantidadActualizada > 0 || prod[otroCampo] > 0;
           
           return { 
@@ -65,7 +65,7 @@ function EnvioPedidoMasivo({ isOpen, onRequestClose, productos, contenedor, onSu
       prev.map(prod => ({
         ...prod,
         cantidadTransferir: seleccionarTodos ? prod.cantidad : 0,
-        cantidadAlternativaTransferir: seleccionarTodos ? (prod.cantidadAlternativa || 0) : 0,
+        cantidadalternativaTransferir: seleccionarTodos ? (prod.cantidadalternativa || 0) : 0,
         seleccionado: seleccionarTodos
       }))
     );
@@ -101,12 +101,12 @@ function EnvioPedidoMasivo({ isOpen, onRequestClose, productos, contenedor, onSu
         .map(p => ({
           idContenedorProducto: p.idcontenedorproducto,
           cantidadTransferir: parseFloat(p.cantidadTransferir),
-          cantidadAlternativaTransferir: parseFloat(p.cantidadAlternativaTransferir || 0),
+          cantidadalternativaTransferir: parseFloat(p.cantidadalternativaTransferir || 0),
           motivo: comentario,
           colorId: p.idcolor,
           nombreProducto: p.nombre,
           unidad: p.unidad,
-          unidadAlternativa: p.unidadAlternativa || '',
+          unidadalternativa: p.unidadalternativa || '',
           usuariocreacion: user.idusuario || user.idUsuario || 1
         }));
 
@@ -197,7 +197,7 @@ function EnvioPedidoMasivo({ isOpen, onRequestClose, productos, contenedor, onSu
                   <th style={{ padding: '8px', textAlign: 'left' }}>Color</th>
                   <th style={{ padding: '8px', textAlign: 'right' }}>Disponible</th>
                   <th style={{ padding: '8px', textAlign: 'right' }}>Cantidad a Transferir</th>
-                  {productosSeleccionados.some(p => p.cantidadAlternativa > 0) && (
+                  {productosSeleccionados.some(p => p.cantidadalternativa > 0) && (
                     <>
                       <th style={{ padding: '8px', textAlign: 'right' }}>Disponible Alt.</th>
                       <th style={{ padding: '8px', textAlign: 'right' }}>Cant. Alt. a Transferir</th>
@@ -234,30 +234,30 @@ function EnvioPedidoMasivo({ isOpen, onRequestClose, productos, contenedor, onSu
                         <span style={{ marginLeft: '5px' }}>{producto.unidad}</span>
                       </td>
                       
-                      {productosSeleccionados.some(p => p.cantidadAlternativa > 0) && (
+                      {productosSeleccionados.some(p => p.cantidadalternativa > 0) && (
                         <>
                           <td style={{ padding: '8px', textAlign: 'right' }}>
-                            {producto.cantidadAlternativa 
-                              ? `${parseFloat(producto.cantidadAlternativa).toFixed(2)} ${producto.unidadAlternativa}`
+                            {producto.cantidadalternativa 
+                              ? `${parseFloat(producto.cantidadalternativa).toFixed(2)} ${producto.unidadalternativa}`
                               : '-'}
                           </td>
                           <td style={{ padding: '8px', textAlign: 'right' }}>
-                            {producto.cantidadAlternativa ? (
+                            {producto.cantidadalternativa ? (
                               <>
                                 <input
                                   type="number"
                                   min="0"
                                   step="0.01"
-                                  max={producto.cantidadAlternativa}
-                                  value={producto.cantidadAlternativaTransferir}
+                                  max={producto.cantidadalternativa}
+                                  value={producto.cantidadalternativaTransferir}
                                   onChange={(e) => actualizarCantidad(
                                     producto.idcontenedorproducto, 
-                                    'cantidadAlternativaTransferir', 
+                                    'cantidadalternativaTransferir', 
                                     e.target.value
                                   )}
                                   style={{ width: '80px', textAlign: 'right' }}
                                 />
-                                <span style={{ marginLeft: '5px' }}>{producto.unidadAlternativa}</span>
+                                <span style={{ marginLeft: '5px' }}>{producto.unidadalternativa}</span>
                               </>
                             ) : '-'}
                           </td>

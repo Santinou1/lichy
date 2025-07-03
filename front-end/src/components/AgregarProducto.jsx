@@ -10,8 +10,8 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
     const [cantidad, setCantidad] = useState('');
     const [precioPorUnidad, setPrecioPorUnidad] = useState('');
     const [unidad, setUnidad] = useState('');
-    const [cantidadAlternativa, setCantidadAlternativa] = useState('');
-    const [unidadAlternativa, setUnidadAlternativa] = useState('');
+    const [cantidadalternativa, setCantidadalternativa] = useState('');
+    const [unidadalternativa, setUnidadalternativa] = useState('');
     const [unidadDeshabilitada, setUnidadDeshabilitada] = useState(false);
     const [itemProveedor, setItemProveedor] = useState('');
     
@@ -44,11 +44,11 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
             
             // Establecer la unidad alternativa según la unidad principal
             if (selectedOption.unidadPredeterminada === 'm' || selectedOption.unidadPredeterminada === 'kg') {
-                setUnidadAlternativa('rollos');
+                setUnidadalternativa('rollos');
             } else if (selectedOption.unidadPredeterminada === 'uni') {
-                setUnidadAlternativa('cajas');
+                setUnidadalternativa('cajas');
             } else {
-                setUnidadAlternativa('');
+                setUnidadalternativa('');
             }
         } else {
             // Si es un producto nuevo o no seleccionado, resetear campos
@@ -99,9 +99,9 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
                 
                 // Establecer la unidad alternativa según la unidad principal
                 if (nuevoProducto.unidadPredeterminada === 'm' || nuevoProducto.unidadPredeterminada === 'kg') {
-                    setUnidadAlternativa('rollos');
+                    setUnidadalternativa('rollos');
                 } else if (nuevoProducto.unidadPredeterminada === 'uni') {
-                    setUnidadAlternativa('cajas');
+                    setUnidadalternativa('cajas');
                 }
                 
                 // Ocultar el modal
@@ -126,9 +126,9 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
             
             // Establecer la unidad alternativa según la unidad principal
             if (unidadValue === 'm' || unidadValue === 'kg') {
-                setUnidadAlternativa('rollos');
+                setUnidadalternativa('rollos');
             } else if (unidadValue === 'uni') {
-                setUnidadAlternativa('cajas');
+                setUnidadalternativa('cajas');
             }
             
             // Ocultar el modal
@@ -150,11 +150,11 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
 
         // Aplicar la regla de validación: m/kg -> rollos, uni -> cajas
         if (nuevaUnidad === 'm' || nuevaUnidad === 'kg') {
-            setUnidadAlternativa('rollos');
+            setUnidadalternativa('rollos');
         } else if (nuevaUnidad === 'uni') {
-            setUnidadAlternativa('cajas');
+            setUnidadalternativa('cajas');
         } else {
-            setUnidadAlternativa('');
+            setUnidadalternativa('');
         }
     };
 
@@ -171,8 +171,8 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
             cantidad: cantidad,
             precioPorUnidad: precioPorUnidad,
             unidad: unidad,
-            cantidadAlternativa: cantidadAlternativa,
-            unidadAlternativa: unidadAlternativa,
+            cantidadalternativa: cantidadalternativa,
+            unidadalternativa: unidadalternativa,
             item_proveedor: itemProveedor,
             tipoBulto: productoSeleccionado.tipoBultoPredeterminado || ((unidad === 'm' || unidad === 'kg') ? 'rollos' : 'cajas'),
             cantidadBulto: 1
@@ -189,7 +189,7 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
                 // Limpiar los campos del formulario
                 setCantidad('');
                 setPrecioPorUnidad('');
-                setCantidadAlternativa('');
+                setCantidadalternativa('');
                 setItemProveedor('');
                 
                 // Re-aplicar el mismo producto seleccionado después de un breve retraso
@@ -305,16 +305,16 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
                     <label>Cantidad Alternativa:</label>
                     <input
                         type="number"
-                        name='cantidadAlternativa'
-                        value={cantidadAlternativa}
-                        onChange={(e) => setCantidadAlternativa(e.target.value)}
+                        name='cantidadalternativa'
+                        value={cantidadalternativa}
+                        onChange={(e) => setCantidadalternativa(e.target.value)}
                         placeholder="Cantidad en rollos/cajas"
                     />
                     
                     <label>Unidad Alternativa:</label>
                     <select
-                        name='unidadAlternativa'
-                        value={unidadAlternativa}
+                        name='unidadalternativa'
+                        value={unidadalternativa}
                         disabled={true} // Siempre deshabilitado, se selecciona automáticamente
                     >
                         <option value='' disabled>Seleccionar unidad alternativa</option>

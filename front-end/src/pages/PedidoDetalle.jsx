@@ -18,7 +18,7 @@ function PedidoDetalle() {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState('');
   const [cantidadTransferir, setCantidadTransferir] = useState(0);
-  const [cantidadAlternativaTransferir, setCantidadAlternativaTransferir] = useState(0);
+  const [cantidadalternativaTransferir, setCantidadalternativaTransferir] = useState(0);
   const [ubicacionDestino, setUbicacionDestino] = useState('');
   
   // Estados para completar pedido
@@ -102,13 +102,13 @@ function PedidoDetalle() {
     }
     
     // Validar cantidad alternativa si existe
-    if (producto.cantidadAlternativa && cantidadAlternativaTransferir) {
-      if (cantidadAlternativaTransferir < 0) {
+    if (producto.cantidadalternativa && cantidadalternativaTransferir) {
+      if (cantidadalternativaTransferir < 0) {
         setError('La cantidad alternativa no puede ser negativa');
         return;
       }
       
-      if (cantidadAlternativaTransferir > producto.cantidadAlternativa) {
+      if (cantidadalternativaTransferir > producto.cantidadalternativa) {
         setError('La cantidad alternativa a transferir no puede ser mayor que la disponible');
         return;
       }
@@ -119,7 +119,7 @@ function PedidoDetalle() {
       await axios.post(`http://192.168.0.131:5000/api/pedidos/${id}/productos`, {
         idContenedorProducto: productoSeleccionado,
         cantidadTransferir: cantidadTransferir,
-        cantidadAlternativaTransferir: cantidadAlternativaTransferir,
+        cantidadalternativaTransferir: cantidadalternativaTransferir,
         ubicacionDestino: ubicacionDestino,
         usuarioCreacion: user.idUsuario
       });
@@ -127,7 +127,7 @@ function PedidoDetalle() {
       // Limpiar formulario
       setProductoSeleccionado('');
       setCantidadTransferir(0);
-      setCantidadAlternativaTransferir(0);
+      setCantidadalternativaTransferir(0);
       setUbicacionDestino('');
       setMostrarFormulario(false);
       
@@ -188,7 +188,7 @@ function PedidoDetalle() {
       const productosIniciales = productos.map(producto => ({
         idProductoPedido: producto.idProductoPedido,
         cantidad: parseFloat(producto.cantidad),
-        cantidadAlternativa: producto.cantidadAlternativa ? parseFloat(producto.cantidadAlternativa) : null,
+        cantidadalternativa: producto.cantidadalternativa ? parseFloat(producto.cantidadalternativa) : null,
         confirmado: false
       }));
       setProductosEditados(productosIniciales);
@@ -421,17 +421,17 @@ function PedidoDetalle() {
                               {producto.unidad}
                             </td>
                             <td>
-                              {producto.cantidadAlternativa ? (
+                              {producto.cantidadalternativa ? (
                                 <>
                                   <input 
                                     type="number" 
-                                    value={productoEditado?.cantidadAlternativa || producto.cantidadAlternativa} 
-                                    onChange={(e) => actualizarCantidadProducto(producto.idProductoPedido, 'cantidadAlternativa', Number(e.target.value))}
+                                    value={productoEditado?.cantidadalternativa || producto.cantidadalternativa} 
+                                    onChange={(e) => actualizarCantidadProducto(producto.idProductoPedido, 'cantidadalternativa', Number(e.target.value))}
                                     step="0.01"
                                     min="0"
                                     disabled={productoEditado?.confirmado}
                                   />
-                                  {producto.unidadAlternativa}
+                                  {producto.unidadalternativa}
                                 </>
                               ) : '-'}
                             </td>
@@ -509,7 +509,7 @@ function PedidoDetalle() {
                 onChange={(e) => {
                   setProductoSeleccionado(e.target.value);
                   setCantidadTransferir(0);
-                  setCantidadAlternativaTransferir(0);
+                  setCantidadalternativaTransferir(0);
                 }}
                 required
               >
@@ -538,15 +538,15 @@ function PedidoDetalle() {
                 </div>
                 
                 {/* Mostrar campo de cantidad alternativa solo si el producto tiene */}
-                {productosDisponibles.find(p => p.idContenedorProducto === parseInt(productoSeleccionado))?.cantidadAlternativa > 0 && (
+                {productosDisponibles.find(p => p.idContenedorProducto === parseInt(productoSeleccionado))?.cantidadalternativa > 0 && (
                   <div className="form-group">
-                    <label>Cantidad Alternativa ({productosDisponibles.find(p => p.idContenedorProducto === parseInt(productoSeleccionado))?.unidadAlternativa}):</label>
+                    <label>Cantidad Alternativa ({productosDisponibles.find(p => p.idContenedorProducto === parseInt(productoSeleccionado))?.unidadalternativa}):</label>
                     <input 
                       type="number" 
-                      value={cantidadAlternativaTransferir} 
-                      onChange={(e) => setCantidadAlternativaTransferir(Number(e.target.value))}
+                      value={cantidadalternativaTransferir} 
+                      onChange={(e) => setCantidadalternativaTransferir(Number(e.target.value))}
                       min="0"
-                      max={productosDisponibles.find(p => p.idContenedorProducto === parseInt(productoSeleccionado))?.cantidadAlternativa}
+                      max={productosDisponibles.find(p => p.idContenedorProducto === parseInt(productoSeleccionado))?.cantidadalternativa}
                       step="0.01"
                     />
                   </div>
@@ -604,8 +604,8 @@ function PedidoDetalle() {
                   <td>{producto.color || 'Sin color'}</td>
                   <td>{parseFloat(producto.cantidad).toFixed(2)} {producto.unidad}</td>
                   <td>
-                    {producto.cantidadAlternativa 
-                      ? `${parseFloat(producto.cantidadAlternativa).toFixed(2)} ${producto.unidadAlternativa}` 
+                    {producto.cantidadalternativa 
+                      ? `${parseFloat(producto.cantidadalternativa).toFixed(2)} ${producto.unidadalternativa}` 
                       : '-'}
                   </td>
                   <td>{contenedores[producto.ubicacionDestino] || producto.ubicacionDestino}</td>
