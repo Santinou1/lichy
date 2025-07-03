@@ -72,10 +72,10 @@ async function obtenerProductosDeContenedor(req,res){
 
 async function agregarProductoDeContenedor(req,res){
     try {
-        const {contenedor, producto, cantidad, unidad, color, precioPorUnidad, cantidadAlternativa, unidadAlternativa, estado, contenedorDestino} = req.body;
+        const {contenedor, producto, cantidad, unidad, color, precioporunidad, cantidadalternativa, unidadalternativa, estado, contenedorDestino} = req.body;
         
         // Validar que la unidad alternativa sea correcta según la unidad principal
-        let unidadAltValidada = unidadAlternativa;
+        let unidadAltValidada = unidadalternativa;
         if (unidad === 'm' || unidad === 'kg') {
             unidadAltValidada = 'rollos';
         } else if (unidad === 'uni') {
@@ -84,7 +84,7 @@ async function agregarProductoDeContenedor(req,res){
         
         const connection = pool;
         connection.query('INSERT INTO contenedorproducto(contenedor,producto,cantidad,unidad,color,precioporunidad,cantidadalternativa,unidadalternativa,estado,contenedordestino) VALUES(?,?,?,?,?,?,?,?,?,?);',
-        [contenedor, producto, cantidad, unidad, color, precioPorUnidad, cantidadAlternativa, unidadAltValidada, estado || 'En stock', contenedorDestino || null],(err,results)=>{
+        [contenedor, producto, cantidad, unidad, color, precioporunidad, cantidadalternativa, unidadAltValidada, estado || 'En stock', contenedorDestino || null],(err,results)=>{
             if(err){
                 console.error('Error ejecutando la consulta:', err);
                 return res.status(500).send('Error en el servidor.');
@@ -115,7 +115,7 @@ async function editarProductoDeContenedor(req,res){
     try{
      
         const id =req.params.id;
-        const {producto,cantidad,unidad,color,contenedor,precioPorUnidad,coloresAsignados,item_proveedor,motivo,dataAnterior,usuarioCambio,cantidadAlternativa,unidadAlternativa,actualizarUnidadEnTodosLosProductos,codigoInterno} = req.body;
+        const {producto,cantidad,unidad,color,contenedor,precioporunidad,coloresAsignados,item_proveedor,motivo,dataAnterior,usuarioCambio,cantidadalternativa,unidadalternativa,actualizarUnidadEnTodosLosProductos,codigoInterno} = req.body;
         // Validación: no permitir desglose si el producto ya tiene color
         const [productoPrincipalRows] = await connection.promise().query('SELECT color FROM contenedorproducto WHERE idcontenedorproducto = ?', [id]);
         if (productoPrincipalRows.length > 0 && productoPrincipalRows[0].color !== null && coloresAsignados && coloresAsignados.length > 0) {
@@ -123,7 +123,7 @@ async function editarProductoDeContenedor(req,res){
         }
         
         // Validar que la unidad alternativa sea correcta según la unidad principal
-        let unidadAltValidada = unidadAlternativa;
+        let unidadAltValidada = unidadalternativa;
         if (unidad === 'm' || unidad === 'kg') {
             unidadAltValidada = 'rollos';
         } else if (unidad === 'uni') {
@@ -155,7 +155,7 @@ async function editarProductoDeContenedor(req,res){
             cp.unidadalternativa = ?
             WHERE cp.idcontenedorproducto = ?;
             `
-            await connection.promise().query(query,[producto,cantidad,unidad,colorValue,precioPorUnidad,item_proveedor,cantidadAlternativa,unidadAltValidada,id]);
+            await connection.promise().query(query,[producto,cantidad,unidad,colorValue,precioporunidad,item_proveedor,cantidadalternativa,unidadAltValidada,id]);
             
             // 2. Si se proporcionó un código interno, actualizar la tabla Producto
             if (codigoInterno !== undefined) {
@@ -169,9 +169,9 @@ async function editarProductoDeContenedor(req,res){
                 cantidad:cantidad,
                 unidad:unidad,
                 color:color,
-                precioporunidad:precioPorUnidad,
+                precioporunidad:precioporunidad,
                 itemproveedor:item_proveedor,
-                cantidadalternativa:cantidadAlternativa,
+                cantidadalternativa:cantidadalternativa,
                 unidadalternativa:unidadAltValidada
             };
             
@@ -220,7 +220,7 @@ async function editarProductoDeContenedor(req,res){
                     colorAsignado.cantidad, // cantidad asignada al color
                     unidad, // unidad (la misma unidad)
                     parseInt(colorAsignado.color), // color asignado
-                    precioPorUnidad, // precio por unidad (el mismo)
+                    precioporunidad, // precio por unidad (el mismo)
                     cantidadAltProporcional, // cantidad alternativa proporcional para este color
                     unidadAltColorValidada // unidad alternativa validada
                 ]);
@@ -247,8 +247,8 @@ async function editarProductoDeContenedor(req,res){
             
 // Calcular la nueva cantidad alternativa restando lo asignado a los colores
 let nuevaCantidadAlternativaPrincipal = null;
-if (cantidadAlternativa) {
-    nuevaCantidadAlternativaPrincipal = Math.max(0, parseFloat(cantidadAlternativa) - cantidadAlternativaTotalAsignada);
+if (cantidadalternativa) {
+    nuevaCantidadAlternativaPrincipal = Math.max(0, parseFloat(cantidadalternativa) - cantidadAlternativaTotalAsignada);
 }
 
 // Si queda stock, actualizar el producto principal con la nueva cantidad y cantidad alternativa
@@ -259,7 +259,7 @@ if (nuevaCantidadProductoPrincipal > 0) {
         WHERE idcontenedorproducto = ?;
     `;
     await connection.promise().query(updateQuery, [nuevaCantidadProductoPrincipal, nuevaCantidadAlternativaPrincipal, id]);
-    cambiosTexto += `Producto principal: cantidad reducida de ${dataAnterior.cantidad} a ${nuevaCantidadProductoPrincipal}, cantidad alternativa de ${cantidadAlternativa} a ${nuevaCantidadAlternativaPrincipal}\n`;
+    cambiosTexto += `Producto principal: cantidad reducida de ${dataAnterior.cantidad} a ${nuevaCantidadProductoPrincipal}, cantidad alternativa de ${cantidadalternativa} a ${nuevaCantidadAlternativaPrincipal}\n`;
 } else {
     // Si no queda stock, eliminar el producto principal
     await connection.promise().query('DELETE FROM contenedorproducto WHERE idcontenedorproducto = ?', [id]);
@@ -295,7 +295,7 @@ const sqlInsert = `INSERT INTO contenedorproductohistorial (idcontenedorproducto
             p.codigointerno = ?
             WHERE cp.idcontenedorproducto = ?;
         `
-            await connection.promise().query(query,[producto,cantidad,unidad,color,precioPorUnidad,item_proveedor,cantidadAlternativa,unidadAltValidada,codigoInterno,id],(err,results)=>{
+            await connection.promise().query(query,[producto,cantidad,unidad,color,precioporunidad,item_proveedor,cantidadalternativa,unidadAltValidada,codigoInterno,id],(err,results)=>{
                 if(err){
                     console.error('Error ejecutando la consulta:', err);
                     return res.status(500).send('Error en el servidor.');
@@ -305,11 +305,11 @@ const sqlInsert = `INSERT INTO contenedorproductohistorial (idcontenedorproducto
                 idproducto:producto, 
                 cantidad:cantidad,
                 unidad:unidad,
-                precioporunidad:precioPorUnidad,
+                precioporunidad:precioporunidad,
                 idcolor:color,
                 itemproveedor:item_proveedor,
                 contenedor:contenedor,
-                cantidadalternativa:cantidadAlternativa,
+                cantidadalternativa:cantidadalternativa,
                 unidadalternativa:unidadAltValidada,
                 codigointerno:codigoInterno}
             let cambios = generarTextoCambios(dataAnterior, actualizado);
