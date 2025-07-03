@@ -149,8 +149,8 @@ function NuevoContenedor() {
         const unidadActual = watch('unidad');
         const cantidadActual = watch('cantidad');
         const cantidadalternativaActual = watch('cantidadalternativa');
-        const precioPorUnidadActual = watch('precioPorUnidad');
-        const itemProveedor = watch('item_proveedor');
+        const precioporunidadActual = watch('precioporunidad');
+        const item_proveedor = watch('item_proveedor');
         const unidadalternativa = watch('unidadalternativa');
         
         // Mostrar todos los datos en la consola
@@ -160,19 +160,19 @@ function NuevoContenedor() {
         console.log('Unidad Alternativa:', unidadalternativa);
         console.log('Cantidad:', cantidadActual);
         console.log('Cantidad Alternativa:', cantidadalternativaActual);
-        console.log('Precio por unidad (FOB):', precioPorUnidadActual);
-        console.log('Item proveedor:', itemProveedor);
+        console.log('Precio por unidad (FOB):', precioporunidadActual);
+        console.log('Item proveedor:', item_proveedor);
         console.log('Todos los datos del formulario:', watch());
         console.log('============================');
         
-        if (!productoActual || !unidadActual || !cantidadActual || !precioPorUnidadActual || !unidadalternativa || !cantidadalternativaActual) {
+        if (!productoActual || !unidadActual || !cantidadActual || !precioporunidadActual || !unidadalternativa || !cantidadalternativaActual) {
             alert('Todos los campos del producto son obligatorios, incluidas las cantidades en ambas unidades');
             return;
         }
 
         // Valores predeterminados para los campos requeridos por el backend
-        const cantidadBulto = 1;
-        const tipoBulto = 'CAJA';
+        const cantidadbulto = 1;
+        const tipobulto = 'CAJA';
 
         const nuevoProducto = {
             idProducto: productoActual.value.startsWith('temp-') ? null : productoActual.value,
@@ -181,10 +181,10 @@ function NuevoContenedor() {
             unidadalternativa: unidadalternativa,
             cantidad: cantidadActual,
             cantidadalternativa: cantidadalternativaActual,
-            cantidadBulto: cantidadBulto,
-            tipoBulto: tipoBulto,
-            precioPorUnidad: precioPorUnidadActual,
-            itemProveedor: itemProveedor
+            cantidadbulto: cantidadbulto,
+            tipobulto: tipobulto,
+            precioporunidad: precioporunidadActual,
+            item_proveedor: item_proveedor
         };
 
         setProductosSeleccionados((prev) => [...prev, nuevoProducto]);
@@ -195,7 +195,7 @@ function NuevoContenedor() {
         setValue('unidadalternativa', '');
         setValue('cantidad', '');
         setValue('cantidadalternativa', '');
-        setValue('precioPorUnidad', '');
+        setValue('precioporunidad', '');
         setValue('item_proveedor', '');
         setUnidadDeshabilitada(false); 
     };
@@ -410,7 +410,7 @@ function NuevoContenedor() {
                 
                 <div className='input-container'>
                     <label htmlFor='fob'>FOB:</label>
-                    <input type='number' step='any' className='input-nuevoContenedor' {...register('precioPorUnidad')} onWheel={e => e.target.blur()} /> 
+                    <input type='number' step='any' className='input-nuevoContenedor' {...register('precioporunidad')} onWheel={e => e.target.blur()} /> 
                 </div>
                 
                 <div className='input-container'>
@@ -429,7 +429,7 @@ function NuevoContenedor() {
                     <ul>
                         {productosSeleccionados.map((producto, index) => (
                             <li key={index}>
-                                {producto.nombre} - {producto.cantidad} {producto.unidad} / {producto.cantidadalternativa} {producto.unidadalternativa} - ${producto.precioPorUnidad}
+                                {producto.nombre} - {producto.cantidad} {producto.unidad} / {producto.cantidadalternativa} {producto.unidadalternativa} - ${producto.precioporunidad}
                             </li>
                         ))}
                     </ul>

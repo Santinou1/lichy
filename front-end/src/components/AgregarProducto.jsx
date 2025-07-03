@@ -8,12 +8,12 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
     const [productosOptions, setProductosOptions] = useState([]);
     const [productoSeleccionado, setProductoSeleccionado] = useState(null);
     const [cantidad, setCantidad] = useState('');
-    const [precioPorUnidad, setPrecioPorUnidad] = useState('');
+    const [precioporunidad, setPrecioporunidad] = useState('');
     const [unidad, setUnidad] = useState('');
     const [cantidadalternativa, setCantidadalternativa] = useState('');
     const [unidadalternativa, setUnidadalternativa] = useState('');
     const [unidadDeshabilitada, setUnidadDeshabilitada] = useState(false);
-    const [itemProveedor, setItemProveedor] = useState('');
+    const [item_proveedor, setItem_proveedor] = useState('');
     
     // Estados para el modal de selección de unidad
     const [mostrarModalUnidad, setMostrarModalUnidad] = useState(false);
@@ -159,7 +159,7 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
     };
 
     const onSubmit = async () => {
-        if (!productoSeleccionado || !cantidad || !precioPorUnidad || !unidad) {
+        if (!productoSeleccionado || !cantidad || !precioporunidad || !unidad) {
             alert('Por favor complete todos los campos obligatorios');
             return;
         }
@@ -169,13 +169,13 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
             producto: productoSeleccionado.value.startsWith('temp-') ? null : productoSeleccionado.value,
             nombre: productoSeleccionado.value.startsWith('temp-') ? productoSeleccionado.label : null,
             cantidad: cantidad,
-            precioPorUnidad: precioPorUnidad,
+            precioporunidad: precioporunidad,
             unidad: unidad,
             cantidadalternativa: cantidadalternativa,
             unidadalternativa: unidadalternativa,
-            item_proveedor: itemProveedor,
-            tipoBulto: productoSeleccionado.tipoBultoPredeterminado || ((unidad === 'm' || unidad === 'kg') ? 'rollos' : 'cajas'),
-            cantidadBulto: 1
+            item_proveedor: item_proveedor,
+            tipobulto: productoSeleccionado.tipoBultoPredeterminado || ((unidad === 'm' || unidad === 'kg') ? 'rollos' : 'cajas'),
+            cantidadbulto: 1
         };
         
         try {
@@ -188,9 +188,9 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
                 
                 // Limpiar los campos del formulario
                 setCantidad('');
-                setPrecioPorUnidad('');
+                setPrecioporunidad('');
                 setCantidadalternativa('');
-                setItemProveedor('');
+                setItem_proveedor('');
                 
                 // Re-aplicar el mismo producto seleccionado después de un breve retraso
                 // para asegurar que la actualización de estados se complete correctamente
@@ -270,9 +270,9 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
                 <label>Precio por unidad: <span style={{ color: 'red' }}>*</span></label>
                 <input 
                     type="number" 
-                    name='precioPorUnidad' 
-                    value={precioPorUnidad} 
-                    onChange={(e) => setPrecioPorUnidad(e.target.value)}
+                    name='precioporunidad' 
+                    value={precioporunidad} 
+                    onChange={(e) => setPrecioporunidad(e.target.value)}
                     placeholder="Ingrese precio por unidad"
                     required
                 />
@@ -295,8 +295,8 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
                 <input 
                     type="text" 
                     name='item_proveedor' 
-                    value={itemProveedor} 
-                    onChange={(e) => setItemProveedor(e.target.value)}
+                    value={item_proveedor} 
+                    onChange={(e) => setItem_proveedor(e.target.value)}
                     placeholder="Código o referencia del proveedor (opcional)"
                 />
                 
