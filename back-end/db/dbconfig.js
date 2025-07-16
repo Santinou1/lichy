@@ -13,7 +13,7 @@ const pool = mysql.createPool({
     port: '3306',
     user: 'root',
     password: 'P1r1d3gm1@',
-    database: 'lichydb'
+    database: 'lichydb1'
 });
 
 // Verificar la conexión

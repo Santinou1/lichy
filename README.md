@@ -70,7 +70,7 @@ const pool = mysql.createPool({
 ```bash
 npm run dev
 ```
-El servidor se iniciará en http://localhost:5000
+El servidor se iniciará en http://gestion.lichy.local:5000
 
 ### Instalación del Front-end
 1. Navegar al directorio del front-end:
@@ -237,7 +237,7 @@ Los permisos se asignan a cada usuario y se almacenan en formato JSON en la base
 
 ### Errores en el Front-end
 - Verificar que el back-end esté en ejecución
-- Comprobar la URL de conexión en las peticiones Axios (por defecto: http://localhost:5000)
+- Comprobar la URL de conexión en las peticiones Axios (por defecto: http://gestion.lichy.local:5000)
 - Limpiar la caché del navegador si persisten problemas
 
 ### Problemas de Autenticación
