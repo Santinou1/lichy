@@ -51,7 +51,7 @@ function Contenedores(){
     };
     
     useEffect(()=>{
-        axios.get('http://localhost:5000/api/contenedores/').then((response)=>{
+        axios.get('http://gestion.lichy.local:5000/api/contenedores/').then((response)=>{
             console.log('Contenedores recibidos:', response.data);
             const contenedoresOrdenados = ordenarContenedores(response.data);
             setData(contenedoresOrdenados);
@@ -60,13 +60,13 @@ function Contenedores(){
         }).catch((error)=>{
             console.error('Error trayendo los contenedores:', error);
         });
-        axios.get('http://localhost:5000/api/items/categorias').then((response)=>{
+        axios.get('http://gestion.lichy.local:5000/api/items/categorias').then((response)=>{
             console.log(response.data);
             setCategorias(response.data);
 
         }).catch((error)=>{ console.error('Error trayendo las categorias:', error);
         });
-        axios.get('http://localhost:5000/api/items/ubicaciones').then((response)=>{
+        axios.get('http://gestion.lichy.local:5000/api/items/ubicaciones').then((response)=>{
             console.log(response.data);
             setUbicaciones(response.data);
         }).catch((error)=>{ console.error('Error trayendo las ubicaciones:', error);

@@ -48,11 +48,11 @@ function PedidoDetalle() {
     try {
       setLoading(true);
       // Esta llamada API necesitará implementarse en el backend
-      const response = await axios.get(`http://localhost:5000/api/pedidos/${id}`);
+      const response = await axios.get(`http://gestion.lichy.local:5000/api/pedidos/${id}`);
       setPedido(response.data);
       
       // Cargar productos asociados al pedido
-      const productosResponse = await axios.get(`http://localhost:5000/api/pedidos/${id}/productos`);
+      const productosResponse = await axios.get(`http://gestion.lichy.local:5000/api/pedidos/${id}/productos`);
       setProductos(productosResponse.data);
       
       setError('');
@@ -68,7 +68,7 @@ function PedidoDetalle() {
     try {
       // Esta llamada API necesitará implementarse en el backend
       // Obtiene productos disponibles para transferir
-      const response = await axios.get('http://localhost:5000/api/contenedorProducto/disponibles');
+      const response = await axios.get('http://gestion.lichy.local:5000/api/contenedorProducto/disponibles');
       setProductosDisponibles(response.data);
     } catch (error) {
       console.error('Error al cargar productos disponibles:', error);
@@ -116,7 +116,7 @@ function PedidoDetalle() {
     
     try {
       // Esta llamada API necesitará implementarse en el backend
-      await axios.post(`http://localhost:5000/api/pedidos/${id}/productos`, {
+      await axios.post(`http://gestion.lichy.local:5000/api/pedidos/${id}/productos`, {
         idContenedorProducto: productoSeleccionado,
         cantidadTransferir: cantidadTransferir,
         cantidadAlternativaTransferir: cantidadAlternativaTransferir,
@@ -147,7 +147,7 @@ function PedidoDetalle() {
     
     try {
       // Esta llamada API necesitará implementarse en el backend
-      await axios.delete(`http://localhost:5000/api/pedidos/${id}/productos/${idProductoPedido}`);
+      await axios.delete(`http://gestion.lichy.local:5000/api/pedidos/${id}/productos/${idProductoPedido}`);
       
       // Recargar datos del pedido
       cargarDatosPedido();
@@ -241,7 +241,7 @@ function PedidoDetalle() {
     
     try {
       // Llamada API con el contenedor destino, comentario y productos editados
-      await axios.put(`http://localhost:5000/api/pedidos/${id}/completar`, {
+      await axios.put(`http://gestion.lichy.local:5000/api/pedidos/${id}/completar`, {
         usuarioModificacion: user.idUsuario,
         contenedorDestino: contenedorDestino,
         comentario: comentarioCompletado,

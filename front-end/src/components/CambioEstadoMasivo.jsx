@@ -16,8 +16,8 @@ function CambioEstadoMasivo({ isOpen, onRequestClose, productos, contenedor, onS
     const cargarDatos = async () => {
       try {
         const [ubicacionesRes, estadosRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/items/ubicaciones'),
-          axios.get('http://localhost:5000/api/items/categorias')
+          axios.get('http://gestion.lichy.local:5000/api/items/ubicaciones'),
+          axios.get('http://gestion.lichy.local:5000/api/items/categorias')
         ]);
         setUbicaciones(ubicacionesRes.data);
         setEstados(estadosRes.data);
@@ -94,7 +94,7 @@ function CambioEstadoMasivo({ isOpen, onRequestClose, productos, contenedor, onS
         }));
 
       // Enviar la petición al servidor
-      const response = await axios.post('http://localhost:5000/api/contenedorProducto/cambio-estado-masivo', {
+      const response = await axios.post('http://gestion.lichy.local:5000/api/contenedorProducto/cambio-estado-masivo', {
         contenedor,
         destino,
         comentario,

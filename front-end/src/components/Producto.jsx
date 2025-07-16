@@ -100,7 +100,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
             }
             
             // Enviar petición para crear el color
-            const response = await axios.post('http://localhost:5000/api/items/color', {
+            const response = await axios.post('http://gestion.lichy.local:5000/api/items/color', {
                 nombre: nuevoColor.nombre,
                 codigoInterno: nuevoColor.codigoInterno
             });
@@ -174,7 +174,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                 console.log('Eliminando producto:', productoActualizado.idContenedorProductos);
                 
                 // Realizar la solicitud de eliminación
-                const response = await fetch(`http://localhost:5000/api/ContenedorProducto/${productoActualizado.idContenedorProductos}`, {
+                const response = await fetch(`http://gestion.lichy.local:5000/api/ContenedorProducto/${productoActualizado.idContenedorProductos}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -193,7 +193,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
                 
                 // Actualizar la lista de productos
                 if (onActualizar) {
-                    const productosResponse = await axios.get(`http://localhost:5000/api/contenedorProducto/${contenedor}`);
+                    const productosResponse = await axios.get(`http://gestion.lichy.local:5000/api/contenedorProducto/${contenedor}`);
                     onActualizar(productosResponse.data);
                 }
             } catch (error) {
@@ -210,7 +210,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
 
         // Si hay una función para actualizar la lista principal, la llamamos
         if (onActualizar) {
-            axios.get(`http://localhost:5000/api/contenedorProducto/${contenedor}`)
+            axios.get(`http://gestion.lichy.local:5000/api/contenedorProducto/${contenedor}`)
                 .then(response => {
                     onActualizar(response.data);
                 })
@@ -261,12 +261,12 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
         console.log('coloresAsignados:', coloresAsignados)
 
         try {
-            const response = await axios.put(`http://localhost:5000/api/contenedorProducto/${producto.idContenedorProductos}`, datosActualizados);
+            const response = await axios.put(`http://gestion.lichy.local:5000/api/contenedorProducto/${producto.idContenedorProductos}`, datosActualizados);
             console.log('Respuesta del backend:', response.data);
             
             // Si hay una función para actualizar la lista principal, la llamamos
             if (onActualizar) {
-                const response = await axios.get(`http://localhost:5000/api/contenedorProducto/${contenedor}`);
+                const response = await axios.get(`http://gestion.lichy.local:5000/api/contenedorProducto/${contenedor}`);
                 onActualizar(response.data);
             }
             
@@ -476,11 +476,11 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
         console.log('Enviando datos actualizados:', datosActualizados);
         
         try {
-            await axios.put(`http://localhost:5000/api/contenedorProducto/${producto.idContenedorProductos}`, datosActualizados);
+            await axios.put(`http://gestion.lichy.local:5000/api/contenedorProducto/${producto.idContenedorProductos}`, datosActualizados);
             
             // Actualizar la lista de productos
             if (onActualizar) {
-                const response = await axios.get(`http://localhost:5000/api/contenedorProducto/${contenedor}`);
+                const response = await axios.get(`http://gestion.lichy.local:5000/api/contenedorProducto/${contenedor}`);
                 onActualizar(response.data);
             }
             
@@ -498,7 +498,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
     const fetchColores = async () => {
         try {
             console.log('Obteniendo colores...');
-            const response = await axios.get('http://localhost:5000/api/items/color');
+            const response = await axios.get('http://gestion.lichy.local:5000/api/items/color');
             console.log('Colores obtenidos:', response.data);
             setColores(response.data);
         } catch (error) {
@@ -509,7 +509,7 @@ function Producto({ user, producto, onActualizar, contenedor, modoEdicionLotes, 
     // Obtener productos disponibles
     const fetchProductos = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/items/producto');
+            const response = await axios.get('http://gestion.lichy.local:5000/api/items/producto');
             setProductos(response.data);
         } catch (error) {
             console.error('Error al obtener productos:', error);
@@ -890,7 +890,7 @@ useEffect(() => {
                                 setMostrarConfirmacionEliminar(false);
                                 
                                 // Actualizar la lista de productos
-                                axios.get(`http://localhost:5000/api/contenedorProducto/${contenedor}`)
+                                axios.get(`http://gestion.lichy.local:5000/api/contenedorProducto/${contenedor}`)
                                     .then(response => {
                                         // Actualizar la lista de productos en el componente padre
                                         onActualizar(response.data);
@@ -918,7 +918,7 @@ useEffect(() => {
                         // Actualizar el estado local con los datos actualizados
                         if (onActualizar && typeof onActualizar === 'function') {
                             // Fetch the updated product list from the server
-                            axios.get(`http://localhost:5000/api/contenedorProducto/${contenedor}`)
+                            axios.get(`http://gestion.lichy.local:5000/api/contenedorProducto/${contenedor}`)
                                 .then(response => {
                                     // Update the product list in the parent component
                                     onActualizar(response.data);

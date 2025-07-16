@@ -41,8 +41,8 @@ function Pedidos() {
   const cargarPedidos = async () => {
     try {
       setLoading(true);
-      console.log('Intentando cargar pedidos desde:', 'http://localhost:5000/api/pedidos');
-      const response = await axios.get('http://localhost:5000/api/pedidos');
+      console.log('Intentando cargar pedidos desde:', 'http://gestion.lichy.local:5000/api/pedidos');
+      const response = await axios.get('http://gestion.lichy.local:5000/api/pedidos');
       console.log('Datos de pedidos recibidos:', response.data);
       setPedidos(response.data);
       setError('');

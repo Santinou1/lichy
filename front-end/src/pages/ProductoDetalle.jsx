@@ -33,12 +33,12 @@ function ProductoDetalle() {
         const fetchData = async () => {
             try {
                 const [cantidadColorRes, productoRes, cantidadContenedorRes, cantidadTotalRes, estadosRes, ubicacionesRes] = await Promise.all([
-                    axios.get(`http://localhost:5000/api/producto/cantidad-por-color/${producto}`),
-                    axios.get(`http://localhost:5000/api/items/producto/${producto}`),
-                    axios.get(`http://localhost:5000/api/producto/cantidad-por-contenedor/${producto}`),
-                    axios.get(`http://localhost:5000/api/producto/cantidad-total/${producto}`),
-                    axios.get('http://localhost:5000/api/items/categorias'),
-                    axios.get('http://localhost:5000/api/items/ubicaciones')
+                    axios.get(`http://gestion.lichy.local:5000/api/producto/cantidad-por-color/${producto}`),
+                    axios.get(`http://gestion.lichy.local:5000/api/items/producto/${producto}`),
+                    axios.get(`http://gestion.lichy.local:5000/api/producto/cantidad-por-contenedor/${producto}`),
+                    axios.get(`http://gestion.lichy.local:5000/api/producto/cantidad-total/${producto}`),
+                    axios.get('http://gestion.lichy.local:5000/api/items/categorias'),
+                    axios.get('http://gestion.lichy.local:5000/api/items/ubicaciones')
                 ]);
 
                 const cantidadPorColorNombres = await obtenerColoresConNombres(cantidadColorRes.data);
@@ -73,7 +73,7 @@ function ProductoDetalle() {
             }
 
             if (filtroTipo && filtroTipo !== 'color') {
-                const response = await axios.get(`http://localhost:5000/api/producto/cantidad-filtro/${producto}`, {
+                const response = await axios.get(`http://gestion.lichy.local:5000/api/producto/cantidad-filtro/${producto}`, {
                     headers: {
                         'x-filtro': filtroTipo,
                         'x-estado-o-ubicacion': filtroValor
@@ -91,7 +91,7 @@ function ProductoDetalle() {
                 setUbicacionSeleccionada('');
 
                 // Obtener todos los datos sin filtrar
-                const response = await axios.get(`http://localhost:5000/api/producto/cantidad-por-color/${producto}`);
+                const response = await axios.get(`http://gestion.lichy.local:5000/api/producto/cantidad-por-color/${producto}`);
                 const cantidadPorColorNombre = await obtenerColoresConNombres(response.data);
                 setCantidadPorColor(cantidadPorColorNombre);
                 setMostrarColumnas(false);
@@ -110,7 +110,7 @@ function ProductoDetalle() {
         e.preventDefault();
 
         try {
-            const response = await axios.put(`http://localhost:5000/api/items/producto/${producto}`, formData);
+            const response = await axios.put(`http://gestion.lichy.local:5000/api/items/producto/${producto}`, formData);
             setMensaje({ texto: 'Producto actualizado con éxito', tipo: 'exito' });
             setGetProducto(response.data);
 

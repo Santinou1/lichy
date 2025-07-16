@@ -73,7 +73,7 @@ function ContendorDetalle({user}){
         try {
             // Crear un array de promesas para todas las actualizaciones
             const promesas = Object.entries(productosEditados).map(([idProducto, cambios]) => {
-                return axios.put(`http://localhost:5000/api/contenedorProducto/${idProducto}`, {
+                return axios.put(`http://gestion.lichy.local:5000/api/contenedorProducto/${idProducto}`, {
                     ...cambios,
                     contenedor: id,
                     // Incluir los datos necesarios para el historial
@@ -97,7 +97,7 @@ function ContendorDetalle({user}){
             await Promise.all(promesas);
             
             // Actualizar la lista de productos
-            const response = await axios.get(`http://localhost:5000/api/contenedorProducto/${id}`);
+            const response = await axios.get(`http://gestion.lichy.local:5000/api/contenedorProducto/${id}`);
             setProductos(response.data);
             
             // Salir del modo edición por lotes
@@ -144,7 +144,7 @@ function ContendorDetalle({user}){
         console.log('Cambio de estado exitoso:', resultado);
         setMensajeExito('Cambio de estado masivo realizado con éxito.');
         // Recargar los productos para reflejar los cambios
-        axios.get(`http://localhost:5000/api/contenedorProducto/contenedor/${id}`)
+        axios.get(`http://gestion.lichy.local:5000/api/contenedorProducto/contenedor/${id}`)
             .then(res => {
                 setProductos(res.data);
                 // Limpiar el mensaje después de 3 segundos
@@ -155,11 +155,11 @@ function ContendorDetalle({user}){
 
     useEffect(()=>{
         console.log(id)
-        axios.get(`http://localhost:5000/api/contenedores/contenedor-detalle/${id}`).then((response)=>{
+        axios.get(`http://gestion.lichy.local:5000/api/contenedores/contenedor-detalle/${id}`).then((response)=>{
             setData(response.data[0]);
             console.log(response.data);
         });
-        axios.get(`http://localhost:5000/api/contenedorEstado/${id}`).then((response)=>{
+        axios.get(`http://gestion.lichy.local:5000/api/contenedorEstado/${id}`).then((response)=>{
             console.log(response.data); 
             setHistorial(response.data);
             
@@ -170,7 +170,7 @@ function ContendorDetalle({user}){
                 setFechaCreacionOriginal(ultimoEstado.fechaHora);
             }
         });
-        axios.get(`http://localhost:5000/api/contenedorProducto/${id}`).then((response)=>{
+        axios.get(`http://gestion.lichy.local:5000/api/contenedorProducto/${id}`).then((response)=>{
             setProductos(response.data);
         });
 

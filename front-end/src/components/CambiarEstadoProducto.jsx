@@ -19,7 +19,7 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
   // Cargar los pedidos pendientes al iniciar
   useEffect(() => {
     // Obtener pedidos pendientes
-    axios.get('http://localhost:5000/api/pedidos?estado=Pendiente')
+    axios.get('http://gestion.lichy.local:5000/api/pedidos?estado=Pendiente')
       .then(response => {
         if (response.data && response.data.length > 0) {
           setPedidosPendientes(response.data);
@@ -78,7 +78,7 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
       // Determinar si crear un nuevo pedido o usar uno existente
       if (destino === 'nuevo_pedido') {
         // Crear un nuevo pedido
-        const nuevoPedidoResponse = await axios.post('http://localhost:5000/api/pedidos', {
+        const nuevoPedidoResponse = await axios.post('http://gestion.lichy.local:5000/api/pedidos', {
           usuarioCreacion: user.idUsuario,
           observaciones: `Pedido creado desde cambio de estado de producto: ${producto.nombre}`
         });
@@ -95,7 +95,7 @@ function CambiarEstadoProducto({ producto, onEstadoCambiado, onClose }) {
       }
       
       // Agregar el producto al pedido
-      await axios.post(`http://localhost:5000/api/pedidos/${idPedido}/productos`, {
+      await axios.post(`http://gestion.lichy.local:5000/api/pedidos/${idPedido}/productos`, {
         idContenedorProducto: producto.idContenedorProductos,
         cantidadTransferir: cantidadTransferir,
         cantidadAlternativaTransferir: cantidadAlternativaTransferir || 0,

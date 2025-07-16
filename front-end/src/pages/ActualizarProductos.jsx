@@ -67,7 +67,7 @@ function ActualizarProductos() {
     };
 
     useEffect(() => {
-        axios.get(`http://localhost:5000/api/contenedorProducto/producto/${id}`).then((response) => {
+        axios.get(`http://gestion.lichy.local:5000/api/contenedorProducto/producto/${id}`).then((response) => {
             console.log(response.data);
             setContendorProducto(response.data[0]);
             setDataAnterior(response.data[0]);
@@ -77,7 +77,7 @@ function ActualizarProductos() {
             console.error('Error obteniendo los datos:', error);
         });
         
-        axios.get('http://localhost:5000/api/items/color').then((response) => {
+        axios.get('http://gestion.lichy.local:5000/api/items/color').then((response) => {
             setColores(response.data);
             
             // Formatear los colores para react-select
@@ -91,7 +91,7 @@ function ActualizarProductos() {
             console.error("Error trayendo colores:", error);
         });
         
-        axios.get('http://localhost:5000/api/items/producto').then((response) => {
+        axios.get('http://gestion.lichy.local:5000/api/items/producto').then((response) => {
             setProductos(response.data);
         });
     }, []);
@@ -201,7 +201,7 @@ function ActualizarProductos() {
                 }
             }
             
-            const response = await axios.put(`http://localhost:5000/api/contenedorProducto/${contenedorProducto?.idContenedorProductos}`, datosActualizados);
+            const response = await axios.put(`http://gestion.lichy.local:5000/api/contenedorProducto/${contenedorProducto?.idContenedorProductos}`, datosActualizados);
             if (response.status === 200) {
                 console.log(response.data);
                 volver();
@@ -290,7 +290,7 @@ function ActualizarProductos() {
                                     onColorCreated={handleColorCreated}
                                     onDistribucionGuardada={(data) => {
                                         // Fetch updated data before redirecting
-                                        axios.get(`http://localhost:5000/api/contenedorProducto/${contenedorProducto.contenedor}`)
+                                        axios.get(`http://gestion.lichy.local:5000/api/contenedorProducto/${contenedorProducto.contenedor}`)
                                             .then(response => {
                                                 // Ensure data is refreshed in the parent component
                                                 // Then redirect to the container detail page

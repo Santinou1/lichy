@@ -19,7 +19,7 @@ function NuevoContenedor() {
     
     // Cargar datos iniciales
     useEffect(() => {
-        axios.get('http://localhost:5000/api/items/proveedor')
+        axios.get('http://gestion.lichy.local:5000/api/items/proveedor')
             .then((response) => {
                 setProveedores(response.data);
                 // Formatear los proveedores para react-select
@@ -33,7 +33,7 @@ function NuevoContenedor() {
                 console.error('Error trayendo los proveedores:', error);
             });
 
-        axios.get('http://localhost:5000/api/items/producto')
+        axios.get('http://gestion.lichy.local:5000/api/items/producto')
             .then((response) => {
                 console.log('Productos cargados del servidor:', response.data);
                 const formattedProducts = response.data.map((item) => {
@@ -56,7 +56,7 @@ function NuevoContenedor() {
     const handleCreateProveedor = async (inputValue) => {
         try {
             // Crear el proveedor en la base de datos
-            const response = await axios.post('http://localhost:5000/api/items/proveedor', {
+            const response = await axios.post('http://gestion.lichy.local:5000/api/items/proveedor', {
                 nombre: inputValue
             });
             
@@ -102,7 +102,7 @@ function NuevoContenedor() {
         
         try {
             // Crear el producto en la base de datos
-            const response = await axios.post('http://localhost:5000/api/items/producto', {
+            const response = await axios.post('http://gestion.lichy.local:5000/api/items/producto', {
                 nombre: inputValue,
                 unidadPredeterminada: unidad
             });
@@ -245,7 +245,7 @@ function NuevoContenedor() {
                 if (!producto.idProducto) {
                     try {
                         // Crear el producto en la base de datos
-                        const response = await axios.post('http://localhost:5000/api/items/producto', {
+                        const response = await axios.post('http://gestion.lichy.local:5000/api/items/producto', {
                             nombre: producto.nombre,
                             unidadPredeterminada: producto.unidad
                         });
@@ -269,7 +269,7 @@ function NuevoContenedor() {
             let proveedorId = data.proveedor.value;
             if (proveedorId.startsWith('temp-')) {
                 try {
-                    const response = await axios.post('http://localhost:5000/api/items/proveedor', {
+                    const response = await axios.post('http://gestion.lichy.local:5000/api/items/proveedor', {
                         nombre: data.proveedor.label
                     });
                     
@@ -293,7 +293,7 @@ function NuevoContenedor() {
                 productos: productosActualizados,
             };
             
-            await axios.post('http://localhost:5000/api/contenedores', dataConUser);
+            await axios.post('http://gestion.lichy.local:5000/api/contenedores', dataConUser);
             setRedirigir(true);
         } catch (error) {
             console.error('Error al enviar el formulario:', error);

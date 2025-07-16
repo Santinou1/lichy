@@ -23,7 +23,7 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
     const [nuevoProductoCodigo, setNuevoProductoCodigo] = useState('');
 
     useEffect(() => {
-        axios.get('http://localhost:5000/api/items/producto').then((response) => {
+        axios.get('http://gestion.lichy.local:5000/api/items/producto').then((response) => {
             // Formatear los productos para react-select
             const formattedProducts = response.data.map((item) => ({
                 value: item.idProducto.toString(),
@@ -90,7 +90,7 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
         
         try {
             // Crear el producto en la base de datos
-            const response = await axios.post('http://localhost:5000/api/items/producto', {
+            const response = await axios.post('http://gestion.lichy.local:5000/api/items/producto', {
                 nombre: inputValue,
                 unidadPredeterminada: unidadValue,
                 tipoBultoPredeterminado: tipoBulto,
@@ -205,7 +205,7 @@ function agregarProducto({ setAgregarProducto, contenedor, actualizarLista }) {
         };
         
         try {
-            const response = await axios.post('http://localhost:5000/api/contenedorProducto', datos);
+            const response = await axios.post('http://gestion.lichy.local:5000/api/contenedorProducto', datos);
             if (response.status === 200) {
                 alert('Producto agregado correctamente');
                 

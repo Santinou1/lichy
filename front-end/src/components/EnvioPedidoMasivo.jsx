@@ -88,7 +88,7 @@ function EnvioPedidoMasivo({ isOpen, onRequestClose, productos, contenedor, onSu
       }
 
       // Crear un nuevo pedido automáticamente
-      const nuevoPedidoResponse = await axios.post('http://localhost:5000/api/pedidos', {
+      const nuevoPedidoResponse = await axios.post('http://gestion.lichy.local:5000/api/pedidos', {
         usuarioCreacion: user.idUsuario,
         observaciones: comentario || `Productos enviados desde contenedor #${contenedor}`
       });
@@ -113,7 +113,7 @@ function EnvioPedidoMasivo({ isOpen, onRequestClose, productos, contenedor, onSu
 
       const resultados = await Promise.all(
         productosParaAgregar.map(producto =>
-          axios.post(`http://localhost:5000/api/pedidos/${idPedido}/productos`, producto)
+          axios.post(`http://gestion.lichy.local:5000/api/pedidos/${idPedido}/productos`, producto)
         )
       );
 

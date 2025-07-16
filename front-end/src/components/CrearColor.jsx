@@ -20,7 +20,7 @@ function CrearColor({ onColorCreated }) {
         setError('');
 
         try {
-            const response = await axios.post('http://localhost:5000/api/items/color', { 
+            const response = await axios.post('http://gestion.lichy.local:5000/api/items/color', { 
                 nombre, 
                 codigoInterno 
             });

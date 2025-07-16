@@ -14,14 +14,14 @@ function ActualizarEstado({setHistorial, contenedor, actualizarEstado,estad,ubic
     const [ubicaciones, setUbicaciones] = useState(null);
     const [autoSeleccionarUbicacion, setAutoSeleccionarUbicacion] = useState(false);
     useEffect(()=>{
-        axios.get('http://localhost:5000/api/items/categorias').then((response)=>{
+        axios.get('http://gestion.lichy.local:5000/api/items/categorias').then((response)=>{
             console.log(response.data);
             setEstados(response.data);
 
         })
     },[]);
     useEffect(()=>{
-        axios.post('http://localhost:5000/api/items/ubicaciones',{estado: estado}).then((response)=>{
+        axios.post('http://gestion.lichy.local:5000/api/items/ubicaciones',{estado: estado}).then((response)=>{
             console.log(response.data);
             setUbicaciones(response.data);
             
@@ -45,7 +45,7 @@ function ActualizarEstado({setHistorial, contenedor, actualizarEstado,estad,ubic
         // Si no se ha especificado una fecha, usar la fecha actual
         const fechaAEnviar = fechaManual || fechaActual;
         
-        axios.post('http://localhost:5000/api/contenedorEstado/',{contenedor,ubicacion,estado,fechaManual: fechaAEnviar}).then((response)=>{
+        axios.post('http://gestion.lichy.local:5000/api/contenedorEstado/',{contenedor,ubicacion,estado,fechaManual: fechaAEnviar}).then((response)=>{
             setHistorial(response.data);
             actualizarEstado(estado);
         }).catch((error)=>{

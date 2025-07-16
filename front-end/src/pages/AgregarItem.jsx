@@ -68,7 +68,7 @@ function AgregarItem() {
     }, [unidadPredeterminada]);
 
     const fetchItems = () => {
-        axios.get(`http://localhost:5000/api/items/${item}`)
+        axios.get(`http://gestion.lichy.local:5000/api/items/${item}`)
             .then((response) => {
                 console.log('Datos recibidos:', response.data);
                 // Asegurarse de que todos los campos necesarios estén definidos
@@ -136,7 +136,7 @@ function AgregarItem() {
             
             console.log('Datos de actualización a enviar:', dataToUpdate);
             
-            axios.put(`http://localhost:5000/api/items/${item}/${editingId}`, dataToUpdate)
+            axios.put(`http://gestion.lichy.local:5000/api/items/${item}/${editingId}`, dataToUpdate)
             .then((response) => {
                 console.log('Respuesta del servidor (actualización):', response.data);
                 if (response.status === 200) {
@@ -185,9 +185,9 @@ function AgregarItem() {
             }
             
             console.log('Enviando datos al servidor:', dataToSend);
-            console.log('URL:', `http://localhost:5000/api/items/${item}`);
+            console.log('URL:', `http://gestion.lichy.local:5000/api/items/${item}`);
             
-            axios.post(`http://localhost:5000/api/items/${item}`, dataToSend)
+            axios.post(`http://gestion.lichy.local:5000/api/items/${item}`, dataToSend)
             .then((response) => {
                 console.log('Respuesta del servidor:', response.data);
                 if (response.status === 200) {

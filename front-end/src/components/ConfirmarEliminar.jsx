@@ -36,7 +36,7 @@ function ConfirmarEliminar({id,tipo,actualizarLista,usuario,motivo,contenedor}){
                     throw new Error('ID no definido. No se puede eliminar el elemento.');
                 }
                 
-                const response = await fetch(`http://localhost:5000/api/${ruta}/${id}`, {
+                const response = await fetch(`http://gestion.lichy.local:5000/api/${ruta}/${id}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',

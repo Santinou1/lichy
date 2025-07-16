@@ -28,7 +28,7 @@ function Facturacion() {
     try {
       setLoading(true);
       // Esta llamada API necesitará implementarse en el backend
-      const response = await axios.get('http://localhost:5000/api/facturas');
+      const response = await axios.get('http://gestion.lichy.local:5000/api/facturas');
       setFacturas(response.data);
       setError('');
     } catch (error) {
@@ -43,7 +43,7 @@ function Facturacion() {
     try {
       // Esta llamada API necesitará implementarse en el backend
       // Obtener pedidos completados que no tengan factura asociada
-      const response = await axios.get('http://localhost:5000/api/pedidos/completados-sin-factura');
+      const response = await axios.get('http://gestion.lichy.local:5000/api/pedidos/completados-sin-factura');
       setPedidosDisponibles(response.data);
     } catch (error) {
       console.error('Error al cargar pedidos disponibles:', error);
@@ -70,7 +70,7 @@ function Facturacion() {
     
     try {
       // Esta llamada API necesitará implementarse en el backend
-      await axios.post('http://localhost:5000/api/facturas', {
+      await axios.post('http://gestion.lichy.local:5000/api/facturas', {
         idPedido: pedidoSeleccionado,
         numeroFactura,
         fechaFactura,

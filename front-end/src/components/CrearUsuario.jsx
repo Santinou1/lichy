@@ -19,10 +19,10 @@ function CrearUsuario({ setUsuarios }) {
         e.preventDefault();
         const dataToSend = { ...formData, permisos };
         axios
-            .post("http://localhost:5000/api/usuarios/agregar", dataToSend)
+            .post("http://gestion.lichy.local:5000/api/usuarios/agregar", dataToSend)
             .then(() => {
                 alert("Usuario creado exitosamente");
-                axios.get("http://localhost:5000/api/usuarios/test")
+                axios.get("http://gestion.lichy.local:5000/api/usuarios/test")
                     .then((response) => {
                         setUsuarios(response.data);
                     });
